@@ -9,8 +9,7 @@ from __future__ import annotations
 from collections.abc import Sequence
 from typing import ClassVar
 
-from flext_cli import c
-from tests import t
+from flext_cli import c, t
 
 
 class TestsFlextCliConstantsYamlOutput:

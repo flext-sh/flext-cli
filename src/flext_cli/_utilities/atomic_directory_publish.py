@@ -9,19 +9,18 @@ from __future__ import annotations
 import errno
 import os
 from pathlib import Path
-from typing import TYPE_CHECKING, Never
+from typing import Never
 
+from flext_cli import p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectoryModel,
     FlextCliUtilitiesAtomicDirectoryState,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicFilePath,
 )
-
-if TYPE_CHECKING:
-    from flext_cli import m
 
 
 class FlextCliUtilitiesAtomicDirectoryPublish:
@@ -29,9 +28,9 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
 
     @staticmethod
     def publish_guarded_staged_empty_directory(
-        destination_before: m.Cli.AtomicDirectoryState,
-        staged: m.Cli.AtomicDirectoryState,
-    ) -> m.Cli.AtomicDirectoryState:
+        destination_before: p.Cli.AtomicDirectoryState,
+        staged: p.Cli.AtomicDirectoryState,
+    ) -> p.Cli.AtomicDirectoryState:
         """Move one exact empty directory into an exact absent destination.
 
         Linux uses ``renameat2(RENAME_NOREPLACE)`` so a concurrent destination can
@@ -65,22 +64,12 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
             staged_path,
             destination,
         )
-        with (
-            FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                destination,
-            ) as destination_parent,
-            FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                staged_path,
-            ) as staged_parent,
-        ):
-            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
-                destination_before,
-                destination_parent.state,
-            )
-            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
-                staged,
-                staged_parent.state,
-            )
+        with FlextCliUtilitiesAtomicFileModel.publication_parents(
+            (destination, staged_path),
+            (destination_before, staged),
+            subject="directory",
+            replace=False,
+        ) as (destination_parent, staged_parent):
             FlextCliUtilitiesAtomicDirectoryPublish._require_destination_absent(
                 destination_before,
                 destination_parent,
@@ -141,11 +130,11 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
 
     @staticmethod
     def _require_destination_absent(
-        planned: m.Cli.AtomicDirectoryState,
+        planned: p.Cli.AtomicDirectoryState,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
     ) -> None:
-        observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        observed = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             path,
             parent=parent,
         )
@@ -156,11 +145,11 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
 
     @staticmethod
     def _authenticated_staged(
-        planned: m.Cli.AtomicDirectoryState,
+        planned: p.Cli.AtomicDirectoryState,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
     ) -> os.stat_result:
-        observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        observed = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             path,
             parent=parent,
         )
@@ -198,10 +187,10 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         destination: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         staged_path: Path,
-        staged: m.Cli.AtomicDirectoryState,
-    ) -> m.Cli.AtomicDirectoryState:
+        staged: p.Cli.AtomicDirectoryState,
+    ) -> p.Cli.AtomicDirectoryState:
         if (
-            FlextCliUtilitiesAtomicDirectoryState.destination_state(
+            FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
                 staged_path,
                 parent=staged_parent,
             )
@@ -209,7 +198,7 @@ class FlextCliUtilitiesAtomicDirectoryPublish:
         ):
             message = f"staged directory name exists after publication: {staged_path}"
             raise OSError(errno.ESTALE, message, staged_path)
-        observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        observed = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             destination,
             parent=destination_parent,
         )

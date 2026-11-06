@@ -7,33 +7,32 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import errno
-from typing import TYPE_CHECKING
 
+from flext_cli import p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectoryModel,
     FlextCliUtilitiesAtomicDirectoryState,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
+    FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileRead,
 )
-
-if TYPE_CHECKING:
-    from flext_cli import m
 
 
 class FlextCliUtilitiesAtomicDirectoryDelete:
     """Canonical namespace owner."""
 
     @staticmethod
-    def remove_guarded_empty_directory(state: m.Cli.AtomicDirectoryState) -> None:
+    def remove_guarded_empty_directory(state: p.Cli.AtomicDirectoryState) -> None:
         """Remove the exact empty-directory version authorized by the caller.
 
         Raises:
             OSError: If ``observed is None``; or if ``current is None or
             file_read.state_key(current) != file_read.state_key(authenticated)``; or if
-            ``directory_state.destination_state(path, parent=parent) is not None``.
+            ``directory_state.directory_destination_state(path, parent=parent)
+            is not None``.
 
         """
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(state.path)
@@ -42,12 +41,14 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
         )
         FlextCliUtilitiesAtomicDirectoryDescriptor.require_delete_capabilities(path)
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
-            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
-                state, parent.state
+            FlextCliUtilitiesAtomicFileModel.require_parent(
+                state, parent.state, subject="directory"
             )
-            observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-                path,
-                parent=parent,
+            observed = (
+                FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
+                    path,
+                    parent=parent,
+                )
             )
             FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
                 state, observed
@@ -63,7 +64,7 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
             FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
                 state, authenticated
             )
-            current = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+            current = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
                 path,
                 parent=parent,
             )
@@ -80,7 +81,7 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
             FlextCliUtilitiesAtomicDirectoryDescriptor.remove_entry(parent, path)
             FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             if (
-                FlextCliUtilitiesAtomicDirectoryState.destination_state(
+                FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
                     path,
                     parent=parent,
                 )

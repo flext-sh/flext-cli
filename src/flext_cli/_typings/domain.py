@@ -9,15 +9,22 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from inspect import Parameter
 from pathlib import Path
+from typing import TYPE_CHECKING
 
 from flext_core import p, t
 from ruamel.yaml.comments import CommentedMap, CommentedSeq
+from ruamel.yaml.tokens import CommentToken
 from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c
+from flext_cli._constants.enums import FlextCliConstantsEnums
 from flext_cli._typings import FlextCliTypesBase
+
+if TYPE_CHECKING:
+    from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
+    from openpyxl.formatting.formatting import ConditionalFormatting
+    from openpyxl.formatting.rule import Rule
 
 
 class FlextCliTypesDomain:
@@ -34,6 +41,14 @@ class FlextCliTypesDomain:
     type YamlValue = YamlScalar | YamlCollection
     type YamlNode = CommentedMap | CommentedSeq | YamlScalar
     type YamlSequence = CommentedSeq | list[YamlValue]
+    type YamlCommentSlot = CommentToken | list[CommentToken] | None
+    """One ruamel ``Comment`` slot: a token, a token list, or empty."""
+    type XlsxConditionalFormatting = ConditionalFormatting
+    """openpyxl conditional-format range entry (registry key)."""
+    type XlsxConditionalFormatRule = Rule
+    """openpyxl conditional-format rule registered over one range."""
+    type DocxParagraphAlignment = WD_PARAGRAPH_ALIGNMENT
+    """python-docx paragraph alignment enumeration member."""
 
     type ResultValue = t.JsonPayload
     type RuleDefinitions = Sequence[t.JsonMapping]
@@ -67,9 +82,9 @@ class FlextCliTypesDomain:
     type ProjectNamesValue = str | Sequence[str]
     type TableHeaders = str | Sequence[str]
     type IntTextValue = int | str
-    type MessageType = c.Cli.MessageTypes
+    type MessageType = FlextCliConstantsEnums.MessageTypes
     type CommandParameter = Parameter
-    type ModelLike = t.BaseModel
+    type ModelLike = t.BaseModelType
     type OptionRegistry = Mapping[str, Mapping[str, t.Scalar | Sequence[str]]]
     type NullaryOperation[T] = Callable[[], T]
     type PromptTextReader = Callable[[str], str]
@@ -99,7 +114,7 @@ class FlextCliTypesDomain:
         | t.JsonMapping
         | t.JsonPayload
     )
-    type TypeKind = c.Cli.TypeKind
+    type TypeKind = FlextCliConstantsEnums.TypeKind
     type TypedExtractValue = str | bool | t.JsonMapping
     type TableDataSource = FlextCliTypesBase.TabularData | Sequence[t.JsonMapping]
     type TextPath = str | Path

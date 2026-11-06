@@ -12,10 +12,8 @@ from typing import Annotated, ClassVar, Self
 
 from flext_core import m
 
-from flext_cli import t
+from flext_cli import p, t
 from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
-from flext_cli._models._base.flextclimodelsbase_part_08 import FlextCliModelsBasePart08
-from flext_cli._models._base.flextclimodelsbase_part_09 import FlextCliModelsBasePart09
 
 
 class FlextCliModelsBasePart10:
@@ -28,21 +26,17 @@ class FlextCliModelsBasePart10:
         one instance and discards it when the boundary ends.
         """
 
-        directories: MutableMapping[
-            Path, FlextCliModelsBasePart09.AtomicDirectoryInventory
-        ] = m.Field(
-            default_factory=dict[
-                Path, FlextCliModelsBasePart09.AtomicDirectoryInventory
-            ],
-            description="One physical directory inventory per observed path",
+        directories: MutableMapping[Path, t.Port[p.Cli.AtomicDirectoryInventory]] = (
+            m.Field(
+                default_factory=dict[Path, t.Port[p.Cli.AtomicDirectoryInventory]],
+                description="One physical directory inventory per observed path",
+            )
         )
-        topology: MutableMapping[
-            Path, FlextCliModelsBasePart08.AtomicDirectoryChainPlan
-        ] = m.Field(
-            default_factory=dict[
-                Path, FlextCliModelsBasePart08.AtomicDirectoryChainPlan
-            ],
-            description="One ancestry plan per observed target",
+        topology: MutableMapping[Path, t.Port[p.Cli.AtomicDirectoryChainPlan]] = (
+            m.Field(
+                default_factory=dict[Path, t.Port[p.Cli.AtomicDirectoryChainPlan]],
+                description="One ancestry plan per observed target",
+            )
         )
 
     class AtomicDirectoryQueryEffects(m.BaseModel):
@@ -64,7 +58,7 @@ class FlextCliModelsBasePart10:
     class AtomicFilePublication(m.BaseModel):
         """One guarded live state and its caller-owned staged replacement."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             frozen=True,
             arbitrary_types_allowed=True,

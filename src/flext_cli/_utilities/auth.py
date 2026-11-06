@@ -9,7 +9,9 @@ from __future__ import annotations
 from collections.abc import Mapping, MutableSequence
 from pathlib import Path
 
-from flext_cli import c, m, p, r, t
+from flext_core import r
+
+from flext_cli import c, m, p, t
 
 
 class FlextCliUtilitiesAuth:

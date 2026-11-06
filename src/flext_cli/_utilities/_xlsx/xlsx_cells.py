@@ -6,11 +6,12 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import r
 from openpyxl.cell.cell import Cell
 from openpyxl.utils.exceptions import IllegalCharacterError
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, p, t
 from flext_cli._utilities._xlsx import FlextCliUtilitiesXlsxFormulaCodec
 
 # mro-j47u (kimi): utilities consume local facades only, never private modules.
@@ -23,7 +24,7 @@ class FlextCliUtilitiesXlsxCells:
     # models until the one external cell-value assignment below; formula text
     # crosses the boundary in OOXML storage form (_xlfn. future functions).
     @staticmethod
-    def _cell_value(value: m.Cli.XlsxCellValue) -> t.Cli.XlsxCellPrimitive:
+    def _cell_value(value: p.Cli.XlsxCellValue) -> t.Cli.XlsxCellPrimitive:
         if value.kind == "blank":
             return None
         if value.kind == "formula":
@@ -34,7 +35,7 @@ class FlextCliUtilitiesXlsxCells:
     def _apply_cells(
         cls,
         worksheet: Worksheet,
-        plans: tuple[m.Cli.XlsxCellPlan, ...],
+        plans: tuple[p.Cli.XlsxCellPlan, ...],
         named_styles: frozenset[str],
     ) -> p.Result[bool]:
         try:

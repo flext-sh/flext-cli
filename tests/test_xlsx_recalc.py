@@ -9,11 +9,9 @@ from __future__ import annotations
 import shutil
 from concurrent.futures import ThreadPoolExecutor
 
-import pytest
-
 from tests import c, m, p, tm, u
 
-pytestmark = pytest.mark.skipif(
+pytestmark = c.Tests.MARK.skipif(
     shutil.which(c.Cli.XLSX_RECALC_COMMAND[0]) is None,
     reason="LibreOffice (soffice) is not installed or available on PATH",
 )
@@ -61,7 +59,7 @@ def _render_workbook() -> bytes:
         ),
         defined_names=(),
     )
-    result: p.Result[m.Cli.XlsxRenderResult] = u.Cli.xlsx_render(
+    result: p.Result[p.Cli.XlsxRenderResult] = u.Cli.xlsx_render(
         m.Cli.XlsxRenderRequest(template=None, plan=plan),
     )
     tm.that(result.success, eq=True, msg=result.error)
@@ -73,7 +71,7 @@ def _numeric_cell_value(
     source: bytes,
     sheet_name: str,
     coordinate: str,
-) -> m.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue:
+) -> p.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue:
     snapshot = u.Cli.xlsx_snapshot(
         m.Cli.XlsxSnapshotRequest(source=source, data_only=True),
     )
@@ -96,7 +94,7 @@ class TestsFlextCliXlsxRecalc:
     """Behavioral contract validated by this module."""
 
     @staticmethod
-    @pytest.mark.slow
+    @c.Tests.MARK.slow
     def test_xlsx_recalc_refreshes_formula_cache() -> None:
         """Recalculated bytes carry engine-computed cached values."""
         source = _render_workbook()
@@ -106,7 +104,7 @@ class TestsFlextCliXlsxRecalc:
         tm.that(value.value, eq=5)
 
     @staticmethod
-    @pytest.mark.slow
+    @c.Tests.MARK.slow
     def test_xlsx_recalc_parity_returns_validated_recalculated_content() -> None:
         """Public parity content carries the caches described by its evidence."""
         source = _render_workbook()
@@ -125,7 +123,7 @@ class TestsFlextCliXlsxRecalc:
         tm.that(cached_value.value, eq=5)
 
     @staticmethod
-    @pytest.mark.slow
+    @c.Tests.MARK.slow
     def test_xlsx_recalc_parity_detects_count_mismatch() -> None:
         """A wrong expected formula count flips the stored verdict."""
         source = _render_workbook()
@@ -137,7 +135,7 @@ class TestsFlextCliXlsxRecalc:
         tm.fail(report.value.ok)
 
     @staticmethod
-    @pytest.mark.slow
+    @c.Tests.MARK.slow
     def test_xlsx_recalc_supports_concurrent_public_calls() -> None:
         """Concurrent callers receive independently recalculated workbooks."""
         source = _render_workbook()

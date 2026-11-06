@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import errno
 import os
-from collections.abc import Generator
+from collections.abc import Callable, Generator
 from contextlib import contextmanager
 from dataclasses import dataclass
 from pathlib import Path
@@ -89,7 +89,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         """Require descriptor and pathname to retain the opened directory identity.
 
         Raises:
-            OSError: If ``file_path.identity(descriptor_state) != expected``; or if
+            OSError: If ``file_path.path_identity(descriptor_state) != expected``; or if
                 ``parent.ancestry[-1] != expected``.
 
         """
@@ -98,8 +98,8 @@ class FlextCliUtilitiesAtomicFileDescriptor:
             parent.path,
             descriptor_state,
         )
-        expected = FlextCliUtilitiesAtomicFilePath.identity(parent.state)
-        if FlextCliUtilitiesAtomicFilePath.identity(descriptor_state) != expected:
+        expected = FlextCliUtilitiesAtomicFilePath.path_identity(parent.state)
+        if FlextCliUtilitiesAtomicFilePath.path_identity(descriptor_state) != expected:
             message = f"atomic file parent identity changed: {parent.path}"
             raise OSError(errno.ESTALE, message, parent.path)
         if parent.ancestry[-1] != expected:
@@ -110,6 +110,38 @@ class FlextCliUtilitiesAtomicFileDescriptor:
             parent.lineage,
             parent.ancestry,
         )
+
+    @staticmethod
+    def destination_state(
+        path: Path,
+        validate: Callable[[Path, os.stat_result, ParentDescriptor], None],
+        *,
+        parent: ParentDescriptor | None = None,
+    ) -> os.stat_result | None:
+        """Read one final entry without following it, validated by its owner.
+
+        Without ``parent`` the authenticated parent is opened for this read
+        and rechecked afterward.
+
+        Returns:
+            The validated entry state, or ``None`` when the entry is absent.
+
+        """
+        if parent is None:
+            with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
+                path,
+            ) as opened:
+                state = FlextCliUtilitiesAtomicFileDescriptor.destination_state(
+                    path, validate, parent=opened
+                )
+                FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(opened)
+                return state
+        try:
+            state = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
+        except FileNotFoundError:
+            return None
+        validate(path, state, parent)
+        return state
 
     @staticmethod
     def entry_stat(parent: ParentDescriptor, path: Path) -> os.stat_result:
@@ -181,7 +213,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         os.unlink(path.name, dir_fd=parent.descriptor)
 
     @staticmethod
-    def require_create_capabilities(path: Path) -> None:
+    def require_file_create_capabilities(path: Path) -> None:
         """Require descriptor-bound no-clobber links before staging bytes.
 
         Raises:
@@ -247,9 +279,7 @@ class FlextCliUtilitiesAtomicFileDescriptor:
     @staticmethod
     def _require_capabilities(path: Path, *, replace: bool, unlink: bool) -> None:
         FlextCliUtilitiesAtomicParentDescriptor.require_traversal_capabilities(path)
-        operations: list[
-            tuple[str, object]  # ast-grep-ignore: ban-broad-annotation
-        ] = []
+        operations: list[tuple[str, object]] = []
         if replace:
             # CPython exposes ``src_dir_fd``/``dst_dir_fd`` on ``os.replace`` via
             # the same renameat primitive as ``os.rename``, but records only
@@ -288,28 +318,16 @@ class FlextCliUtilitiesAtomicFileDescriptor:
         *,
         label: str,
     ) -> None:
-        """Close one failed operation's descriptor, preserving causal close errors.
-
-        Raises:
-            BaseExceptionGroup: If atomic.
-            OSError: If ``isinstance(operation_error, Exception)``.
-
-        """
+        """Close one failed operation's descriptor, preserving causal close errors."""
         try:
             os.close(descriptor)
         except OSError as close_error:
-            message = (
-                f"atomic {label} failed ({operation_error});"
-                f" close failed ({close_error})"
+            FlextCliUtilitiesAtomicParentFailure.raise_combined_failure(
+                path,
+                operation_error,
+                (close_error,),
+                (f"atomic {label}", "descriptor close"),
             )
-            group_message = f"atomic {label} and descriptor close failed"
-            if isinstance(operation_error, Exception):
-                causes = ExceptionGroup(group_message, [operation_error, close_error])
-                raise OSError(errno.EIO, message, path) from causes
-            raise BaseExceptionGroup(
-                group_message,
-                [operation_error, close_error],
-            ) from close_error
 
 
 __all__: list[str] = ["FlextCliUtilitiesAtomicFileDescriptor"]

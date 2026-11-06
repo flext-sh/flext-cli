@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """FLEXT CLI example protocols.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
@@ -8,14 +9,31 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from examples._protocols import (
+    ExamplesFlextCliProtocolsExamplesAdvanced,
+    ExamplesFlextCliProtocolsExamplesCommon,
+    ExamplesFlextCliProtocolsExamplesDatabase,
+)
 from flext_cli import FlextCliProtocols
 
 if TYPE_CHECKING:
     from collections.abc import Callable
 
 
-class ExamplesFlextCliProtocols(FlextCliProtocols):
+class ExamplesFlextCliProtocols(
+    FlextCliProtocols,
+    ExamplesFlextCliProtocolsExamplesAdvanced,
+    ExamplesFlextCliProtocolsExamplesCommon,
+    ExamplesFlextCliProtocolsExamplesDatabase,
+):
     """Public examples protocol facade extending flext-cli protocols."""
+
+    class Examples(
+        ExamplesFlextCliProtocolsExamplesAdvanced,
+        ExamplesFlextCliProtocolsExamplesCommon,
+        ExamplesFlextCliProtocolsExamplesDatabase,
+    ):
+        """Examples namespace mirroring ``m.Examples`` structural contracts."""
 
     @runtime_checkable
     class GroupWithCommands(Protocol):

@@ -76,7 +76,7 @@ class FlextCliModelsBasePart06:
     class OptionMetadata(m.BaseModel):
         """Validated option-registry metadata for Typer option generation."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="ignore", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="ignore", frozen=True)
 
         help: Annotated[
             str,
@@ -115,10 +115,9 @@ class FlextCliModelsBasePart06:
             t.Cli.CliValue | None,
             m.Field(None, description="Validated optional default value"),
         ] = None
-        required: Annotated[
-            bool,
-            m.Field(default=False, description="Require an explicit option value"),
-        ] = False
+        required: bool = m.Field(
+            default=False, description="Require an explicit option value"
+        )
 
     class InvocationResult(m.Value):
         """Framework-neutral result of one real CLI invocation."""

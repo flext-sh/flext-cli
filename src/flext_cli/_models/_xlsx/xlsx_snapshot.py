@@ -37,7 +37,7 @@ class FlextCliModelsXlsxSnapshot:
             description="One-based row and column position.",
         )
         value: FlextCliModelsXlsxCells.XlsxCellValue = m.Field(
-            description="Typed value from the selected workbook view.",
+            description="Typed value from the selected workbook view."
         )
         formula: (
             Annotated[

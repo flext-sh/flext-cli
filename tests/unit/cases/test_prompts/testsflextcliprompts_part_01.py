@@ -10,12 +10,10 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, tm
+from tests import c, m, p, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
-
-from tests import p
 
 
 class TestsFlextCliPromptsPart01:
@@ -26,7 +24,7 @@ class TestsFlextCliPromptsPart01:
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that execute success."""
-        prompts = make_prompts(interactive_mode=False)
+        prompts = make_prompts(state=m.Cli.PromptRuntimeState(interactive=False))
         result = prompts.execute()
         tm.ok(result)
         tm.that(result.value.status, eq=c.Cli.ServiceStatus.OPERATIONAL)
@@ -37,12 +35,14 @@ class TestsFlextCliPromptsPart01:
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that prompt returns default in quiet and non interactive modes."""
-        quiet_prompts = make_prompts(quiet=True)
+        quiet_prompts = make_prompts(state=m.Cli.PromptRuntimeState(quiet=True))
         tm.that(
             quiet_prompts.prompt("Enter value", default="default").value,
             eq="default",
         )
-        non_interactive_prompts = make_prompts(interactive_mode=False)
+        non_interactive_prompts = make_prompts(
+            state=m.Cli.PromptRuntimeState(interactive=False)
+        )
         tm.that(
             non_interactive_prompts.prompt("Enter value", default="fallback").value,
             eq="fallback",
@@ -64,9 +64,11 @@ class TestsFlextCliPromptsPart01:
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that confirm returns defaults when not interactive."""
-        quiet_prompts = make_prompts(quiet=True)
+        quiet_prompts = make_prompts(state=m.Cli.PromptRuntimeState(quiet=True))
         tm.ok(quiet_prompts.confirm("Continue?", default=True).value)
-        non_interactive_prompts = make_prompts(interactive_mode=False)
+        non_interactive_prompts = make_prompts(
+            state=m.Cli.PromptRuntimeState(interactive=False)
+        )
         tm.that(
             non_interactive_prompts.confirm("Continue?", default=False).value,
             eq=False,
@@ -111,7 +113,9 @@ class TestsFlextCliPromptsPart01:
         """Verify that prompt password paths."""
         short_secret, valid_secret = scripted_password_pair()
         tm.fail(
-            make_prompts(interactive_mode=False).prompt_password("Password:"),
+            make_prompts(
+                state=m.Cli.PromptRuntimeState(interactive=False)
+            ).prompt_password("Password:"),
             has=c.Cli.ERR_INTERACTIVE_MODE_DISABLED,
         )
         short_prompts = make_prompts(password=short_secret)

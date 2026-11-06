@@ -112,6 +112,34 @@ class TestsFlextCliYamlCov:
         tm.fail(result)
         tm.that(result.error, none=False)
         tm.that(result.error, has="parse error")
+        tm.that(result.error, has=str(bad_file))
+
+    @staticmethod
+    def test_yaml_load_documents_returns_every_mapping(tmp_path: Path) -> None:
+        """Verify that yaml load documents returns every document in order."""
+        stream = tmp_path / "stream.yml"
+        stream.write_text("id: first\n---\nid: second\n", encoding="utf-8")
+
+        result = u.Cli.yaml_load_documents(stream)
+
+        tm.ok(result)
+        tm.that(
+            tuple(result.unwrap()),
+            eq=({"id": "first"}, {"id": "second"}),
+        )
+
+    @staticmethod
+    def test_yaml_load_documents_invalid_stream_names_the_file(
+        tmp_path: Path,
+    ) -> None:
+        """Verify that yaml load documents names the file of a parse failure."""
+        bad_stream = tmp_path / "bad-stream.yml"
+        bad_stream.write_text(c.Tests.YAML_INVALID_CONTENT, encoding="utf-8")
+
+        result = u.Cli.yaml_load_documents(bad_stream)
+
+        tm.fail(result)
+        tm.that(result.error, has=str(bad_stream))
 
     @staticmethod
     def test_yaml_safe_load_non_mapping_file_fails(tmp_path: Path) -> None:

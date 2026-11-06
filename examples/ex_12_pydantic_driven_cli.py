@@ -26,6 +26,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import Callable
+
 from examples import c, m, p, r, t, u
 from flext_cli import cli
 
@@ -46,20 +48,30 @@ class ExamplesFlextCliPydanticDrivenCli:
     _MAX_LOCALHOST_CONNECTION_POOL = 50
 
     @staticmethod
-    def _report_step_success[T](value: T, message: str) -> T:
-        """Emit a success message while preserving the pipeline value.
+    def _step_reporter(
+        message: str,
+    ) -> Callable[
+        [p.Examples.AdvancedDatabaseConfig], p.Examples.AdvancedDatabaseConfig
+    ]:
+        """Build one railway step that announces success and keeps the settings.
 
         Returns:
-            The resulting ``T``.
+            A mapper emitting ``message`` and returning its input unchanged.
 
         """
-        cli.print(message, style=c.Cli.MessageStyles.GREEN)
-        return value
+
+        def report(
+            settings: p.Examples.AdvancedDatabaseConfig,
+        ) -> p.Examples.AdvancedDatabaseConfig:
+            cli.print(message, style=c.Cli.MessageStyles.GREEN)
+            return settings
+
+        return report
 
     @staticmethod
     def _finish_database_config(
-        settings: m.Examples.AdvancedDatabaseConfig,
-    ) -> m.Examples.AdvancedDatabaseConfig:
+        settings: p.Examples.AdvancedDatabaseConfig,
+    ) -> p.Examples.AdvancedDatabaseConfig:
         """Emit the final success summary and preserve the validated settings.
 
         Returns:
@@ -69,14 +81,14 @@ class ExamplesFlextCliPydanticDrivenCli:
         u.display_success_summary("Database configuration")
         return settings
 
-    @staticmethod
-    def create_database_config_from_cli() -> p.Result[
-        m.Examples.AdvancedDatabaseConfig
-    ]:
+    @classmethod
+    def create_database_config_from_cli(
+        cls,
+    ) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
         """Create validated DatabaseConfig using Railway Pattern with Pydantic.
 
         Returns:
-            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+            The resulting ``p.Result[p.Examples.AdvancedDatabaseConfig]``.
 
         """
         cli.print(
@@ -85,43 +97,23 @@ class ExamplesFlextCliPydanticDrivenCli:
         )
         cli_args = m.Examples.AdvancedDatabaseConfig(
             host="db.example.com",
-            port=ExamplesFlextCliPydanticDrivenCli._DEFAULT_POSTGRES_PORT,
+            port=cls._DEFAULT_POSTGRES_PORT,
             name="production_db",
             username="example_user",
-            password=ExamplesFlextCliPydanticDrivenCli._DEMO_DB_PLACEHOLDER,
+            password=cls._DEMO_DB_PLACEHOLDER,
             ssl_enabled=True,
             connection_pool=20,
         )
         return (
-            r[m.Examples.AdvancedDatabaseConfig]
+            r[p.Examples.AdvancedDatabaseConfig]
             .ok(cli_args)
-            .map(
-                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
-                    settings,
-                    "✅ Required fields validated",
-                ),
-            )
-            .map(
-                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
-                    settings,
-                    "✅ Pydantic validation passed",
-                ),
-            )
-            .flat_map(ExamplesFlextCliPydanticDrivenCli.validate_business_rules)
-            .map(
-                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
-                    settings,
-                    "✅ Business rules validated",
-                ),
-            )
-            .flat_map(ExamplesFlextCliPydanticDrivenCli.perform_connection_test)
-            .map(
-                lambda settings: ExamplesFlextCliPydanticDrivenCli._report_step_success(
-                    settings,
-                    "✅ Connection test passed",
-                ),
-            )
-            .map(ExamplesFlextCliPydanticDrivenCli._finish_database_config)
+            .map(cls._step_reporter("✅ Required fields validated"))
+            .map(cls._step_reporter("✅ Pydantic validation passed"))
+            .flat_map(cls.validate_business_rules)
+            .map(cls._step_reporter("✅ Business rules validated"))
+            .flat_map(cls.perform_connection_test)
+            .map(cls._step_reporter("✅ Connection test passed"))
+            .map(cls._finish_database_config)
         )
 
     @staticmethod
@@ -146,42 +138,42 @@ class ExamplesFlextCliPydanticDrivenCli:
     @staticmethod
     def convert_and_validate_with_pydantic(
         data: t.JsonMapping,
-    ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+    ) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
         """Convert raw data to validated Pydantic model.
 
         Returns:
-            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+            The resulting ``p.Result[p.Examples.AdvancedDatabaseConfig]``.
 
         """
         try:
-            return r[m.Examples.AdvancedDatabaseConfig].ok(
+            return r[p.Examples.AdvancedDatabaseConfig].ok(
                 m.Examples.AdvancedDatabaseConfig.model_validate(data),
             )
         except c.ValidationError as error:
-            return r[m.Examples.AdvancedDatabaseConfig].fail(
+            return r[p.Examples.AdvancedDatabaseConfig].fail(
                 f"Pydantic validation failed: {error}",
                 exception=error,
             )
 
     @staticmethod
     def validate_business_rules(
-        settings: m.Examples.AdvancedDatabaseConfig,
-    ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+        settings: p.Examples.AdvancedDatabaseConfig,
+    ) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
         """Apply custom business rules to validated database configuration.
 
         Returns:
-            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+            The resulting ``p.Result[p.Examples.AdvancedDatabaseConfig]``.
 
         """
         default_port = ExamplesFlextCliPydanticDrivenCli._DEFAULT_POSTGRES_PORT
         if settings.ssl_enabled and settings.port == default_port:
             try:
-                settings = type(settings).model_validate(
+                settings = m.Examples.AdvancedDatabaseConfig.model_validate(
                     settings.model_dump()
                     | {"port": ExamplesFlextCliPydanticDrivenCli._SSL_POSTGRES_PORT},
                 )
             except c.ValidationError as error:
-                return r[m.Examples.AdvancedDatabaseConfig].fail(
+                return r[p.Examples.AdvancedDatabaseConfig].fail(
                     f"Business rule validation failed: {error}",
                     exception=error,
                 )
@@ -190,24 +182,24 @@ class ExamplesFlextCliPydanticDrivenCli:
             > ExamplesFlextCliPydanticDrivenCli._MAX_LOCALHOST_CONNECTION_POOL
             and settings.host == "localhost"
         ):
-            return r[m.Examples.AdvancedDatabaseConfig].fail(
+            return r[p.Examples.AdvancedDatabaseConfig].fail(
                 "Localhost cannot handle large connection pools",
             )
-        return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
+        return r[p.Examples.AdvancedDatabaseConfig].ok(settings)
 
     @staticmethod
     def perform_connection_test(
-        settings: m.Examples.AdvancedDatabaseConfig,
-    ) -> p.Result[m.Examples.AdvancedDatabaseConfig]:
+        settings: p.Examples.AdvancedDatabaseConfig,
+    ) -> p.Result[p.Examples.AdvancedDatabaseConfig]:
         """Simulate database connection test.
 
         Returns:
-            The resulting ``p.Result[m.Examples.AdvancedDatabaseConfig]``.
+            The resulting ``p.Result[p.Examples.AdvancedDatabaseConfig]``.
 
         """
         if "fail" in settings.host:
-            return r[m.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
-        return r[m.Examples.AdvancedDatabaseConfig].ok(settings)
+            return r[p.Examples.AdvancedDatabaseConfig].fail("Connection test failed")
+        return r[p.Examples.AdvancedDatabaseConfig].ok(settings)
 
 
 __all__: list[str] = ["ExamplesFlextCliPydanticDrivenCli"]

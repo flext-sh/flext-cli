@@ -83,14 +83,11 @@ class FlextCliModelsBasePart04:
         ] = ""
 
         # Index display
-        showindex: Annotated[
-            t.Cli.TableShowIndex,
-            m.Field(
-                default=False,
-                validate_default=True,
-                description="Whether to show row indices",
-            ),
-        ] = False
+        showindex: t.Cli.TableShowIndex = m.Field(
+            default=False,
+            validate_default=True,
+            description="Whether to show row indices",
+        )
 
         # Column alignment
         colalign: Annotated[

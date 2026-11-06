@@ -1,5 +1,5 @@
 # AUTO-GENERATED FILE — Regenerate with: make gen
-"""Internal package for runtime.
+"""Flext Cli. Utilities. Runtime package.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -7,7 +7,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from types import MappingProxyType
 from typing import TYPE_CHECKING
 
 from flext_core.lazy import install_lazy_exports
@@ -26,8 +25,17 @@ if TYPE_CHECKING:
     from flext_cli._utilities._runtime.process_group import (
         FlextCliUtilitiesRuntimeProcessGroup,
     )
+    from flext_cli._utilities._runtime.process_isolation import (
+        FlextCliUtilitiesRuntimeProcessIsolation,
+    )
+    from flext_cli._utilities._runtime.process_isolation_inputs import (
+        FlextCliUtilitiesRuntimeProcessIsolationInputs,
+    )
     from flext_cli._utilities._runtime.process_monitor import (
         FlextCliUtilitiesRuntimeProcessMonitor,
+    )
+    from flext_cli._utilities._runtime.process_native_tools import (
+        FlextCliUtilitiesRuntimeProcessNativeTools,
     )
     from flext_cli._utilities._runtime.process_outcome import (
         FlextCliUtilitiesRuntimeProcessOutcome,
@@ -63,13 +71,17 @@ if TYPE_CHECKING:
         FlextCliUtilitiesRuntimeWindowsJobState,
     )
 
+
 __all__: tuple[str, ...] = (
     "FlextCliUtilitiesRuntimeCommands",
     "FlextCliUtilitiesRuntimeDarwinProcessGroup",
     "FlextCliUtilitiesRuntimeProcessCleanup",
     "FlextCliUtilitiesRuntimeProcessExecution",
     "FlextCliUtilitiesRuntimeProcessGroup",
+    "FlextCliUtilitiesRuntimeProcessIsolation",
+    "FlextCliUtilitiesRuntimeProcessIsolationInputs",
     "FlextCliUtilitiesRuntimeProcessMonitor",
+    "FlextCliUtilitiesRuntimeProcessNativeTools",
     "FlextCliUtilitiesRuntimeProcessOutcome",
     "FlextCliUtilitiesRuntimeProcessOutput",
     "FlextCliUtilitiesRuntimeProcessResources",
@@ -86,13 +98,16 @@ __all__: tuple[str, ...] = (
 install_lazy_exports(
     __name__,
     globals(),
-    MappingProxyType({
+    {
         "FlextCliUtilitiesRuntimeCommands": ".commands",
         "FlextCliUtilitiesRuntimeDarwinProcessGroup": ".darwin_process_group",
         "FlextCliUtilitiesRuntimeProcessCleanup": ".process_cleanup",
         "FlextCliUtilitiesRuntimeProcessExecution": ".process_execution",
         "FlextCliUtilitiesRuntimeProcessGroup": ".process_group",
+        "FlextCliUtilitiesRuntimeProcessIsolation": ".process_isolation",
+        "FlextCliUtilitiesRuntimeProcessIsolationInputs": ".process_isolation_inputs",
         "FlextCliUtilitiesRuntimeProcessMonitor": ".process_monitor",
+        "FlextCliUtilitiesRuntimeProcessNativeTools": ".process_native_tools",
         "FlextCliUtilitiesRuntimeProcessOutcome": ".process_outcome",
         "FlextCliUtilitiesRuntimeProcessOutput": ".process_output",
         "FlextCliUtilitiesRuntimeProcessResources": ".process_resources",
@@ -104,6 +119,6 @@ install_lazy_exports(
         "FlextCliUtilitiesRuntimeRunToFile": ".run_to_file",
         "FlextCliUtilitiesRuntimeWindowsJobStart": ".windows_job_start",
         "FlextCliUtilitiesRuntimeWindowsJobState": ".windows_job_state",
-    }),
+    },
     public_exports=__all__,
 )

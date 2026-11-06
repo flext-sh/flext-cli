@@ -10,19 +10,22 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
+from flext_core import FlextProtocols
+
 if TYPE_CHECKING:
-    # mro-j47u (codex): p -> m is a reverse facade edge; keep it type-only.
+    from collections.abc import Callable
+
     from flext_core import p
 
-    from flext_cli import m, t
+    from flext_cli import c, t
 
 
 class FlextCliProtocolsPipeline:
     """Pipeline protocol namespace."""
 
     @runtime_checkable
-    class PipelineStageContext(Protocol):
-        """Contract for stage execution context — shared state between stages."""
+    class PipelineStageContext(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
 
         @property
         def repository_root(self) -> Path:
@@ -31,12 +34,12 @@ class FlextCliProtocolsPipeline:
 
         @property
         def shared(self) -> t.MutableJsonMapping:
-            """Mutable shared state between stages — stages write outputs here."""
+            """Mutable shared state between stages."""
             ...
 
         @property
         def settings(self) -> t.JsonMapping:
-            """Immutable configuration for the pipeline run."""
+            """Immutable pipeline configuration."""
             ...
 
     @runtime_checkable
@@ -47,7 +50,7 @@ class FlextCliProtocolsPipeline:
             self,
             ctx: FlextCliProtocolsPipeline.PipelineStageContext,
             /,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[FlextCliProtocolsPipeline.PipelineStageResult]:
             """Execute stage and return typed result."""
             ...
 
@@ -73,7 +76,7 @@ class FlextCliProtocolsPipeline:
             *,
             shared: t.MutableJsonMapping | None = None,
             settings: t.JsonMapping | None = None,
-        ) -> m.Cli.PipelineStageContext:
+        ) -> FlextCliProtocolsPipeline.PipelineStageContext:
             """Build the canonical pipeline execution context."""
             ...
 
@@ -84,7 +87,7 @@ class FlextCliProtocolsPipeline:
             handler: FlextCliProtocolsPipeline.PipelineStage,
             depends_on: Sequence[str] | frozenset[str] = (),
             skip_if: FlextCliProtocolsPipeline.PipelineSkipPredicate | None = None,
-        ) -> m.Cli.PipelineStageSpec:
+        ) -> FlextCliProtocolsPipeline.PipelineStageSpec:
             """Build one declarative pipeline stage spec."""
             ...
 
@@ -94,9 +97,8 @@ class FlextCliProtocolsPipeline:
             *,
             status: t.Cli.PipelineStageStatus,
             output: t.JsonMapping | None = None,
-            duration_ms: float = 0.0,
             error: str | None = None,
-        ) -> m.Cli.PipelineStageResult:
+        ) -> FlextCliProtocolsPipeline.PipelineStageResult:
             """Build one typed pipeline stage result payload."""
             ...
 
@@ -105,18 +107,17 @@ class FlextCliProtocolsPipeline:
             stage_id: str,
             *,
             output: t.JsonMapping | None = None,
-            duration_ms: float = 0.0,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[FlextCliProtocolsPipeline.PipelineStageResult]:
             """Return a successful typed stage result via ``r``."""
             ...
 
         def pipeline(
             self,
-            stages: Sequence[m.Cli.PipelineStageSpec],
+            stages: Sequence[FlextCliProtocolsPipeline.PipelineStageSpec],
             *,
-            context: m.Cli.PipelineStageContext,
+            context: FlextCliProtocolsPipeline.PipelineStageContext,
             logger: p.Logger | None = None,
-        ) -> p.Result[m.Cli.PipelineResult]:
+        ) -> p.Result[FlextCliProtocolsPipeline.PipelineResult]:
             """Execute a pipeline from the public service DSL."""
             ...
 
@@ -130,8 +131,112 @@ class FlextCliProtocolsPipeline:
                 FlextCliProtocolsPipeline.PipelineSkipPredicate,
             ]
             | None = None,
-        ) -> Sequence[m.Cli.PipelineStageSpec]:
+        ) -> Sequence[FlextCliProtocolsPipeline.PipelineStageSpec]:
             """Build a linear dependency chain with canonical previous-stage deps."""
+            ...
+
+    @runtime_checkable
+    class PipelineStageSpec(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def stage_id(self) -> str:
+            """Unique stage identifier."""
+            ...
+
+        @property
+        def depends_on(self) -> frozenset[str]:
+            """Stage IDs this stage depends on."""
+            ...
+
+        @property
+        def handler(
+            self,
+        ) -> Callable[
+            [FlextCliProtocolsPipeline.PipelineStageContext],
+            p.Result[FlextCliProtocolsPipeline.PipelineStageResult],
+        ]:
+            """Callable that executes the stage."""
+            ...
+
+        @property
+        def skip_if(
+            self,
+        ) -> Callable[[FlextCliProtocolsPipeline.PipelineStageContext], bool] | None:
+            """Predicate — skip stage if returns True."""
+            ...
+
+        @property
+        def retry(self) -> int:
+            """Number of retries on failure."""
+            ...
+
+    @runtime_checkable
+    class PipelineStageResult(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def stage_id(self) -> str:
+            """Stage that produced this result."""
+            ...
+
+        @property
+        def status(self) -> t.Cli.PipelineStageStatus:
+            """Execution outcome."""
+            ...
+
+        @property
+        def output(self) -> t.JsonMapping:
+            """Stage output payload."""
+            ...
+
+        @property
+        def duration_ms(self) -> float:
+            """Execution duration in milliseconds."""
+            ...
+
+        @property
+        def error(self) -> str | None:
+            """Error message if failed."""
+            ...
+
+    @runtime_checkable
+    class PipelineResult(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def stages(self) -> Sequence[FlextCliProtocolsPipeline.PipelineStageResult]:
+            """Results from all executed stages."""
+            ...
+
+        @property
+        def total_duration_ms(self) -> float:
+            """Total pipeline execution time."""
+            ...
+
+        @property
+        def success(self) -> bool:
+            """True if no stage failed."""
+            ...
+
+        @property
+        def failed_stages(
+            self,
+        ) -> Sequence[FlextCliProtocolsPipeline.PipelineStageResult]:
+            """Only the failed stage results."""
+            ...
+
+        @property
+        def skipped_stages(
+            self,
+        ) -> Sequence[FlextCliProtocolsPipeline.PipelineStageResult]:
+            """Only the skipped stage results."""
+            ...
+
+        def stages_with_status(
+            self, status: (c.Cli.PipelineStageStatus)
+        ) -> Sequence[FlextCliProtocolsPipeline.PipelineStageResult]:
+            """Stage results whose status equals ``status``, in execution order."""
             ...
 
 

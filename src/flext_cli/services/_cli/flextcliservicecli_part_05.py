@@ -22,8 +22,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
         model_cls: t.ModelClass[M],
         handler: p.Cli.ResultCommandHandler[M, TResult],
         success_formatter: t.Cli.SuccessMessageFormatter[TResult],
-        success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
-    ) -> m.Cli.ResultCommandRoute:
+    ) -> p.Cli.ResultCommandRoute:
         """Bind a typed operation to the existing heterogeneous CLI contract.
 
         The framework already validated the request. Its original instance and
@@ -54,7 +53,6 @@ class FlextCliCliPart05(FlextCliCliPart04):
             help_text=metadata.help_text,
             model_cls=model_cls,
             handler=execute,
-            success_type=success_type,
         )
 
     @classmethod
@@ -78,45 +76,13 @@ class FlextCliCliPart05(FlextCliCliPart04):
             app,
             name=route.name,
             help_text=route.help_text,
-            command=cls.model_command(
-                route.model_cls,
-                execute,
-                settings=settings,
+            command=cls._ModelCommand(
+                handler=execute,
+                model_cls=route.model_cls,
+                signature=cls._model_signature(route.model_cls, settings),
                 result_border=True,
             ),
         )
-
-    @classmethod
-    def _build_result_executor[M: t.Cli.ModelLike, TResult: t.JsonPayload](
-        cls,
-        *,
-        handler: p.Cli.ResultCommandHandler[M, TResult],
-        success_formatter: t.Cli.SuccessMessageFormatter[TResult] | None = None,
-        success_message: str | None = None,
-        success_type: c.Cli.MessageTypes = c.Cli.MessageTypes.SUCCESS,
-    ) -> p.Cli.ModelCommandHandler[M, bool]:
-        """Build the shared executor used by single and batched route registration.
-
-        Returns:
-            The resulting ``p.Cli.ModelCommandHandler[M, bool]``.
-
-        """
-
-        def execute(params: M) -> bool:
-            result: p.Result[TResult] = handler(params)
-            if result.failure:
-                cls._exit_failure(result)
-            result_value: TResult = result.value
-            message = u.Cli.commands_resolve_success_message(
-                result_value=result_value,
-                success_message=success_message,
-                success_formatter=success_formatter,
-            )
-            if message:
-                u.Cli.commands_emit_success_message(message, success_type)
-            return True
-
-        return execute
 
     @classmethod
     def register_result_route(
@@ -146,18 +112,20 @@ class FlextCliCliPart05(FlextCliCliPart04):
 
         """
 
-        def route_execute(params: t.Cli.ModelLike) -> p.Result[t.Cli.ResultValue]:
+        def execute(params: t.Cli.ModelLike) -> bool:
             result = route.handler(params)
             if result.failure:
-                return r[t.Cli.ResultValue].from_failure(result)
-            return r[t.Cli.ResultValue].ok(result.value)
+                cls._exit_failure(r[t.Cli.ResultValue].from_failure(result))
+            message = u.Cli.commands_resolve_success_message(
+                result_value=result.value,
+                success_message=route.success_message,
+                success_formatter=route.success_formatter,
+            )
+            if message:
+                u.Cli.commands_emit_success_message(message, route.success_type)
+            return True
 
-        return cls._build_result_executor(
-            handler=route_execute,
-            success_message=route.success_message,
-            success_formatter=route.success_formatter,
-            success_type=route.success_type,
-        )
+        return execute
 
     @classmethod
     def register_result_routes(

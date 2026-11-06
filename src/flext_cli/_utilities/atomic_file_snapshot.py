@@ -13,18 +13,14 @@ import stat
 from collections.abc import Generator
 from contextlib import contextmanager
 from pathlib import Path
-from typing import TYPE_CHECKING
 
-from flext_cli import m
+from flext_cli import m, p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicFileRead,
     FlextCliUtilitiesAtomicFileState,
 )
-
-if TYPE_CHECKING:
-    from flext_cli import p
 
 
 class FlextCliUtilitiesAtomicFileSnapshot:
@@ -37,7 +33,7 @@ class FlextCliUtilitiesAtomicFileSnapshot:
         required: bool,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
-    ) -> m.Cli.AtomicFileReceipt:
+    ) -> p.Cli.AtomicFileReceipt:
         """Measure exact bytes once while retaining descriptor and parent identity.
 
         Returns:
@@ -82,7 +78,7 @@ class FlextCliUtilitiesAtomicFileSnapshot:
     @staticmethod
     @contextmanager
     def receipt_reader(
-        receipt: m.Cli.AtomicFileReceipt,
+        receipt: p.Cli.AtomicFileReceipt,
     ) -> Generator[p.Cli.AtomicFileReader]:
         """Authenticate a receipt once and retain one descriptor for all ranges.
 

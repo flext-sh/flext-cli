@@ -19,11 +19,11 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
     """Minimal guided tour of flext-cli through public aliases and facades."""
 
     @staticmethod
-    def build_example_settings() -> p.Result[m.Examples.MyAppSettings]:
+    def build_example_settings() -> p.Result[p.Examples.MyAppSettings]:
         """Build a validated application settings model through the examples facade.
 
         Returns:
-            The resulting ``p.Result[m.Examples.MyAppSettings]``.
+            The resulting ``p.Result[p.Examples.MyAppSettings]``.
 
         """
         settings_payload: t.JsonMapping = {
@@ -32,18 +32,18 @@ class ExamplesFlextCliGettingStarted(s[t.JsonMapping]):
             "max_workers": c.EXAMPLE_DEFAULT_MAX_WORKERS,
             "timeout": c.EXAMPLE_DEFAULT_TIMEOUT_SECONDS,
         }
-        return r[m.Examples.MyAppSettings].ok(
+        return r[p.Examples.MyAppSettings].ok(
             m.Examples.MyAppSettings.model_validate(settings_payload),
         )
 
     @staticmethod
     def persist_example_settings(
-        settings: m.Examples.MyAppSettings,
-    ) -> p.Result[m.Cli.LoadedConfig]:
+        settings: p.Examples.MyAppSettings,
+    ) -> p.Result[p.Cli.LoadedConfig]:
         """Round-trip settings through the public JSON file facade.
 
         Returns:
-            The resulting ``p.Result[m.Cli.LoadedConfig]``.
+            The resulting ``p.Result[p.Cli.LoadedConfig]``.
 
         """
         wrapped_config = m.Cli.LoadedConfig(content=settings.model_dump(mode="json"))

@@ -7,18 +7,19 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import os
-from collections.abc import Sequence
+from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 
 from filelock import FileLock
+from flext_core import r
 
-from flext_cli import c, m, p, r
+from flext_cli import c, p
 from flext_cli._utilities import FlextCliUtilitiesOutput
+from flext_cli._utilities._files import FlextCliUtilitiesFilesPart02
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
 from flext_cli._utilities._files.flextcliutilitiesfiles_part_06 import (
     FlextCliUtilitiesFilesPart06,
 )
-from flext_cli._utilities._files.writes import FlextCliUtilitiesFilesPart02
 
 
 class FlextCliUtilitiesFileChanges:
@@ -41,8 +42,8 @@ class FlextCliUtilitiesFileChanges:
 
     @staticmethod
     def pending_file_changes(
-        changes: Sequence[m.Cli.FileChange],
-    ) -> tuple[m.Cli.FileChange, ...]:
+        changes: Sequence[p.Cli.FileChange],
+    ) -> tuple[p.Cli.FileChange, ...]:
         """Select the changes whose bytes or mode differ from the observed state.
 
         Returns:
@@ -61,7 +62,7 @@ class FlextCliUtilitiesFileChanges:
 
     @staticmethod
     def publish_file_changes(
-        changes: Sequence[m.Cli.FileChange],
+        changes: Sequence[p.Cli.FileChange],
         *,
         lock_path: Path,
         directory_mode: int = c.Cli.FILE_CHANGES_DIRECTORY_MODE,
@@ -77,7 +78,7 @@ class FlextCliUtilitiesFileChanges:
         destinations report only physical metadata and byte counts.
 
         Returns:
-            The paths actually written or deleted, or the first failure.
+            The completed paths, or the first failure with its completed-path receipt.
 
         """
         result_type = r[tuple[Path, ...]]
@@ -93,59 +94,72 @@ class FlextCliUtilitiesFileChanges:
             if verified.failure:
                 return result_type.from_failure(verified)
             pending = FlextCliUtilitiesFileChanges.pending_file_changes(changes)
+            written: list[Path] = []
             for change in pending:
-                source_diagnostics = ""
-                if change.path in nonsecret_source_paths and change.path.suffix in {
-                    ".py",
-                    ".pyi",
-                }:
-                    before_digest = (
-                        None
-                        if change.before.content is None
-                        else FlextCliUtilitiesFilesPart03.sha256_bytes(
-                            change.before.content
-                        )
-                    )
-                    desired_digest = (
-                        None
-                        if change.desired_content is None
-                        else FlextCliUtilitiesFilesPart03.sha256_bytes(
-                            change.desired_content
-                        )
-                    )
-                    source_diagnostics = (
-                        f" before_sha256={before_digest}"
-                        f" desired_sha256={desired_digest}"
-                    )
-                before_length = (
-                    None
-                    if change.before.content is None
-                    else len(change.before.content)
-                )
-                desired_length = (
-                    None
-                    if change.desired_content is None
-                    else len(change.desired_content)
+                evidence = FlextCliUtilitiesFileChanges._publication_evidence(
+                    change, nonsecret_source_paths
                 )
                 FlextCliUtilitiesOutput.debug(
-                    f"file_changes: publish pid={os.getpid()} "
-                    f"path={change.path} before_inode={change.before.inode} "
-                    f"before_bytes={before_length} "
-                    f"desired_bytes={desired_length}"
-                    f"{source_diagnostics}"
+                    f"file_changes: publish pid={os.getpid()} {evidence}"
                 )
                 published = FlextCliUtilitiesFileChanges._publish(
-                    change, directory_mode
+                    change, directory_mode, written
                 )
                 if published.failure:
-                    return result_type.from_failure(published)
-        return result_type.ok(tuple(change.path for change in pending))
+                    return result_type.fail(
+                        published.error or "file publication failed",
+                        error_code=published.error_code,
+                        error_data={
+                            **(published.error_data or {}),
+                            "written_files": [str(path) for path in written],
+                            "failed_paths": [str(change.path)],
+                        },
+                        exception=published.exception,
+                    )
+        return result_type.ok(tuple(written))
 
     @staticmethod
-    def _publish(change: m.Cli.FileChange, directory_mode: int) -> p.Result[bool]:
+    def _publication_evidence(
+        change: p.Cli.FileChange,
+        nonsecret_source_paths: Sequence[Path],
+    ) -> str:
+        """Describe one pending publication without exposing secret bytes.
+
+        Content digests are reported only for attested Python sources.
+
+        Returns:
+            The path, physical identity, byte counts, and attested digests.
+
+        """
+        before, desired = change.before.content, change.desired_content
+        evidence = (
+            f"path={change.path} before_inode={change.before.inode} "
+            f"before_bytes={None if before is None else len(before)} "
+            f"desired_bytes={None if desired is None else len(desired)}"
+        )
+        if change.path not in nonsecret_source_paths or change.path.suffix not in {
+            ".py",
+            ".pyi",
+        }:
+            return evidence
+        digests = tuple(
+            None
+            if content is None
+            else FlextCliUtilitiesFilesPart03.sha256_bytes(content)
+            for content in (before, desired)
+        )
+        return f"{evidence} before_sha256={digests[0]} desired_sha256={digests[1]}"
+
+    @staticmethod
+    def _publish(
+        change: p.Cli.FileChange,
+        directory_mode: int,
+        published_paths: MutableSequence[Path],
+    ) -> p.Result[bool]:
         if change.desired_content is None:
             return FlextCliUtilitiesFilesPart02.atomic_delete_binary_file_guarded(
                 change.before,
+                published_paths=published_paths,
             )
         before = change.before
         if before.parent_device is None:
@@ -172,6 +186,7 @@ class FlextCliUtilitiesFileChanges:
             before,
             change.desired_content,
             permission_mode=change.desired_mode,
+            published_paths=published_paths,
         )
 
 

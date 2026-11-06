@@ -11,7 +11,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, p, tm
+from tests import c, m, p, tm
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -27,7 +27,7 @@ class TestsFlextCliPromptsPart02:
         message: str,
     ) -> None:
         """Verify that prompt accepts edge case messages."""
-        prompts = make_prompts(interactive_mode=False)
+        prompts = make_prompts(state=m.Cli.PromptRuntimeState(interactive=False))
         result = prompts.prompt(message, default="text")
         tm.ok(result, eq="text")
 
@@ -36,7 +36,7 @@ class TestsFlextCliPromptsPart02:
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that repeated prompt operations remain fast."""
-        prompts = make_prompts(interactive_mode=False)
+        prompts = make_prompts(state=m.Cli.PromptRuntimeState(interactive=False))
         started_at = time.time()
         for index in range(100):
             result = prompts.prompt(f"Prompt {index}", default="text")

@@ -7,15 +7,20 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import shutil
-from collections.abc import Callable
+from collections.abc import Callable, MutableSequence
 from io import BytesIO
 from pathlib import Path
 
-from flext_cli import c, m, p, r, t
+from flext_core import r
+
+from flext_cli import c, m, p, t
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFile,
     FlextCliUtilitiesAtomicFileDelete,
     FlextCliUtilitiesAtomicFilePath,
+)
+from flext_cli._utilities._files.native_results import (
+    FlextCliUtilitiesFilesNativeResults,
 )
 
 
@@ -120,19 +125,15 @@ class FlextCliUtilitiesFilesPart02:
         ensure_result = FlextCliUtilitiesFilesPart02.ensure_dir(path.parent)
         if ensure_result.failure:
             return r[bool].from_failure(ensure_result)
-        try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
-                path,
-                data,
-                durability=durability,
-            )
-        except OSError as exc:
-            return r[bool].fail(error_template.format(error=exc), exception=exc)
-        return r[bool].ok(value=True)
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicFile.write_atomic_state, error_template
+        )(path, data, m.Cli.AtomicWriteOptions(durability=durability)).map(
+            lambda _published: True
+        )
 
     @staticmethod
     def atomic_write_text_file_guarded(
-        before: m.Cli.AtomicFileState,
+        before: p.Cli.AtomicFileState,
         content: str,
     ) -> p.Result[bool]:
         """Publish under a lock after one complete physical-state precondition.
@@ -146,25 +147,24 @@ class FlextCliUtilitiesFilesPart02:
             The resulting ``p.Result[bool]``.
 
         """
-        try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
-                before.path,
-                content.encode(c.DEFAULT_ENCODING),
-                expected_state=before,
-            )
-        except OSError as exc:
-            return r[bool].fail(
-                c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED.format(error=exc),
-                exception=exc,
-            )
-        return r[bool].ok(value=True)
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicFile.write_atomic_state,
+            c.Cli.ERR_ATOMIC_WRITE_TEXT_FILE_FAILED,
+        )(
+            before.path,
+            content.encode(c.DEFAULT_ENCODING),
+            m.Cli.AtomicWriteOptions(
+                expected_state=m.Cli.AtomicFileState.model_validate(before),
+            ),
+        ).map(lambda _published: True)
 
     @staticmethod
     def atomic_write_binary_file_guarded(
-        before: m.Cli.AtomicFileState,
+        before: p.Cli.AtomicFileState,
         data: bytes,
         *,
         permission_mode: int | None,
+        published_paths: MutableSequence[Path] | None = None,
     ) -> p.Result[bool]:
         """Publish bytes and mode from one complete physical-state precondition.
 
@@ -177,23 +177,24 @@ class FlextCliUtilitiesFilesPart02:
             The resulting ``p.Result[bool]``.
 
         """
-        try:
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
-                before.path,
-                data,
-                expected_state=before,
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicFile.write_atomic_state,
+            c.Cli.ERR_BINARY_WRITE_FAILED,
+        )(
+            before.path,
+            data,
+            m.Cli.AtomicWriteOptions(
+                expected_state=m.Cli.AtomicFileState.model_validate(before),
                 permission_mode=permission_mode,
-            )
-        except OSError as exc:
-            return r[bool].fail(
-                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc),
-                exception=exc,
-            )
-        return r[bool].ok(value=True)
+            ),
+            published_paths=published_paths,
+        ).map(lambda _published: True)
 
     @staticmethod
     def atomic_delete_binary_file_guarded(
-        state: m.Cli.AtomicFileState,
+        state: p.Cli.AtomicFileState,
+        *,
+        published_paths: MutableSequence[Path] | None = None,
     ) -> p.Result[bool]:
         """Delete one complete physical file version under the caller's lock.
 
@@ -206,7 +207,9 @@ class FlextCliUtilitiesFilesPart02:
 
         """
         try:
-            FlextCliUtilitiesAtomicFileDelete.remove_guarded_file(state)
+            FlextCliUtilitiesAtomicFileDelete.remove_guarded_file(
+                state, published_paths=published_paths
+            )
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_FILE_DELETION_FAILED.format(error=exc),

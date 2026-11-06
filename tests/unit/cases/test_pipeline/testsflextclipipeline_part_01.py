@@ -10,7 +10,7 @@ from collections.abc import MutableMapping
 from typing import TYPE_CHECKING
 
 from flext_cli import cli
-from tests import c, m, r, t, tm
+from tests import c, r, t, tm
 from tests.unit.cases.test_pipeline.testsflextclipipelinehandlers import (
     TestsFlextCliPipelineHandlers,
 )
@@ -35,9 +35,9 @@ class TestsFlextCliPipelinePart01(TestsFlextCliPipelineHandlers):
 
         def handler(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             _ = ctx
-            return r[m.Cli.PipelineStageResult].fail(f"{stage_id} failed")
+            return r[p.Cli.PipelineStageResult].fail(f"{stage_id} failed")
 
         return handler
 
@@ -65,7 +65,7 @@ class TestsFlextCliPipelinePart01(TestsFlextCliPipelineHandlers):
         def tracking_handler(stage_id: str) -> p.Cli.PipelineStage:
             def handler(
                 ctx: p.Cli.PipelineStageContext,
-            ) -> p.Result[m.Cli.PipelineStageResult]:
+            ) -> p.Result[p.Cli.PipelineStageResult]:
                 _ = ctx
                 execution_order.append(stage_id)
                 return cli.ok_stage(stage_id)
@@ -87,13 +87,13 @@ class TestsFlextCliPipelinePart01(TestsFlextCliPipelineHandlers):
 
         def reader(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             received["from_a"] = ctx.shared.get("a_output")
             return cli.ok_stage("b")
 
         def writer(
             ctx: p.Cli.PipelineStageContext,
-        ) -> p.Result[m.Cli.PipelineStageResult]:
+        ) -> p.Result[p.Cli.PipelineStageResult]:
             ctx.shared["a_output"] = "hello"
             return cli.ok_stage("a")
 

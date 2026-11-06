@@ -18,7 +18,7 @@ from collections.abc import Sequence
 import pytest
 
 from flext_cli import cli
-from tests import c, tm
+from tests import c, t, tm
 
 
 class TestsFlextCliFormattersCov:
@@ -29,7 +29,7 @@ class TestsFlextCliFormattersCov:
     @staticmethod
     @pytest.mark.parametrize(("msg", "style"), c.Tests.FORMATTERS_PRINT_CASES)
     def test_print_renders_message_to_stdout(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         msg: str,
         style: str | None,
     ) -> None:
@@ -44,7 +44,7 @@ class TestsFlextCliFormattersCov:
 
     @staticmethod
     def test_public_cli_print_renders_message_to_stdout(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify the canonical public cli.print endpoint."""
         cli.print("public-cli-print")
@@ -56,7 +56,7 @@ class TestsFlextCliFormattersCov:
     @staticmethod
     @pytest.mark.parametrize("label", c.Tests.FORMATTER_RULE_LABELS)
     def test_render_rule_renders_label_to_stdout(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         label: str,
     ) -> None:
         """Verify that render rule renders label to stdout."""
@@ -72,7 +72,7 @@ class TestsFlextCliFormattersCov:
     @staticmethod
     @pytest.mark.parametrize(("content", "title"), c.Tests.FORMATTER_PANEL_CASES)
     def test_render_panel_renders_content_to_stdout(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         content: str,
         title: str,
     ) -> None:
@@ -90,7 +90,7 @@ class TestsFlextCliFormattersCov:
         c.Tests.FORMATTER_TABLE_CASES,
     )
     def test_render_table_renders_columns_and_cells(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         columns: Sequence[str],
         rows: tuple[Sequence[str], ...],
         title: str,

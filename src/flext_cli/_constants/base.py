@@ -50,10 +50,19 @@ class FlextCliConstantsBase:
     # adapters and consumers cannot drift into local magic exit codes/messages.
     EXIT_CODE_SUCCESS: ClassVar[int] = 0
     EXIT_CODE_FAILURE: ClassVar[int] = 1
+    # Model command routes: the injected Typer context parameter and the click
+    # parameter source that marks an option Typer filled from its default.
+    MODEL_COMMAND_CONTEXT_PARAMETER: ClassVar[str] = "flext_cli_context"
+    PARAMETER_SOURCE_DEFAULT: ClassVar[str] = "DEFAULT"
     STDOUT_DESCRIPTOR: ClassVar[int] = 1
     STDERR_DESCRIPTOR: ClassVar[int] = 2
     PROCESS_TIMEOUT_EXIT_CODE: ClassVar[int] = 124
     GIT_NOT_A_REPOSITORY_EXIT_CODE: ClassVar[int] = 128
+    # ``error_data`` keys of a failed ``u.Cli.run``: the typed process outcome
+    # travels with the failure, so callers never parse the message text.
+    PROCESS_EXIT_CODE_KEY: ClassVar[str] = "exit_code"
+    PROCESS_TIMED_OUT_KEY: ClassVar[str] = "timed_out"
+    PROCESS_FORWARDED_SIGNAL_KEY: ClassVar[str] = "forwarded_signal"
     OP_EXECUTE_APPLICATION: ClassVar[str] = "execute CLI application"
     ERR_EXIT_WITH_CODE: ClassVar[str] = "CLI exited with code {exit_code}"
 
@@ -73,8 +82,6 @@ class FlextCliConstantsBase:
     DICT_KEY_COMMANDS: ClassVar[str] = "commands"
     DICT_KEY_NAME: ClassVar[str] = "name"
     DICT_KEY_SERVICE: ClassVar[str] = "service"
-    # DICT_KEY_* are serialized dictionary KEY NAMES, not credentials: the
-    # literal equals the key it names (S105 false positive, documented).
     DICT_KEY_LOGIN_FIELD: ClassVar[str] = "token"
     DICT_KEY_USERNAME: ClassVar[str] = "username"
     DICT_KEY_LOGIN_VALUE: ClassVar[str] = "password"

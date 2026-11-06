@@ -9,10 +9,11 @@ from __future__ import annotations
 from io import BytesIO
 from zipfile import BadZipFile
 
+from flext_core import r
 from openpyxl import Workbook, load_workbook
 from openpyxl.utils.exceptions import InvalidFileException
 
-from flext_cli import c, m, p, r
+from flext_cli import c, m, p
 from flext_cli._utilities import FlextCliUtilitiesFiles
 from flext_cli._utilities._xlsx import FlextCliUtilitiesXlsxArchive
 

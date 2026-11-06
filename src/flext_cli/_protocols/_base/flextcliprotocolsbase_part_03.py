@@ -6,8 +6,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart01
+
+
 from collections.abc import Sequence
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
+from typing import Protocol, runtime_checkable
 
 from flext_cli._protocols._base import FlextCliProtocolsBasePart02
 
@@ -33,7 +39,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             *,
             options: FlextCliProtocolsProcess.ProcessOptions | None = None,
             capture: bool = True,
-        ) -> p.Result[FlextCliProtocolsBasePart02.CommandOutput]:
+        ) -> p.Result[FlextCliProtocolsBaseFlextclimodelsbasePart01.CommandOutput]:
             """Execute a command and require zero exit status."""
             ...
 
@@ -56,7 +62,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             *,
             options: FlextCliProtocolsProcess.ProcessOptions | None = None,
             capture: bool = True,
-        ) -> p.Result[FlextCliProtocolsBasePart02.CommandOutput]:
+        ) -> p.Result[FlextCliProtocolsBaseFlextclimodelsbasePart01.CommandOutput]:
             """Execute a command without enforcing zero exit status."""
             ...
 
@@ -68,7 +74,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             *,
             options: FlextCliProtocolsProcess.ProcessOptions | None = None,
-        ) -> p.Result[FlextCliProtocolsBasePart02.CommandBytesOutput]:
+        ) -> p.Result[FlextCliProtocolsBaseFlextclimodelsbasePart01.CommandBytesOutput]:
             """Execute a command and preserve byte-exact output."""
             ...
 
@@ -91,7 +97,7 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             *,
             options: FlextCliProtocolsProcess.ProcessOptions | None = None,
-        ) -> p.Result[FlextCliProtocolsBasePart02.CommandOutput]:
+        ) -> p.Result[FlextCliProtocolsBaseFlextclimodelsbasePart01.CommandOutput]:
             """Execute a checked command with inherited live output."""
             ...
 
@@ -103,57 +109,8 @@ class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):
             timeout: int | None = None,
             *,
             options: FlextCliProtocolsProcess.ProcessOptions | None = None,
-        ) -> p.Result[FlextCliProtocolsBasePart02.ProcessOutcome]:
+        ) -> p.Result[FlextCliProtocolsBaseFlextclimodelsbasePart01.ProcessOutcome]:
             """Execute once with exact combined or separate durable output."""
-            ...
-
-    @runtime_checkable
-    class CliParamsConfig(Protocol):
-        """Protocol for CLI parameters configuration."""
-
-        @property
-        def debug(self) -> bool | None:
-            """Whether debug mode is enabled."""
-            ...
-
-        @property
-        def log_format(self) -> str | None:
-            """Configured log format."""
-            ...
-
-        @property
-        def log_level(self) -> str | None:
-            """Configured log level."""
-            ...
-
-        @property
-        def no_color(self) -> bool | None:
-            """Whether color is disabled."""
-            ...
-
-        @property
-        def output_format(self) -> str | None:
-            """Configured output format."""
-            ...
-
-        @property
-        def params(self) -> t.JsonMapping:
-            """Validated configuration parameters."""
-            ...
-
-        @property
-        def quiet(self) -> bool | None:
-            """Whether quiet mode is enabled."""
-            ...
-
-        @property
-        def trace(self) -> bool | None:
-            """Whether trace mode is enabled."""
-            ...
-
-        @property
-        def verbose(self) -> bool | None:
-            """Whether verbose mode is enabled."""
             ...
 
 

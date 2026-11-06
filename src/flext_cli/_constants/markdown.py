@@ -26,6 +26,7 @@ class FlextCliConstantsMarkdown:
         HEADING_OPEN = "heading_open"
         SOFTBREAK = "softbreak"
         HARDBREAK = "hardbreak"
+        TABLE_OPEN = "table_open"
 
     MARKDOWN_PARSER_PRESET: ClassVar[str] = "commonmark"
     MARKDOWN_INLINE_CORE_RULE: ClassVar[str] = "inline"
@@ -33,6 +34,8 @@ class FlextCliConstantsMarkdown:
     "CommonMark core shared by MkDocs and pytest-markdown-docs."
     MARKDOWN_PARSER_RULES: ClassVar[Sequence[str]] = ("table",)
     "GFM table rule enabled to match the generated MkDocs ``tables`` extension."
+    MARKDOWN_TABLE_DELIMITER_MIN_WIDTH: ClassVar[int] = 3
+    "Narrowest GFM delimiter cell, ``---``, that an aligned column keeps."
     MARKDOWN_LINE_BREAK_TOKENS: ClassVar[frozenset[str]] = frozenset({
         MarkdownTokenType.SOFTBREAK,
         MarkdownTokenType.HARDBREAK,

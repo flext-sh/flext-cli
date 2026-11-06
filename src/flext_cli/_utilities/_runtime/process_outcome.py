@@ -8,7 +8,9 @@ from __future__ import annotations
 
 from collections.abc import Sequence
 
-from flext_cli import c, m, p, r
+from flext_core import r
+
+from flext_cli import c, m, p
 
 
 class FlextCliUtilitiesRuntimeProcessOutcome:
@@ -29,17 +31,38 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
         )
 
     @staticmethod
+    def process_raise_if_interrupted[T](result: p.Result[T]) -> None:
+        """Propagate an operator signal proven by a completed command result.
+
+        Ordinary failures, timeouts and successful results remain untouched.
+        Callers retain the original result and its causal exception.
+
+        Raises:
+            SystemExit: When native failure metadata proves a forwarded signal.
+
+        """
+        if result.failure and result.error_data is not None:
+            signum = result.error_data.get(c.Cli.PROCESS_FORWARDED_SIGNAL_KEY)
+            if (
+                isinstance(signum, int)
+                and signum > 0
+                and result.error_data.get(c.Cli.PROCESS_TIMED_OUT_KEY) is False
+                and result.error_data.get(c.Cli.PROCESS_EXIT_CODE_KEY) == -signum
+            ):
+                raise SystemExit(-signum) from result.exception
+
+    @staticmethod
     def _process_exit_result(
         return_code: int | None,
         received_signals: Sequence[int],
         diagnostics: tuple[str, ...],
         *,
         timed_out: bool,
-    ) -> p.Result[m.Cli.ProcessOutcome]:
+    ) -> p.Result[p.Cli.ProcessOutcome]:
         """Preserve a primary exit while surfacing additive diagnostics.
 
         Returns:
-            The resulting ``p.Result[m.Cli.ProcessOutcome]``.
+            The resulting ``p.Result[p.Cli.ProcessOutcome]``.
 
         """
         if received_signals:
@@ -49,12 +72,12 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
         else:
             primary_exit = return_code
         if diagnostics:
-            return r[m.Cli.ProcessOutcome].fail("; ".join(diagnostics))
+            return r[p.Cli.ProcessOutcome].fail("; ".join(diagnostics))
         if primary_exit is None:
-            return r[m.Cli.ProcessOutcome].fail(
+            return r[p.Cli.ProcessOutcome].fail(
                 "root process did not expose an exit status",
             )
-        return r[m.Cli.ProcessOutcome].ok(
+        return r[p.Cli.ProcessOutcome].ok(
             m.Cli.ProcessOutcome(
                 raw_return_code=primary_exit,
                 timed_out=timed_out,
@@ -65,7 +88,7 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
     @classmethod
     def _captured_process_result(
         cls,
-        state: m.Cli.RuntimeProcessState,
+        state: p.Cli.RuntimeProcessState,
         duration: float,
     ) -> p.Result[p.Cli.CommandBytesOutput]:
         """Attach captured bytes only after the owned process boundary is empty.

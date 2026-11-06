@@ -9,7 +9,6 @@ from __future__ import annotations
 from collections.abc import Callable
 from typing import Protocol, runtime_checkable
 
-# mro-j47u (codex): consume the earlier local t facade through the package root.
 from flext_cli import t
 
 
@@ -59,6 +58,25 @@ class FlextCliProtocolsFramework:
             standalone_mode: bool = True,
         ) -> t.JsonPayload:
             """Execute one command."""
+            ...
+
+    class ParameterSource(Protocol):
+        """Origin of one parsed command parameter value."""
+
+        @property
+        def name(self) -> str:
+            """Name of the origin, such as ``COMMANDLINE`` or ``DEFAULT``."""
+            ...
+
+    @runtime_checkable
+    class CommandContext(Protocol):
+        """Command context the framework injects into one invocation."""
+
+        def get_parameter_source(
+            self,
+            name: str,
+        ) -> FlextCliProtocolsFramework.ParameterSource | None:
+            """Return where the named parameter value came from, if parsed."""
             ...
 
 

@@ -15,11 +15,11 @@ from typing import Never
 
 from flext_cli import c
 from flext_cli._utilities import (
-    FlextCliAtomicTreeDarwin,
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileRead,
     FlextCliUtilitiesAtomicFileState,
+    FlextCliUtilitiesAtomicTreeDarwin,
 )
 
 
@@ -50,7 +50,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
             FlextCliUtilitiesAtomicTreeDescriptor.require_mount(
                 path,
                 required_mount_id,
-                FlextCliUtilitiesAtomicTreeDescriptor.mount_id(descriptor, path),
+                FlextCliUtilitiesAtomicTreeDescriptor.tree_mount_id(descriptor, path),
             )
             for chunk in FlextCliUtilitiesAtomicFileRead.descriptor_chunks(
                 descriptor, path, expected
@@ -65,7 +65,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         return size, digest.hexdigest()
 
     @staticmethod
-    def mount_id(descriptor: int, path: Path) -> int:
+    def tree_mount_id(descriptor: int, path: Path) -> int:
         """Return the host's descriptor-bound mount identity or fail closed.
 
         Returns:
@@ -79,7 +79,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         """
         platform_name = FlextCliUtilitiesAtomicTreeDescriptor._tree_runtime_platform()
         if platform_name == "darwin":
-            return FlextCliAtomicTreeDarwin.mount_id(
+            return FlextCliUtilitiesAtomicTreeDarwin.darwin_mount_id(
                 descriptor,
                 path,
             )
@@ -148,7 +148,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         if FlextCliUtilitiesAtomicFileRead.state_key(
             observed,
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
-            FlextCliUtilitiesAtomicTreeDescriptor._raise_changed(path)
+            FlextCliUtilitiesAtomicTreeDescriptor._raise_descriptor_changed(path)
 
     @staticmethod
     def require_entry_state(
@@ -161,7 +161,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         if FlextCliUtilitiesAtomicFileRead.state_key(
             observed,
         ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
-            FlextCliUtilitiesAtomicTreeDescriptor._raise_changed(path)
+            FlextCliUtilitiesAtomicTreeDescriptor._raise_descriptor_changed(path)
 
     @staticmethod
     def _tree_runtime_platform() -> str:
@@ -174,7 +174,7 @@ class FlextCliUtilitiesAtomicTreeDescriptor:
         return sys.platform
 
     @staticmethod
-    def _raise_changed(path: Path) -> Never:
+    def _raise_descriptor_changed(path: Path) -> Never:
         message = f"atomic physical-tree entry changed during authentication: {path}"
         raise OSError(errno.ESTALE, message, path)
 

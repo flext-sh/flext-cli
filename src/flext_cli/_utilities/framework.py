@@ -16,11 +16,11 @@ from typing import ClassVar, Never
 
 import click
 import typer
-from flext_core import u
+from flext_core import e, r, u
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
-from flext_cli import c, e, m, p, r, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesCommands, FlextCliUtilitiesConversion
 
 
@@ -31,6 +31,15 @@ class FlextCliUtilitiesFramework:
     # the base class through typer's PUBLIC surface -- no private module access.
     _TYPER_CLICK_EXCEPTION: ClassVar[type[Exception]] = next(
         base for base in typer.BadParameter.__mro__ if base.__name__ == "ClickException"
+    )
+    # Typer injects its vendored click context, the base of typer.Context, so an
+    # isinstance check against typer.Context rejects every injected context. The
+    # issubclass filter proves at import time that this exact class satisfies the
+    # structural contract the supplied-options filter reads.
+    _TYPER_CLICK_CONTEXT: ClassVar[type[p.Cli.CommandContext]] = next(
+        base
+        for base in typer.Context.__mro__[1:]
+        if base.__name__ == "Context" and issubclass(base, p.Cli.CommandContext)
     )
 
     class TyperApplication:
@@ -167,13 +176,20 @@ class FlextCliUtilitiesFramework:
         return application
 
     @staticmethod
-    def _exit_code_result(exit_code: int) -> p.Result[bool]:
-        """Normalize one framework exit code through the exception facade.
+    def _exit_code_result(exit_result: t.JsonPayload) -> p.Result[bool]:
+        """Normalize one framework return value through the exception facade.
+
+        Only a non-boolean integer other than success is an exit failure.
 
         Returns:
             The resulting ``p.Result[bool]``.
 
         """
+        exit_code = (
+            exit_result
+            if isinstance(exit_result, int) and not isinstance(exit_result, bool)
+            else c.Cli.EXIT_CODE_SUCCESS
+        )
         if exit_code == c.Cli.EXIT_CODE_SUCCESS:
             return r[bool].ok(value=True)
         return e.fail_operation(
@@ -223,6 +239,45 @@ class FlextCliUtilitiesFramework:
 
         """
         cls._unwrap(application).add_typer(group, name=name)
+
+    @staticmethod
+    def framework_command_context_annotation() -> type:
+        """Return the annotation under which Typer injects the command context.
+
+        Returns:
+            The framework context type a command parameter declares.
+
+        """
+        return typer.Context
+
+    @classmethod
+    def framework_supplied_options(
+        cls,
+        options: MutableMapping[str, t.Cli.CliValue],
+        context_parameter: str,
+    ) -> dict[str, t.Cli.CliValue]:
+        """Pop the injected context and keep only the options the user supplied.
+
+        A value Typer filled from its default stays out, so model validators
+        that tell "given" from "default" keep working.
+
+        Returns:
+            The supplied options keyed by parameter name.
+
+        Raises:
+            TypeError: Typer did not inject the command context.
+
+        """
+        context = options.pop(context_parameter)
+        if not isinstance(context, cls._TYPER_CLICK_CONTEXT):
+            msg = "Typer did not inject the command context"
+            raise TypeError(msg)
+        return {
+            key: value
+            for key, value in options.items()
+            if (source := context.get_parameter_source(key)) is not None
+            and source.name != c.Cli.PARAMETER_SOURCE_DEFAULT
+        }
 
     @classmethod
     def framework_register_callback(
@@ -381,13 +436,7 @@ class FlextCliUtilitiesFramework:
             cls._active_execution.reset(token)
         if captured_failure is not None:
             return r[bool].from_failure(captured_failure)
-        if (
-            isinstance(exit_result, int)
-            and not isinstance(exit_result, bool)
-            and exit_result != c.Cli.EXIT_CODE_SUCCESS
-        ):
-            return cls._exit_code_result(exit_result)
-        return r[bool].ok(value=True)
+        return cls._exit_code_result(exit_result)
 
     @classmethod
     def framework_execute_external(
@@ -421,13 +470,7 @@ class FlextCliUtilitiesFramework:
             raise
         except SystemExit:
             raise
-        if (
-            isinstance(exit_result, int)
-            and not isinstance(exit_result, bool)
-            and exit_result != c.Cli.EXIT_CODE_SUCCESS
-        ):
-            return cls._exit_code_result(exit_result)
-        return r[bool].ok(value=True)
+        return cls._exit_code_result(exit_result)
 
     @classmethod
     def framework_external_command(
@@ -452,7 +495,7 @@ class FlextCliUtilitiesFramework:
         args: Sequence[str] | None = None,
         charset: str = c.DEFAULT_ENCODING,
         env: Mapping[str, str] | None = None,
-    ) -> m.Cli.InvocationResult:
+    ) -> p.Cli.InvocationResult:
         """Invoke one application through the real framework test runner.
 
         Captured output renders unstyled so text assertions stay

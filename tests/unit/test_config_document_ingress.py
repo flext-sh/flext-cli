@@ -80,7 +80,7 @@ class TestsFlextCliConfigDocumentIngress:
         """Native source decoding cannot admit invalid members, items or arity."""
         parsed = tm.ok(u.Cli.yaml_parse(u.Cli.yaml_dump_str(source)))
 
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             u.Cli.config_decode(parsed, TestsFlextCliConfigDocumentIngress.Contract)
 
     @staticmethod
@@ -94,7 +94,7 @@ class TestsFlextCliConfigDocumentIngress:
             {"kind": c.DEFAULT_HANDLER_TYPE.value},
             {"kinds": [c.DEFAULT_HANDLER_TYPE]},
         ):
-            with pytest.raises(m.ValidationError):
+            with u.Tests.raises(m.ValidationError):
                 domain.model_validate(source)
 
     @staticmethod
@@ -102,7 +102,7 @@ class TestsFlextCliConfigDocumentIngress:
         """The entry owner adds provenance without replacing the native failure."""
         source = tmp_path / "policy.yaml"
 
-        with pytest.raises(m.ValidationError) as raised:
+        with u.Tests.raises(m.ValidationError) as raised:
             u.Cli.config_decode(
                 {"kind": None},
                 TestsFlextCliConfigDocumentIngress.Contract,

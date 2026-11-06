@@ -6,11 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli import m, p, r
-from flext_cli._utilities import (
+from flext_core import r
+
+from flext_cli import m, p
+from flext_cli._utilities._xlsx.xlsx_snapshot_sheet import (
     FlextCliUtilitiesXlsxSnapshotSheet,
-    FlextCliUtilitiesXlsxWorkbookIo,
 )
+from flext_cli._utilities._xlsx.xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
 
 
 class FlextCliUtilitiesXlsxSnapshot(
@@ -24,28 +26,28 @@ class FlextCliUtilitiesXlsxSnapshot(
     @classmethod
     def snapshot_workbook(
         cls,
-        request: m.Cli.XlsxSnapshotRequest,
-    ) -> p.Result[m.Cli.XlsxWorkbookSnapshot]:
+        request: p.Cli.XlsxSnapshotRequest,
+    ) -> p.Result[p.Cli.XlsxWorkbookSnapshot]:
         """Inspect workbook bytes into one immutable semantic snapshot.
 
         Returns:
-            The resulting ``p.Result[m.Cli.XlsxWorkbookSnapshot]``.
+            The resulting ``p.Result[p.Cli.XlsxWorkbookSnapshot]``.
 
         """
         try:
             snapshot = cls._snapshot_workbook(request)
         except (TypeError, m.ValidationError, ValueError) as exc:
-            return r[m.Cli.XlsxWorkbookSnapshot].fail(
+            return r[p.Cli.XlsxWorkbookSnapshot].fail(
                 f"Workbook snapshot failed ({exc.__class__.__name__}): {exc}",
                 exception=exc,
             )
-        return r[m.Cli.XlsxWorkbookSnapshot].ok(snapshot)
+        return r[p.Cli.XlsxWorkbookSnapshot].ok(snapshot)
 
     @classmethod
     def _snapshot_workbook(
         cls,
-        request: m.Cli.XlsxSnapshotRequest,
-    ) -> m.Cli.XlsxWorkbookSnapshot:
+        request: p.Cli.XlsxSnapshotRequest,
+    ) -> p.Cli.XlsxWorkbookSnapshot:
         formula_workbook = cls._require_success(
             cls._load_workbook(request.source, data_only=False),
         )
@@ -57,7 +59,7 @@ class FlextCliUtilitiesXlsxSnapshot(
         if len(formula_workbook.worksheets) != len(value_workbook.worksheets):
             msg = "Formula and value workbook views have different sheet counts"
             raise ValueError(msg)
-        sheets: tuple[m.Cli.XlsxSheetSnapshot, ...] = ()
+        sheets: tuple[p.Cli.XlsxSheetSnapshot, ...] = ()
         for position, (formula_sheet, value_sheet) in enumerate(
             zip(formula_workbook.worksheets, value_workbook.worksheets, strict=True),
             start=1,

@@ -13,7 +13,7 @@ from __future__ import annotations
 
 from collections.abc import Mapping, MutableSequence, Sequence
 
-from examples import c, m, t
+from examples import c, m, p, t
 from flext_cli import FlextCliUtilities, cli
 
 
@@ -21,7 +21,7 @@ class ExamplesFlextCliUtilities(FlextCliUtilities):
     """Public examples utility facade extending flext-cli utilities."""
 
     @staticmethod
-    def to_json_dict(data: t.JsonMapping) -> m.Cli.DisplayData:
+    def to_json_dict(data: t.JsonMapping) -> p.Cli.DisplayData:
         """Wrap a JSON mapping in DisplayData for the table renderers.
 
         Returns:
@@ -51,7 +51,7 @@ class ExamplesFlextCliUtilities(FlextCliUtilities):
 
     @staticmethod
     def display_config_table(
-        config_data: m.Cli.DisplayData | m.Value,
+        config_data: p.Cli.DisplayData | m.Value,
         headers: Sequence[str] | None = None,
     ) -> None:
         """Display configuration as a table using canonical example models."""
@@ -70,7 +70,7 @@ class ExamplesFlextCliUtilities(FlextCliUtilities):
     @staticmethod
     def display_success_summary(
         operation: str,
-        details: m.Cli.SuccessSummaryDetails | None = None,
+        details: p.Cli.SuccessSummaryDetails | None = None,
     ) -> None:
         """Display a standardized success summary using cli."""
         cli.print(

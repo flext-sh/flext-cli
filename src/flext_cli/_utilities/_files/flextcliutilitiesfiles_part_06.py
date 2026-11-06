@@ -6,17 +6,21 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import errno
 import fnmatch
 import os
 import traceback
-from collections.abc import MutableMapping, Sequence
+from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
-from flext_cli import c, m, p, r, t
+from flext_core import r
+
+from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesAtomicFile, FlextCliUtilitiesRuntime
 from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
+from flext_cli._utilities._files.native_results import (
+    FlextCliUtilitiesFilesNativeResults,
+)
 
 
 class FlextCliUtilitiesFilesPart06:
@@ -30,7 +34,7 @@ class FlextCliUtilitiesFilesPart06:
         permission_mode: int,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
-    ) -> p.Result[m.Cli.AtomicFileState]:
+    ) -> p.Result[p.Cli.AtomicFileState]:
         """Create one absent file and return its authenticated published state.
 
         ``max_bytes`` rejects oversized ``data`` and ``owner_uid`` rejects a
@@ -38,14 +42,11 @@ class FlextCliUtilitiesFilesPart06:
         retains the original publication proof under those same guards.
 
         Returns:
-            The resulting ``p.Result[m.Cli.AtomicFileState]``.
-
-        Raises:
-            OSError: If the file cannot be created under the specified guards.
+            The resulting ``p.Result[p.Cli.AtomicFileState]``.
 
         """
         if max_bytes is not None and len(data) > max_bytes:
-            return r[m.Cli.AtomicFileState].fail(
+            return r[p.Cli.AtomicFileState].fail(
                 f"atomic create content exceeds {max_bytes} bytes: {file_path}",
             )
         before = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
@@ -54,33 +55,28 @@ class FlextCliUtilitiesFilesPart06:
             owner_uid=owner_uid,
         )
         if before.failure:
-            return r[m.Cli.AtomicFileState].from_failure(before)
+            return r[p.Cli.AtomicFileState].from_failure(before)
         if before.value.content is not None:
-            return r[m.Cli.AtomicFileState].fail(
+            return r[p.Cli.AtomicFileState].fail(
                 f"atomic create destination already exists: {before.value.path}",
             )
-        try:
-            if not isinstance(data, bytes):
-                message = "atomic file content must be bytes"
-                raise OSError(errno.EINVAL, message, before.value.path)
-            # Return this publication's proof, never a later path observation.
-            published = FlextCliUtilitiesAtomicFile.write_atomic_state(
-                before.value.path,
-                data,
+        # Return this publication's proof, never a later path observation.
+        return FlextCliUtilitiesFilesNativeResults.native_result(
+            FlextCliUtilitiesAtomicFile.write_atomic_state,
+            c.Cli.ERR_BINARY_WRITE_FAILED,
+        )(
+            before.value.path,
+            data,
+            m.Cli.AtomicWriteOptions(
                 expected_state=before.value,
                 permission_mode=permission_mode,
-                durability=c.Cli.WriteDurability.DURABLE,
                 owner_uid=owner_uid,
-            )
-        except OSError as exc:
-            return r[m.Cli.AtomicFileState].fail(
-                c.Cli.ERR_BINARY_WRITE_FAILED.format(error=exc), exception=exc
-            )
-        return r.ok(published)
+            ),
+        )
 
     @staticmethod
     def atomic_verify_binary_file_states(
-        expected_states: Sequence[m.Cli.AtomicFileState],
+        expected_states: Sequence[p.Cli.AtomicFileState],
         *,
         nonsecret_source_paths: Sequence[Path] = (),
     ) -> p.Result[Literal[True]]:
@@ -94,7 +90,7 @@ class FlextCliUtilitiesFilesPart06:
             Exactly ``True`` on successful verification, otherwise a failed result.
 
         """
-        by_path: MutableMapping[t.Cli.TextPath, m.Cli.AtomicFileState] = {}
+        by_path: dict[t.Cli.TextPath, p.Cli.AtomicFileState] = {}
         for expected in expected_states:
             existing = by_path.get(expected.path)
             if existing is not None and existing != expected:
@@ -175,6 +171,32 @@ class FlextCliUtilitiesFilesPart06:
         if not root.is_dir():
             return result.fail(f"file selection root is not a directory: {root}")
         scope = root.resolve()
+        candidates = FlextCliUtilitiesFilesPart06._files_candidates(scope)
+        if candidates.failure:
+            return result.from_failure(candidates)
+
+        def selected(path: Path) -> bool:
+            relative = path.relative_to(scope).as_posix()
+            return (
+                path.is_file()
+                and (
+                    not includes
+                    or any(fnmatch.fnmatchcase(relative, rule) for rule in includes)
+                )
+                and not any(fnmatch.fnmatchcase(relative, rule) for rule in excludes)
+            )
+
+        return result.ok(sorted(path for path in candidates.value if selected(path)))
+
+    @staticmethod
+    def _files_candidates(scope: Path) -> p.Result[Sequence[Path]]:
+        """Read every selection candidate after probing for a Git worktree.
+
+        Returns:
+            Git-visible paths inside a worktree, every path on disk outside
+            one, or the probe failure.
+
+        """
         # Extend, never replace: the caller's git controls (ceiling
         # directories, global config, credential helpers) must survive the
         # probe — replacing the environment silently re-scopes worktree
@@ -188,40 +210,36 @@ class FlextCliUtilitiesFilesPart06:
             ),
         )
         if probe.failure:
-            return result.from_failure(probe)
-        outcome = probe.value.outcome
+            return r[Sequence[Path]].from_failure(probe)
+        return FlextCliUtilitiesFilesPart06._probed_candidates(scope, probe.value)
+
+    @staticmethod
+    def _probed_candidates(
+        scope: Path,
+        probe: p.Cli.CommandBytesOutput,
+    ) -> p.Result[Sequence[Path]]:
+        """Read the candidates selected by one completed worktree probe.
+
+        Returns:
+            The candidates, or why the probe outcome selects none.
+
+        """
+        outcome = probe.outcome
         if outcome.timed_out or outcome.forwarded_signal is not None:
-            return result.fail(f"Git worktree probe interrupted: {scope}")
+            return r[Sequence[Path]].fail(f"Git worktree probe interrupted: {scope}")
         if outcome.raw_return_code == c.Cli.EXIT_CODE_SUCCESS:
-            listed = FlextCliUtilitiesFilesPart06._files_git_candidates(
+            return FlextCliUtilitiesFilesPart06._files_git_candidates(
                 scope,
-                worktree_status=probe.value.stdout,
+                worktree_status=probe.stdout,
             )
-            if listed.failure:
-                return result.from_failure(listed)
-            candidates = listed.value
-        elif (
+        if (
             outcome.raw_return_code == c.Cli.GIT_NOT_A_REPOSITORY_EXIT_CODE
-            and b"not a git repository" in probe.value.stderr
+            and b"not a git repository" in probe.stderr
         ):
-            candidates = list(scope.rglob("*"))
-        else:
-            return result.fail(
-                probe.value.stderr.decode(c.DEFAULT_ENCODING, errors="strict"),
-            )
-
-        def selected(path: Path) -> bool:
-            relative = path.relative_to(scope).as_posix()
-            return (
-                path.is_file()
-                and (
-                    not includes
-                    or any(fnmatch.fnmatchcase(relative, rule) for rule in includes)
-                )
-                and not any(fnmatch.fnmatchcase(relative, rule) for rule in excludes)
-            )
-
-        return result.ok(sorted(path for path in candidates if selected(path)))
+            return r[Sequence[Path]].ok(list(scope.rglob("*")))
+        return r[Sequence[Path]].fail(
+            probe.stderr.decode(c.DEFAULT_ENCODING, errors="strict"),
+        )
 
     @staticmethod
     def _files_git_candidates(

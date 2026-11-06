@@ -8,11 +8,14 @@ from __future__ import annotations
 
 from typing import Literal, cast
 
+from flext_core import r
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import m, p, r
-from flext_cli._utilities import (
+from flext_cli import m, p
+from flext_cli._utilities._xlsx.xlsx_snapshot_structure import (
     FlextCliUtilitiesXlsxSnapshotStructure,
+)
+from flext_cli._utilities._xlsx.xlsx_snapshot_values import (
     FlextCliUtilitiesXlsxSnapshotValues,
 )
 
@@ -47,7 +50,7 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
         value_sheet: Worksheet,
         *,
         position: int,
-    ) -> p.Result[m.Cli.XlsxSheetSnapshot]:
+    ) -> p.Result[p.Cli.XlsxSheetSnapshot]:
         try:
             snapshot = cls._snapshot_sheet_unchecked(
                 formula_sheet,
@@ -55,11 +58,11 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
                 position=position,
             )
         except (TypeError, m.ValidationError, ValueError) as exc:
-            return r[m.Cli.XlsxSheetSnapshot].fail(
+            return r[p.Cli.XlsxSheetSnapshot].fail(
                 f"Worksheet snapshot failed ({exc.__class__.__name__}): {exc}",
                 exception=exc,
             )
-        return r[m.Cli.XlsxSheetSnapshot].ok(snapshot)
+        return r[p.Cli.XlsxSheetSnapshot].ok(snapshot)
 
     @classmethod
     def _snapshot_sheet_unchecked(
@@ -68,7 +71,7 @@ class FlextCliUtilitiesXlsxSnapshotSheet(
         value_sheet: Worksheet,
         *,
         position: int,
-    ) -> m.Cli.XlsxSheetSnapshot:
+    ) -> p.Cli.XlsxSheetSnapshot:
         if formula_sheet.title != value_sheet.title:
             msg = (
                 f"Worksheet view mismatch: {formula_sheet.title} != {value_sheet.title}"

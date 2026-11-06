@@ -32,8 +32,8 @@ class TestsFlextCliModelCommandJsonOptions:
         """Request carrying a nested model and a sequence of nested models."""
 
         prefs: m.Tests.UserPreferences
-        others: list[m.Tests.UserPreferences] = m.Field(
-            default_factory=list[m.Tests.UserPreferences],
+        others: list[p.Tests.UserPreferences] = m.Field(
+            default_factory=list[p.Tests.UserPreferences],
         )
 
     class JsonDefaultsModel(m.BaseModel):
@@ -88,7 +88,7 @@ class TestsFlextCliModelCommandJsonOptions:
         args: Sequence[str],
         *,
         settings: t.Cli.ModelLike | None = None,
-    ) -> tuple[m.Cli.InvocationResult, list[M]]:
+    ) -> tuple[p.Cli.InvocationResult, list[M]]:
         received: list[M] = []
         app = self._app(model_cls, received, settings=settings)
         invocation = cli.invoke_app(app, args=["run", *args])
@@ -115,7 +115,7 @@ class TestsFlextCliModelCommandJsonOptions:
         """Nested models and their sequences validate from JSON options."""
         expected = self.NestedModel(
             prefs=m.Tests.UserPreferences(theme="dark", notifications=True),
-            others=[m.Tests.UserPreferences(theme="solar", notifications=False)],
+            others=[p.Tests.UserPreferences(theme="solar", notifications=False)],
         )
         invocation, received = self._invoke(
             self.NestedModel,

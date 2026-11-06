@@ -8,9 +8,9 @@ from __future__ import annotations
 
 from collections.abc import MutableSequence
 
-from flext_core import u
+from flext_core import r, u
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesValidation
 
 
@@ -21,7 +21,7 @@ class FlextCliUtilitiesParams:
     def params_resolve(
         params: p.Cli.CliParamsConfig | None,
         kwargs: t.Cli.CliParamKwargs,
-    ) -> m.Cli.CliParamsConfig:
+    ) -> p.Cli.CliParamsConfig:
         """Resolve explicit params and kwargs into one validated model.
 
         Returns:

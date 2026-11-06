@@ -6,45 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
-
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
-
-import re
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
 import os
-from typing import TYPE_CHECKING
+from collections.abc import Callable, Sequence
 
 import pytest
 
 from flext_cli.services import FlextCliPrompts
-from tests import c, m
-
-if TYPE_CHECKING:
-    from collections.abc import Callable
-
-from tests import p, t
+from tests import c, m, p
 
 
 def _scripted_reader(
@@ -81,8 +49,7 @@ def make_prompts() -> Callable[..., p.Tests.Prompts]:
 
     def _make(
         *,
-        interactive_mode: bool = True,
-        quiet: bool = False,
+        state: p.Cli.PromptRuntimeState | None = None,
         inputs: Sequence[str] = (),
         password: str = "",
         error: Exception | None = None,
@@ -92,7 +59,7 @@ def make_prompts() -> Callable[..., p.Tests.Prompts]:
             password_reader=_scripted_reader((password,), error),
         )
         return prompts.configure(
-            m.Cli.PromptRuntimeState(interactive=interactive_mode, quiet=quiet),
+            m.Cli.PromptRuntimeState() if state is None else state,
         )
 
     return _make

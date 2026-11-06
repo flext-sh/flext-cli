@@ -24,19 +24,19 @@ class TestsFlextCliServicePart05:
         )
         group = cli.create_group(help_text="Grouped commands", name="group")
 
-        def ok_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
+        def ok_handler(params: p.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return cli.execute().map(
                 lambda _payload: m.Tests.SampleOutput(
                     message=f"processed {params.name}",
                 ),
             )
 
-        def fail_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
+        def fail_handler(params: p.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return cli.validate_credentials("", "password").map(
                 lambda _value: m.Tests.SampleOutput(message=params.name),
             )
 
-        def build_ok_route() -> m.Cli.ResultCommandRoute:
+        def build_ok_route() -> p.Cli.ResultCommandRoute:
             return m.Cli.ResultCommandRoute(
                 name="ok",
                 help_text="Successful command",
@@ -44,7 +44,7 @@ class TestsFlextCliServicePart05:
                 handler=ok_handler,
             )
 
-        def build_fail_route() -> m.Cli.ResultCommandRoute:
+        def build_fail_route() -> p.Cli.ResultCommandRoute:
             return m.Cli.ResultCommandRoute(
                 name="fail",
                 help_text="Failing command",
@@ -76,7 +76,7 @@ class TestsFlextCliServicePart05:
             help_text="Result application",
         )
 
-        def fail_handler(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
+        def fail_handler(params: p.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             return r[t.JsonPayload].fail(
                 "Password cannot be resolved",
                 error_code="secret_unavailable",

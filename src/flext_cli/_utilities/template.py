@@ -52,10 +52,10 @@ class FlextCliUtilitiesTemplate:
         def __init__(
             self,
             search_path: Path,
-            source_states: Sequence[m.Cli.AtomicFileState] | None = None,
+            source_states: Sequence[p.Cli.AtomicFileState] | None = None,
         ) -> None:
             self.search_path = search_path
-            self.source_states: MutableMapping[Path, m.Cli.AtomicFileState] = {
+            self.source_states: MutableMapping[Path, p.Cli.AtomicFileState] = {
                 state.path: state for state in source_states or ()
             }
             self.captured = source_states is not None
@@ -177,7 +177,7 @@ class FlextCliUtilitiesTemplate:
         return environment
 
     @staticmethod
-    def template_render(path: Path, context: p.Model) -> p.Result[str]:
+    def template_render(path: Path, context: p.BaseModel) -> p.Result[str]:
         """Render a ``templates/*.j2`` file with ``context`` → ``r[str]``.
 
         Fail-closed: a missing template or any Jinja error (including undefined
@@ -200,7 +200,7 @@ class FlextCliUtilitiesTemplate:
     @staticmethod
     def template_capture_sources(
         paths: Sequence[Path],
-    ) -> p.Result[tuple[m.Cli.AtomicFileState, ...]]:
+    ) -> p.Result[tuple[p.Cli.AtomicFileState, ...]]:
         """Capture declared Jinja imports through the existing native loader.
 
         Each root retains an independent authenticated dependency traversal;
@@ -211,8 +211,8 @@ class FlextCliUtilitiesTemplate:
 
         """
 
-        def capture() -> tuple[m.Cli.AtomicFileState, ...]:
-            states: MutableMapping[Path, m.Cli.AtomicFileState] = {}
+        def capture() -> tuple[p.Cli.AtomicFileState, ...]:
+            states: MutableMapping[Path, p.Cli.AtomicFileState] = {}
             for path in paths:
                 source = path.expanduser().absolute()
                 loader = FlextCliUtilitiesTemplate._AuthenticatedLoader(source.parent)
@@ -232,14 +232,14 @@ class FlextCliUtilitiesTemplate:
     @staticmethod
     def template_render_authenticated(
         path: Path,
-        context: p.Model,
+        context: p.BaseModel,
         *,
-        source_states: Sequence[m.Cli.AtomicFileState] | None = None,
-    ) -> p.Result[m.Cli.AuthenticatedTemplateRender]:
+        source_states: Sequence[p.Cli.AtomicFileState] | None = None,
+    ) -> p.Result[p.Cli.AuthenticatedTemplateRender]:
         """Render only descriptor-authenticated bytes and return all source states.
 
         Returns:
-            The resulting ``p.Result[m.Cli.AuthenticatedTemplateRender]``.
+            The resulting ``p.Result[p.Cli.AuthenticatedTemplateRender]``.
 
         """
         source = path.expanduser().absolute()
@@ -268,7 +268,7 @@ class FlextCliUtilitiesTemplate:
             op_name="template_render_authenticated",
         )
         if rendered.failure:
-            return r[m.Cli.AuthenticatedTemplateRender].fail(
+            return r[p.Cli.AuthenticatedTemplateRender].fail(
                 loader.failure
                 or rendered.error
                 or f"{c.Cli.ERR_TEMPLATE_RENDER_FAILED}: {source}",
@@ -276,15 +276,20 @@ class FlextCliUtilitiesTemplate:
                 error_code=rendered.error_code,
                 error_data=rendered.error_data,
             )
-        return r[m.Cli.AuthenticatedTemplateRender].ok(
+        return r[p.Cli.AuthenticatedTemplateRender].ok(
             m.Cli.AuthenticatedTemplateRender(
                 rendered=rendered.value,
-                source_states=tuple(loader.source_states.values()),
+                source_states=tuple(
+                    m.Cli.AtomicFileState.model_validate(state)
+                    for state in loader.source_states.values()
+                ),
             ),
         )
 
     @staticmethod
-    def template_render_to(path: Path, dest: Path, context: p.Model) -> p.Result[bool]:
+    def template_render_to(
+        path: Path, dest: Path, context: p.BaseModel
+    ) -> p.Result[bool]:
         """Render ``path`` with ``context`` and write it to ``dest`` → ``r[bool]``.
 
         Returns:
@@ -304,11 +309,11 @@ class FlextCliUtilitiesTemplate:
     def template_render_dir(
         templates_root: Path,
         output_root: Path,
-        context: p.Model,
-        entries: Sequence[m.Cli.TemplateRenderEntry],
+        context: p.BaseModel,
+        entries: Sequence[p.Cli.TemplateRenderEntry],
         *,
-        options: m.Cli.TemplateRenderOptions | None = None,
-    ) -> p.Result[m.Cli.TemplateRenderReport]:
+        options: p.Cli.TemplateRenderOptions | None = None,
+    ) -> p.Result[p.Cli.TemplateRenderReport]:
         """Render every entry from ``templates_root`` into ``output_root``.
 
         Generic, folder-parameterized engine (ADR-005): the caller supplies the
@@ -325,11 +330,11 @@ class FlextCliUtilitiesTemplate:
         the caller decides the fail policy (the report is always returned).
 
         Returns:
-            The resulting ``p.Result[m.Cli.TemplateRenderReport]``.
+            The resulting ``p.Result[p.Cli.TemplateRenderReport]``.
 
         """
         if not templates_root.is_dir():
-            return r[m.Cli.TemplateRenderReport].fail(
+            return r[p.Cli.TemplateRenderReport].fail(
                 f"{c.Cli.ERR_TEMPLATE_NOT_FOUND}: {templates_root}",
             )
         render_options = options or m.Cli.TemplateRenderOptions()
@@ -338,41 +343,67 @@ class FlextCliUtilitiesTemplate:
         skipped: list[Path] = []
         failed: list[tuple[Path, str]] = []
         for entry in entries:
-            out_rel = entry.output_relpath
-            if render_options.strip_suffix and str(out_rel).endswith(
-                render_options.strip_suffix,
+            dest = FlextCliUtilitiesTemplate._entry_destination(
+                entry, output_root, render_options.strip_suffix
+            )
+            escape = FlextCliUtilitiesTemplate._destination_escape(dest, root)
+            if escape is not None:
+                failed.append((dest, escape))
+            elif not entry.when or (
+                dest.exists() and not (entry.overwrite or render_options.overwrite)
             ):
-                out_rel = Path(str(out_rel)[: -len(render_options.strip_suffix)])
-            dest = output_root / out_rel
-            try:
-                if not dest.resolve().is_relative_to(root):
-                    failed.append((dest, c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE))
-                    continue
-            except (OSError, ValueError) as exc:
-                failed.append((
-                    dest,
-                    r[str].fail(c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE, exception=exc).error
-                    or c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE,
-                ))
-                continue
-            if not entry.when:
                 skipped.append(dest)
-                continue
-            if dest.exists() and not (entry.overwrite or render_options.overwrite):
-                skipped.append(dest)
-                continue
-            src = templates_root / entry.relpath_template
-            result = FlextCliUtilitiesTemplate.template_render_to(src, dest, context)
-            if result.failure:
-                failed.append((dest, result.error or c.Cli.ERR_TEMPLATE_RENDER_FAILED))
-                continue
-            created.append(dest)
+            else:
+                result = FlextCliUtilitiesTemplate.template_render_to(
+                    templates_root / entry.relpath_template, dest, context
+                )
+                if result.failure:
+                    failed.append((
+                        dest,
+                        result.error or c.Cli.ERR_TEMPLATE_RENDER_FAILED,
+                    ))
+                else:
+                    created.append(dest)
         report = m.Cli.TemplateRenderReport(
             created=tuple(created),
             skipped=tuple(skipped),
             failed=tuple(failed),
         )
-        return r[m.Cli.TemplateRenderReport].ok(report)
+        return r[p.Cli.TemplateRenderReport].ok(report)
+
+    @staticmethod
+    def _entry_destination(
+        entry: p.Cli.TemplateRenderEntry,
+        output_root: Path,
+        strip_suffix: str,
+    ) -> Path:
+        """Return one entry's destination with the template suffix stripped.
+
+        Returns:
+            The destination path under ``output_root``.
+
+        """
+        out_rel = entry.output_relpath
+        if strip_suffix and str(out_rel).endswith(strip_suffix):
+            out_rel = Path(str(out_rel)[: -len(strip_suffix)])
+        return output_root / out_rel
+
+    @staticmethod
+    def _destination_escape(dest: Path, root: Path) -> str | None:
+        """Report whether one destination resolves outside the output root.
+
+        Returns:
+            The escape diagnostic, or ``None`` for a contained destination.
+
+        """
+        try:
+            contained = dest.resolve().is_relative_to(root)
+        except (OSError, ValueError) as exc:
+            return (
+                r[str].fail(c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE, exception=exc).error
+                or c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE
+            )
+        return None if contained else c.Cli.ERR_TEMPLATE_OUTPUT_ESCAPE
 
     @staticmethod
     def _write(dest: Path, content: str) -> bool:

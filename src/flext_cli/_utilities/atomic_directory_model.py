@@ -11,7 +11,8 @@ import os
 import stat
 from pathlib import Path
 
-from flext_cli import m
+from flext_cli import m, p
+from flext_cli._utilities import FlextCliUtilitiesAtomicFileModel
 from flext_cli.typings import DirectoryPhysicalState
 
 
@@ -23,7 +24,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
         path: Path,
         parent: os.stat_result | None,
         observed: os.stat_result | None,
-    ) -> m.Cli.AtomicDirectoryState:
+    ) -> p.Cli.AtomicDirectoryState:
         """Build the caller-owned state from one authenticated observation.
 
         Returns:
@@ -50,7 +51,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
         )
 
     @staticmethod
-    def require_absent(state: m.Cli.AtomicDirectoryState, *, purpose: str) -> None:
+    def require_absent(state: p.Cli.AtomicDirectoryState, *, purpose: str) -> None:
         """Require the caller state to authorize creation from exact absence.
 
         Raises:
@@ -63,7 +64,7 @@ class FlextCliUtilitiesAtomicDirectoryModel:
 
     @staticmethod
     def require_directory_existing(
-        state: m.Cli.AtomicDirectoryState, *, purpose: str
+        state: p.Cli.AtomicDirectoryState, *, purpose: str
     ) -> None:
         """Require the caller state to authorize an existing empty directory.
 
@@ -77,57 +78,23 @@ class FlextCliUtilitiesAtomicDirectoryModel:
 
     @staticmethod
     def require_directory_observed(
-        planned: m.Cli.AtomicDirectoryState,
+        planned: p.Cli.AtomicDirectoryState,
         observed: os.stat_result | None,
     ) -> None:
         """Require presence, mode, and every physical field to match the snapshot.
 
         Raises:
-            OSError: If ``observed is None``; or if ``_planned_state(planned) !=
-                directory_physical_state(observed)``; or if ``observed is not None``.
+            OSError: If the presence or physical state changed after the snapshot.
 
         """
-        if not planned.exists:
-            if observed is not None:
-                message = (
-                    f"atomic directory appeared after absent snapshot: {planned.path}"
-                )
-                raise OSError(errno.ESTALE, message, planned.path)
-            return
-        if observed is None:
-            message = f"atomic directory disappeared after snapshot: {planned.path}"
-            raise OSError(errno.ESTALE, message, planned.path)
-        if FlextCliUtilitiesAtomicDirectoryModel._planned_state(
+        current = FlextCliUtilitiesAtomicFileModel.require_snapshot_presence(
+            planned.path, observed, present=planned.exists, subject="directory"
+        )
+        if current is not None and FlextCliUtilitiesAtomicDirectoryModel._planned_state(
             planned,
-        ) != FlextCliUtilitiesAtomicDirectoryModel.directory_physical_state(observed):
+        ) != FlextCliUtilitiesAtomicDirectoryModel.directory_physical_state(current):
             message = f"atomic directory physical state changed: {planned.path}"
             raise OSError(errno.ESTALE, message, planned.path)
-
-    @staticmethod
-    def require_directory_parent(
-        planned: m.Cli.AtomicDirectoryState,
-        observed: os.stat_result,
-    ) -> None:
-        """Require the authenticated parent to equal the snapshot parent identity.
-
-        Raises:
-            FileNotFoundError: If ``planned.parent_device is None or
-                planned.parent_inode is None``.
-            OSError: If ``(planned.parent_device, planned.parent_inode) !=
-                (observed.st_dev, observed.st_ino)``.
-
-        """
-        if planned.parent_device is None or planned.parent_inode is None:
-            message = (
-                f"atomic directory parent was absent at snapshot: {planned.path.parent}"
-            )
-            raise FileNotFoundError(errno.ENOENT, message, planned.path.parent)
-        if (planned.parent_device, planned.parent_inode) != (
-            observed.st_dev,
-            observed.st_ino,
-        ):
-            message = f"atomic directory parent identity changed: {planned.path.parent}"
-            raise OSError(errno.ESTALE, message, planned.path.parent)
 
     @staticmethod
     def directory_physical_state(state: os.stat_result) -> DirectoryPhysicalState:
@@ -139,31 +106,19 @@ class FlextCliUtilitiesAtomicDirectoryModel:
         """
         return (
             stat.S_IMODE(state.st_mode),
-            state.st_dev,
-            state.st_ino,
-            state.st_nlink,
-            getattr(state, "st_file_attributes", None),
-            getattr(state, "st_reparse_tag", None),
+            *FlextCliUtilitiesAtomicFileModel.physical_state(state),
         )
 
     @staticmethod
-    def _planned_state(state: m.Cli.AtomicDirectoryState) -> DirectoryPhysicalState:
-        mode, device, inode, link_count = (
-            state.mode,
-            state.device,
-            state.inode,
-            state.link_count,
-        )
-        if mode is None or device is None or inode is None or link_count is None:
+    def _planned_state(state: p.Cli.AtomicDirectoryState) -> DirectoryPhysicalState:
+        if state.mode is None:
             message = f"existing atomic directory lacks physical identity: {state.path}"
             raise OSError(errno.EINVAL, message, state.path)
         return (
-            mode,
-            device,
-            inode,
-            link_count,
-            state.file_attributes,
-            state.reparse_tag,
+            state.mode,
+            *FlextCliUtilitiesAtomicFileModel.planned_physical_state(
+                state, subject="directory"
+            ),
         )
 
 

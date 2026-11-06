@@ -6,14 +6,15 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import r
 from openpyxl import Workbook
 from openpyxl.workbook.defined_name import DefinedName
 from openpyxl.worksheet.table import Table, TableStyleInfo
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r
-from flext_cli._utilities import (
-    FlextCliUtilitiesXlsxAddresses,
+from flext_cli import c, p
+from flext_cli._utilities._xlsx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from flext_cli._utilities._xlsx.xlsx_formula_codec import (
     FlextCliUtilitiesXlsxFormulaCodec,
 )
 
@@ -27,7 +28,7 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
     def _apply_tables(
         cls,
         worksheet: Worksheet,
-        plans: tuple[m.Cli.XlsxTablePlan, ...],
+        plans: tuple[p.Cli.XlsxTablePlan, ...],
         used_names: frozenset[str],
     ) -> p.Result[frozenset[str]]:
         try:
@@ -40,7 +41,7 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
     def _apply_tables_unchecked(
         cls,
         worksheet: Worksheet,
-        plans: tuple[m.Cli.XlsxTablePlan, ...],
+        plans: tuple[p.Cli.XlsxTablePlan, ...],
         used_names: frozenset[str],
     ) -> p.Result[frozenset[str]]:
         names = used_names
@@ -71,7 +72,7 @@ class FlextCliUtilitiesXlsxTables(FlextCliUtilitiesXlsxAddresses):
     def _apply_defined_names(
         cls,
         workbook: Workbook,
-        plans: tuple[m.Cli.XlsxDefinedNamePlan, ...],
+        plans: tuple[p.Cli.XlsxDefinedNamePlan, ...],
     ) -> p.Result[bool]:
         names: frozenset[str] = frozenset()
         for plan in plans:

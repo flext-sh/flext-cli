@@ -93,7 +93,7 @@ class FlextCliUtilitiesAtomicFileState:
                 parent.state,
                 owner_uid,
             )
-            state = FlextCliUtilitiesAtomicFileState.destination_state(
+            state = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 validated,
                 parent=parent,
             )
@@ -159,7 +159,7 @@ class FlextCliUtilitiesAtomicFileState:
             raise OSError(errno.EFBIG, message, path)
 
     @staticmethod
-    def destination_state(
+    def file_destination_state(
         path: Path,
         *,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor | None = None,
@@ -170,24 +170,13 @@ class FlextCliUtilitiesAtomicFileState:
             An authorized destination snapshot without following links.
 
         """
-        if parent is None:
-            with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
-                path,
-            ) as opened:
-                state = FlextCliUtilitiesAtomicFileState.destination_state(
-                    path,
-                    parent=opened,
-                )
-                FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(opened)
-                return state
-        try:
-            state = FlextCliUtilitiesAtomicFileDescriptor.entry_stat(parent, path)
-        except FileNotFoundError:
-            state = None
-        if state is None:
-            return None
-        FlextCliUtilitiesAtomicFileState._validate_regular_state(path, state)
-        return state
+        return FlextCliUtilitiesAtomicFileDescriptor.destination_state(
+            path,
+            lambda entry, state, _parent: (
+                FlextCliUtilitiesAtomicFileState._validate_regular_state(entry, state)
+            ),
+            parent=parent,
+        )
 
     @staticmethod
     def validate_precondition(
@@ -195,7 +184,6 @@ class FlextCliUtilitiesAtomicFileState:
         state: os.stat_result | None,
         expected_bytes: bytes | None,
         *,
-        enabled: bool,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor | None = None,
     ) -> None:
         """Authenticate an explicit raw-byte version before staging.
@@ -207,8 +195,6 @@ class FlextCliUtilitiesAtomicFileState:
                 expected_bytes``.
 
         """
-        if not enabled:
-            return
         if expected_bytes is None:
             if state is not None:
                 message = f"atomic destination exists but absence was required: {path}"
@@ -239,7 +225,7 @@ class FlextCliUtilitiesAtomicFileState:
 
         Raises:
             FileNotFoundError: If a ``FileNotFoundError`` is caught.
-            OSError: If ``identity(state) != expected_identity``.
+            OSError: If ``path_identity(state) != expected_identity``.
 
         """
         if parent is None:
@@ -257,7 +243,7 @@ class FlextCliUtilitiesAtomicFileState:
         except FileNotFoundError as exc:
             message = f"atomic temporary disappeared before publication: {temporary}"
             raise FileNotFoundError(errno.ENOENT, message, temporary) from exc
-        if FlextCliUtilitiesAtomicFileState.identity(state) != expected_identity:
+        if FlextCliUtilitiesAtomicFilePath.path_identity(state) != expected_identity:
             message = (
                 f"atomic temporary identity changed before publication: {temporary}"
             )
@@ -291,7 +277,7 @@ class FlextCliUtilitiesAtomicFileState:
                     parent=opened,
                 )
                 return
-        current = FlextCliUtilitiesAtomicFileState.destination_state(
+        current = FlextCliUtilitiesAtomicFileState.file_destination_state(
             path,
             parent=parent,
         )
@@ -307,16 +293,6 @@ class FlextCliUtilitiesAtomicFileState:
             message = f"atomic destination changed during write: {path}"
             raise OSError(errno.ESTALE, message, path)
         FlextCliUtilitiesAtomicFileDescriptor.assert_parent_unchanged(parent)
-
-    @staticmethod
-    def identity(state: os.stat_result) -> tuple[int, int]:
-        """Return the filesystem identity shared by descriptor and pathname stats.
-
-        Returns:
-            The filesystem identity shared by descriptor and pathname stats.
-
-        """
-        return FlextCliUtilitiesAtomicFilePath.identity(state)
 
     @staticmethod
     def read_authenticated_bytes(

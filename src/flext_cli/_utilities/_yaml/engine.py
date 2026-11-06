@@ -26,10 +26,11 @@ from collections.abc import Callable, Sequence
 from typing import TYPE_CHECKING, TextIO
 
 import ruamel.yaml
+from flext_core import r
 from ruamel.yaml.comments import CommentedMap
 from ruamel.yaml.error import YAMLError
 
-from flext_cli import c, p, r, t
+from flext_cli import c, p, t
 from flext_cli._utilities._yaml import FlextCliUtilitiesYamlConvert
 
 if TYPE_CHECKING:

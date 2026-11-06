@@ -10,7 +10,8 @@ from typing import Annotated
 
 from flext_core import m
 
-from flext_cli import c, t
+from flext_cli import c, p, t
+from flext_cli._models._base.flextclimodelsbase_part_05 import FlextCliModelsBasePart05
 
 
 class FlextCliModelsPptxPresentation:
@@ -33,24 +34,23 @@ class FlextCliModelsPptxPresentation:
             description="Core document properties.",
         )
 
-    class PptxRenderRequest(m.FrozenModel):
-        template: (
-            Annotated[
-                bytes,
-                m.Field(min_length=1, description="Formatting template bytes."),
-            ]
-            | None
-        ) = m.Field(default=None, description="Optional source presentation.")
-        plan: FlextCliModelsPptxPresentation.PptxPresentationPlan = m.Field(
+    class PptxRenderRequest(FlextCliModelsBasePart05.OfficeRenderRequest):
+        plan: Annotated[
+            p.Cli.PptxPresentationPlan,
+            t.schema_for_model(
+                lambda: FlextCliModelsPptxPresentation.PptxPresentationPlan
+            ),
+        ] = m.Field(
             description="Validated presentation plan.",
         )
 
-    class PptxRenderResult(m.FrozenModel):
-        content: Annotated[
-            bytes,
-            m.Field(min_length=1, description="Rendered presentation bytes."),
-        ]
-        plan: FlextCliModelsPptxPresentation.PptxPresentationPlan = m.Field(
+    class PptxRenderResult(FlextCliModelsBasePart05.OfficeRenderResult):
+        plan: Annotated[
+            p.Cli.PptxPresentationPlan,
+            t.schema_for_model(
+                lambda: FlextCliModelsPptxPresentation.PptxPresentationPlan
+            ),
+        ] = m.Field(
             description="Exact source plan.",
         )
 

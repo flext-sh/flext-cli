@@ -10,11 +10,12 @@ from io import BytesIO
 from types import MappingProxyType
 from zipfile import BadZipFile
 
+from flext_core import r
 from pptx import Presentation
 from pptx.exc import PackageNotFoundError
 from pptx.presentation import Presentation as PresentationType
 
-from flext_cli import c, m, p, r
+from flext_cli import c, m, p
 
 
 class FlextCliUtilitiesPptxReader:
@@ -24,34 +25,34 @@ class FlextCliUtilitiesPptxReader:
     # module; consumers receive only validated plans.
 
     @classmethod
-    def read_presentation(cls, source: bytes) -> p.Result[m.Cli.PptxPresentationPlan]:
+    def read_presentation(cls, source: bytes) -> p.Result[p.Cli.PptxPresentationPlan]:
         """Read presentation bytes into a validated plan.
 
         Returns:
-            The resulting ``p.Result[m.Cli.PptxPresentationPlan]``.
+            The resulting ``p.Result[p.Cli.PptxPresentationPlan]``.
 
         """
         try:
             presentation = Presentation(BytesIO(source))
         except (OSError, ValueError, KeyError, BadZipFile, PackageNotFoundError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.PptxPresentationPlan].fail(
+            return r[p.Cli.PptxPresentationPlan].fail(
                 f"{c.Cli.PptxError.PRESENTATION_LOAD_FAILED}: {detail}",
             )
         try:
             plan = cls._snapshot_presentation(presentation)
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.PptxPresentationPlan].fail(
+            return r[p.Cli.PptxPresentationPlan].fail(
                 f"{c.Cli.PptxError.RENDER_FAILED}: {detail}",
             )
-        return r[m.Cli.PptxPresentationPlan].ok(plan)
+        return r[p.Cli.PptxPresentationPlan].ok(plan)
 
     @classmethod
     def _snapshot_presentation(
         cls,
         presentation: PresentationType,
-    ) -> m.Cli.PptxPresentationPlan:
+    ) -> p.Cli.PptxPresentationPlan:
         slides = tuple(
             m.Cli.PptxSlidePlan(
                 title=slide.shapes.title.text if slide.shapes.title else "",

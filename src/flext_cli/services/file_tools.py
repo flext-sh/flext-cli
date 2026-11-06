@@ -42,7 +42,7 @@ class FlextCliFileTools(s[p.Cli.RuntimeStatus]):
         return u.Cli.files_read_text(Path(file_path))
 
     @staticmethod
-    def read_json_model[M: t.Cli.ModelLike](
+    def read_json_model[M: m.BaseModel](
         file_path: t.Cli.TextPath,
         model_type: t.ModelClass[M],
     ) -> p.Result[M]:
@@ -62,7 +62,7 @@ class FlextCliFileTools(s[p.Cli.RuntimeStatus]):
     def write_json_file(
         file_path: t.Cli.TextPath,
         data: t.Cli.JsonWriteData,
-        options: m.Cli.JsonWriteOptions | None = None,
+        options: p.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
         """Write JSON data using the canonical serialization options.
 

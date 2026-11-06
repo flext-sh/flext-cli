@@ -6,14 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Callable,
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    Sequence,
-)
+from collections.abc import Callable, Iterable, Iterator, MutableMapping, Sequence
 from pathlib import Path
 from typing import Protocol, TextIO, runtime_checkable
 
@@ -57,10 +50,8 @@ class FlextCliProtocolsDomain:
         ruamel property is unannotated and the module already imports ruamel.
         """
 
-        comment: object  # ast-grep-ignore: ban-broad-annotation
-        items: MutableMapping[
-            str, Sequence[object]  # ast-grep-ignore: ban-broad-annotation
-        ]
+        comment: list[t.Cli.YamlCommentSlot] | None
+        items: MutableMapping[str, Sequence[t.Cli.YamlCommentSlot]]
 
     @runtime_checkable
     class YamlCommentCarrier(Protocol):
@@ -128,19 +119,19 @@ class FlextCliProtocolsDomain:
         def add(
             self,
             range_string: str,
-            cf_rule: object,  # ast-grep-ignore: ban-broad-annotation
+            cf_rule: t.Cli.XlsxConditionalFormatRule,
         ) -> None:
             """Register one conditional-format rule over one cell range."""
             ...
 
         def __getitem__(
             self,
-            key: object,  # ast-grep-ignore: ban-broad-annotation
-        ) -> Sequence[object]:  # ast-grep-ignore: ban-broad-annotation
+            key: t.Cli.XlsxConditionalFormatting | str,
+        ) -> Sequence[t.Cli.XlsxConditionalFormatRule]:
             """Return the rules attached to one conditional-format entry."""
             ...
 
-        def __iter__(self) -> Iterator[object]:  # ast-grep-ignore: ban-broad-annotation
+        def __iter__(self) -> Iterator[t.Cli.XlsxConditionalFormatting]:
             """Iterate the registered conditional-format entries."""
             ...
 
@@ -158,7 +149,7 @@ class FlextCliProtocolsDomain:
 
         def render(
             self,
-            variables: Mapping[str, object],  # ast-grep-ignore: ban-broad-annotation
+            variables: t.JsonMapping,
         ) -> str:
             """Render the template with one variable mapping."""
             ...
@@ -179,42 +170,42 @@ class FlextCliProtocolsDomain:
         """openpyxl font style surface consumed by the style readers.
 
         NOTE (multi-agent): openpyxl-stubs types these members as unparameterized
-        ``Alias`` descriptors (Unknown); the surface pins them as ``object`` and
-        call sites narrow to the real runtime value types.
+        ``Alias`` descriptors (Unknown); the surface pins the real runtime value
+        types of the aliased ``sz``/``b``/``i``/``u`` descriptors.
         """
 
-        size: object  # ast-grep-ignore: ban-broad-annotation
-        bold: object  # ast-grep-ignore: ban-broad-annotation
-        italic: object  # ast-grep-ignore: ban-broad-annotation
-        underline: object  # ast-grep-ignore: ban-broad-annotation
+        size: float | None
+        bold: bool | None
+        italic: bool | None
+        underline: t.Cli.XlsxUnderlineStyle | None
 
     @runtime_checkable
     class XlsxProtectionSurface(Protocol):
         """openpyxl cell-protection surface consumed by snapshot values."""
 
-        locked: object  # ast-grep-ignore: ban-broad-annotation
-        hidden: object  # ast-grep-ignore: ban-broad-annotation
+        locked: bool
+        hidden: bool
 
     @runtime_checkable
     class XlsxRowDimensionSurface(Protocol):
         """openpyxl row-dimension surface consumed by snapshot structure."""
 
-        height: object  # ast-grep-ignore: ban-broad-annotation
+        height: float | None
 
     @runtime_checkable
     class DocxParagraphFormatSurface(Protocol):
         """python-docx paragraph-format surface consumed by readers and tests.
 
         NOTE (multi-agent): python-docx annotates these properties without
-        return types (Unknown); the surface pins them as ``object`` and call
-        sites narrow to the real runtime value types.
+        return types (Unknown); the surface pins their real runtime value types
+        (alignment member or tri-state flag, ``None`` when inherited).
         """
 
-        alignment: object  # ast-grep-ignore: ban-broad-annotation
-        keep_together: object  # ast-grep-ignore: ban-broad-annotation
-        keep_with_next: object  # ast-grep-ignore: ban-broad-annotation
-        page_break_before: object  # ast-grep-ignore: ban-broad-annotation
-        widow_control: object  # ast-grep-ignore: ban-broad-annotation
+        alignment: t.Cli.DocxParagraphAlignment | None
+        keep_together: bool | None
+        keep_with_next: bool | None
+        page_break_before: bool | None
+        widow_control: bool | None
 
     @runtime_checkable
     class ModelCommandHandler[TParams: t.Cli.ModelLike, TResult: t.JsonPayload](
@@ -233,52 +224,6 @@ class FlextCliProtocolsDomain:
         name: str
         # mro-j47u (codex): callable behavior remains in the p facade.
         handler: FlextCliProtocolsBase.CliCommandWrapper
-
-    @runtime_checkable
-    class CommandMetadata(Protocol):
-        """Read-only command identity and user-facing help."""
-
-        # mro-j47u (codex): read-only properties preserve frozen-model covariance.
-        @property
-        def name(self) -> str:
-            """The command name."""
-            ...
-
-        @property
-        def help_text(self) -> str:
-            """The user-facing help text."""
-            ...
-
-    @runtime_checkable
-    class ResultCommandRoute(CommandMetadata, Protocol):
-        """Protocol for declarative result-route registration."""
-
-        @property
-        def model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
-            """The validated input model class."""
-            ...
-
-        @property
-        def handler(self) -> FlextCliProtocolsDomain.ResultRouteHandler:
-            """The type-erased result handler."""
-            ...
-
-        @property
-        def success_message(self) -> str | None:
-            """The static success message, when configured."""
-            ...
-
-        @property
-        def success_formatter(
-            self,
-        ) -> t.Cli.SuccessMessageFormatter[t.Cli.ResultValue] | None:
-            """The dynamic success formatter, when configured."""
-            ...
-
-        @property
-        def success_type(self) -> t.Cli.MessageType:
-            """The success output style."""
-            ...
 
     @runtime_checkable
     class DeclarativeRuleType[TRule](Protocol):

@@ -58,6 +58,12 @@ class FlextCliTypesXlsx:
         "worksheet_count",
         "worksheet_tag",
     ]
+    type XlsxUnderlineStyle = Literal[
+        "single",
+        "double",
+        "singleAccounting",
+        "doubleAccounting",
+    ]
 
 
 __all__: tuple[str, ...] = ("FlextCliTypesXlsx",)

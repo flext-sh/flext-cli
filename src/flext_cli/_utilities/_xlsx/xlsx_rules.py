@@ -6,9 +6,10 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import r
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import m, p, r
+from flext_cli import p
 from flext_cli._utilities._xlsx import (
     FlextCliUtilitiesXlsxConditional,
     FlextCliUtilitiesXlsxProtection,
@@ -29,7 +30,7 @@ class FlextCliUtilitiesXlsxRules(
     def _apply_rules(
         cls,
         worksheet: Worksheet,
-        plan: m.Cli.XlsxSheetRulesPlan,
+        plan: p.Cli.XlsxSheetRulesPlan,
     ) -> p.Result[bool]:
         validations = cls._apply_validations(worksheet, plan.validations)
         if validations.failure:

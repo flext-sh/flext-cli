@@ -27,7 +27,7 @@ from typing import Annotated, ClassVar
 import pytest
 
 from flext_cli import cli
-from tests import c, m, t, tm, u
+from tests import c, m, p, t, tm, u
 
 
 class TestsFlextCliOptionsUtilsCov:
@@ -207,11 +207,11 @@ class TestsFlextCliOptionsUtilsCov:
         args: Sequence[str],
         *,
         settings: t.Cli.ModelLike | None = None,
-    ) -> tuple[m.Cli.InvocationResult, list[M]]:
+    ) -> tuple[p.Cli.InvocationResult, list[M]]:
         """Invoke the generated command through a real app; return what it received.
 
         Returns:
-            The resulting ``tuple[m.Cli.InvocationResult, list[M]]``.
+            The resulting ``tuple[p.Cli.InvocationResult, list[M]]``.
 
         """
         received: list[M] = []
@@ -272,7 +272,7 @@ class TestsFlextCliOptionsUtilsCov:
 
     def test_invalid_structured_default_keeps_field_validation_failure(self) -> None:
         """Default rendering cannot bypass the declared minimum mapping length."""
-        with pytest.raises(m.ValidationError, match="at least 1 item"):
+        with u.Tests.raises(m.ValidationError, match="at least 1 item"):
             cli.model_command(self.InvalidMappingDefaultModel, self._noop_handler)
 
     def test_model_command_uses_field_alias_as_option_name(self) -> None:
@@ -322,13 +322,13 @@ class TestsFlextCliOptionsUtilsCov:
 
     def test_model_command_rejects_default_without_cli_form_at_build(self) -> None:
         """A validated default no option can carry fails the build, naming it."""
-        with pytest.raises(TypeError, match="counts"):
+        with u.Tests.raises(TypeError, match="counts"):
             cli.model_command(self.IntSequenceDefaultModel, self._noop_handler)
 
     def test_model_command_propagates_invalid_default_source_at_build(self) -> None:
         """A settings value outside the default-source contract escapes unchanged."""
         settings = self.NestedListSettings()
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             cli.model_command(
                 self.StrSequenceDefaultModel,
                 self._noop_handler,
@@ -386,7 +386,7 @@ class TestsFlextCliOptionsUtilsCov:
     def test_invoking_command_rejects_missing_required_field(self) -> None:
         """Verify that invoking command rejects missing required field."""
         command = cli.model_command(self.GreetModel, self._noop_handler)
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             command(shout=True)
 
     def test_invoking_command_uses_parsed_values_without_mutating_settings(

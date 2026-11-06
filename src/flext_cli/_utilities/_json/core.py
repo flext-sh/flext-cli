@@ -20,9 +20,9 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_core import u
+from flext_core import r, u
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFile,
     FlextCliUtilitiesAtomicFilePath,
@@ -34,8 +34,8 @@ from flext_cli._utilities import (
 class FlextCliUtilitiesJsonCore:
     """Core JSON serialization, file read/write, and value normalization."""
 
-    _EMPTY_JSON_MAPPING: t.JsonMapping = MappingProxyType({})
-    _EMPTY_JSON_SEQUENCE: Sequence[t.JsonValue] = ()
+    _EMPTY_JSON_MAPPING: ClassVar[t.JsonMapping] = MappingProxyType({})
+    _EMPTY_JSON_SEQUENCE: ClassVar[Sequence[t.JsonValue]] = ()
 
     _module_logger: ClassVar[p.Logger] = u.fetch_logger(__name__)
 
@@ -193,7 +193,7 @@ class FlextCliUtilitiesJsonCore:
     @staticmethod
     def _json_write_content(
         payload: t.JsonValue | t.JsonPayload | t.JsonMapping,
-        options: m.Cli.JsonWriteOptions,
+        options: p.Cli.JsonWriteOptions,
     ) -> str:
         """Serialize a JSON payload using canonical write options.
 
@@ -247,7 +247,7 @@ class FlextCliUtilitiesJsonCore:
     def json_write(
         path: Path,
         payload: t.JsonValue | t.JsonPayload | t.JsonMapping,
-        options: m.Cli.JsonWriteOptions | None = None,
+        options: p.Cli.JsonWriteOptions | None = None,
     ) -> p.Result[bool]:
         """Atomically publish a Pydantic-serializable payload as a JSON file.
 
@@ -266,7 +266,7 @@ class FlextCliUtilitiesJsonCore:
                 destination.parent,
             )
             destination.parent.mkdir(parents=True, exist_ok=True)
-            FlextCliUtilitiesAtomicFile.write_atomic_bytes(
+            FlextCliUtilitiesAtomicFile.write_atomic_state(
                 destination, content.encode(c.DEFAULT_ENCODING)
             )
             return True

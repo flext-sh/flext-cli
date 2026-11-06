@@ -20,7 +20,7 @@ class TestsFlextCliMarkdown:
         "\n"
         "- item\n"
         "\n"
-        "  ```python notest\n"
+        "  ```python\n"
         "  value = 1\n"
         "  ```\n"
         "\n"
@@ -81,7 +81,7 @@ class TestsFlextCliMarkdown:
         """ATX and setext headings are inventoried with level and line."""
         headings = u.Cli.markdown_headings("Top\n===\n\n## Next `x`\n")
         tm.that(
-            [(h.level, h.text, h.line) for h in headings],
+            [(heading.level, heading.text, heading.line) for heading in headings],
             eq=[(1, "Top", 1), (2, "Next `x`", 4)],
         )
 
@@ -141,6 +141,53 @@ class TestsFlextCliMarkdown:
             lambda link: not link.image and not link.target.startswith("https:"),
         )
         tm.that(rewritten, eq="See the `guide`, [web](https://x.io) ![i](a.png)\n")
+
+    @staticmethod
+    def test_unlink_realigns_the_table_it_shortens() -> None:
+        """A table aligned before unlinking stays aligned; other tables are kept."""
+        rewritten = u.Cli.markdown_unlink(
+            "| Guide             | Rule |\n"
+            "| ----------------- | ---- |\n"
+            "| [setup](setup.md) | D8   |\n"
+            "\n"
+            "| kept |\n"
+            "| --- |\n",
+            lambda link: not link.image,
+        )
+        tm.that(
+            rewritten,
+            eq=(
+                "| Guide | Rule |\n"
+                "| ----- | ---- |\n"
+                "| setup | D8   |\n"
+                "\n"
+                "| kept |\n"
+                "| --- |\n"
+            ),
+        )
+
+    @staticmethod
+    def test_align_tables_pads_every_table_and_keeps_prose() -> None:
+        """Every table is aligned to its widest cell; text around it is kept."""
+        aligned = u.Cli.markdown_align_tables(
+            "Intro.\n"
+            "\n"
+            "| Verb | Inputs |\n"
+            "| --- | ---: |\n"
+            "| `setup` | FLEXT, RECREATE |\n"
+            "| `gen` | — |\n"
+        )
+        tm.that(
+            aligned,
+            eq=(
+                "Intro.\n"
+                "\n"
+                "| Verb    |          Inputs |\n"
+                "| ------- | --------------: |\n"
+                "| `setup` | FLEXT, RECREATE |\n"
+                "| `gen`   |               — |\n"
+            ),
+        )
 
     @staticmethod
     def test_wrap_reflows_prose_and_keeps_structure_and_fences() -> None:

@@ -39,7 +39,7 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
             raise OSError(errno.ENOTSUP, message, path)
 
     @staticmethod
-    def require_create_capabilities(path: Path) -> None:
+    def require_directory_create_capabilities(path: Path) -> None:
         """Fail before mkdir unless creation, cleanup, and chmod are descriptor-bound.
 
         Raises:
@@ -126,10 +126,8 @@ class FlextCliUtilitiesAtomicDirectoryDescriptor:
             destination_parent,
         )
         FlextCliUtilitiesAtomicDirectoryNoreplace.rename_noreplace(
-            source_parent.descriptor,
-            source.name,
-            destination_parent.descriptor,
-            destination.name,
+            (source_parent.descriptor, source.name),
+            (destination_parent.descriptor, destination.name),
             path=destination,
         )
 

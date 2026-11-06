@@ -11,7 +11,7 @@ import time
 from typing import TYPE_CHECKING
 
 from flext_cli import cli, settings
-from tests import m, p, tm
+from tests import p, tm
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -31,7 +31,7 @@ class TestsFlextCliPipelinePart03:
         def track(sid: str) -> p.Cli.PipelineStage:
             def h(
                 ctx: p.Cli.PipelineStageContext,
-            ) -> p.Result[m.Cli.PipelineStageResult]:
+            ) -> p.Result[p.Cli.PipelineStageResult]:
                 _ = ctx
                 order.append(sid)
                 return cli.ok_stage(sid)
@@ -64,7 +64,7 @@ class TestsFlextCliPipelinePart03:
         def blocking(sid: str) -> p.Cli.PipelineStage:
             def handler(
                 ctx: p.Cli.PipelineStageContext,
-            ) -> p.Result[m.Cli.PipelineStageResult]:
+            ) -> p.Result[p.Cli.PipelineStageResult]:
                 _ = ctx
                 _ = barrier.wait()
                 return cli.ok_stage(sid)
@@ -92,7 +92,7 @@ class TestsFlextCliPipelinePart03:
         def counted(sid: str) -> p.Cli.PipelineStage:
             def handler(
                 ctx: p.Cli.PipelineStageContext,
-            ) -> p.Result[m.Cli.PipelineStageResult]:
+            ) -> p.Result[p.Cli.PipelineStageResult]:
                 nonlocal active, peak
                 _ = ctx
                 with guard:
@@ -125,7 +125,7 @@ class TestsFlextCliPipelinePart03:
         def delayed(sid: str, delay: float) -> p.Cli.PipelineStage:
             def handler(
                 ctx: p.Cli.PipelineStageContext,
-            ) -> p.Result[m.Cli.PipelineStageResult]:
+            ) -> p.Result[p.Cli.PipelineStageResult]:
                 _ = ctx
                 time.sleep(delay)
                 return cli.ok_stage(sid)

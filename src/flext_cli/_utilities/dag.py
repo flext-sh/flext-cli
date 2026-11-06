@@ -9,8 +9,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 import networkx as nx
+from flext_core import r
 
-from flext_cli import p, r, t
+from flext_cli import p, t
 
 
 class FlextCliUtilitiesDag:

@@ -6,9 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import threading
-from collections.abc import MutableSequence
-
 from flext_cli import c, p
 
 
@@ -18,18 +15,15 @@ class FlextCliUtilitiesRuntimeProcessWait:
     @staticmethod
     def _wait_for_root_process(
         process: p.Cli.ProcessHandle,
-        return_codes: MutableSequence[int],
-        failures: MutableSequence[str],
-        process_done: threading.Event,
-        wake: threading.Event,
+        state: p.Cli.RuntimeProcessState,
     ) -> None:
         try:
-            return_codes.append(process.wait())
+            state.return_codes.append(process.wait())
         except c.EXC_OS_VALUE as exc:
-            failures.append(f"root process wait error: {exc}")
+            state.failures.append(f"root process wait error: {exc}")
         finally:
-            process_done.set()
-            wake.set()
+            state.process_done.set()
+            state.wake.set()
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeProcessWait"]

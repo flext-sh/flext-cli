@@ -43,9 +43,9 @@ class TestsFlextCliJsonCov:
     @pytest.mark.parametrize("source", [None, "invalid", ["not", "an object"]])
     def test_json_object_adapters_reject_non_mapping_input(source: t.JsonValue) -> None:
         """Object admission does not widen into an arbitrary JSON value schema."""
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             u.Cli.JSON_MAPPING_ADAPTER.validate_python(source)
-        with pytest.raises(m.ValidationError):
+        with u.Tests.raises(m.ValidationError):
             u.json_dict_adapter().validate_python(source)
 
     # ----- json_read (fallible, r[JsonMapping]) ----------------------------

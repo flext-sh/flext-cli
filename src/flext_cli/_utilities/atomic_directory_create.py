@@ -10,7 +10,7 @@ import errno
 import os
 from pathlib import Path
 
-from flext_cli import m
+from flext_cli import p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryCleanup,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
@@ -19,6 +19,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
     FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFileModel,
     FlextCliUtilitiesAtomicFilePath,
 )
 
@@ -28,10 +29,10 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
 
     @staticmethod
     def create_guarded_empty_directory(
-        before: m.Cli.AtomicDirectoryState,
+        before: p.Cli.AtomicDirectoryState,
         *,
         permission_mode: int,
-    ) -> m.Cli.AtomicDirectoryState:
+    ) -> p.Cli.AtomicDirectoryState:
         """Create one directory only from an exact absent state under caller lock.
 
         Returns:
@@ -50,14 +51,18 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         if mode is None:
             message = "permission_mode is required for atomic directory creation"
             raise OSError(errno.EINVAL, message, path)
-        FlextCliUtilitiesAtomicDirectoryDescriptor.require_create_capabilities(path)
+        FlextCliUtilitiesAtomicDirectoryDescriptor.require_directory_create_capabilities(
+            path
+        )
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(path) as parent:
-            FlextCliUtilitiesAtomicDirectoryModel.require_directory_parent(
-                before, parent.state
+            FlextCliUtilitiesAtomicFileModel.require_parent(
+                before, parent.state, subject="directory"
             )
-            observed = FlextCliUtilitiesAtomicDirectoryState.destination_state(
-                path,
-                parent=parent,
+            observed = (
+                FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
+                    path,
+                    parent=parent,
+                )
             )
             FlextCliUtilitiesAtomicDirectoryModel.require_directory_observed(
                 before, observed
@@ -101,7 +106,7 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
     ) -> os.stat_result:
-        initial = FlextCliUtilitiesAtomicDirectoryState.destination_state(
+        initial = FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
             path,
             parent=parent,
         )
@@ -124,7 +129,9 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
             initial,
             mode,
         )
-        FlextCliUtilitiesAtomicDirectoryState.require_identity(path, final, identity)
+        FlextCliUtilitiesAtomicFilePath.require_identity(
+            path, final, identity, subject="directory"
+        )
         FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
         return FlextCliUtilitiesAtomicDirectoryState.read_empty_state(
             parent,

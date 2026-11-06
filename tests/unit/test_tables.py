@@ -16,7 +16,7 @@ from typing import Literal
 import pytest
 
 from flext_cli import cli
-from tests import c, m, t, tm
+from tests import c, m, t, tm, u
 
 
 class TestsFlextCliTables:
@@ -26,27 +26,27 @@ class TestsFlextCliTables:
     @pytest.mark.parametrize(
         ("data", "cells"),
         [
-            pytest.param(
+            u.Tests.param(
                 {"name": "Alice", "age": 30},
                 ("name", "Alice", "age", "30"),
                 id="single-record-return-type",
             ),
-            pytest.param(
+            u.Tests.param(
                 {"name": "Alice", "age": 30},
                 ("name", "Alice", "age", "30"),
                 id="single-record-cells",
             ),
-            pytest.param(
+            u.Tests.param(
                 [{"col": "val1"}, {"col": "val2"}],
                 ("col", "val1", "val2"),
                 id="mapping-rows",
             ),
-            pytest.param(
+            u.Tests.param(
                 {"a": 1, "b": 2},
                 ("a", c.ParserBooleanToken.ONE, "b", "2"),
                 id="mapping",
             ),
-            pytest.param(
+            u.Tests.param(
                 [["col1", "col2"], ["a", "b"]],
                 ("col1", "col2", "a", "b"),
                 id="header-and-value-rows",
@@ -130,10 +130,10 @@ class TestsFlextCliTables:
     @pytest.mark.parametrize(
         "empty_data",
         [
-            pytest.param([], id="table-empty-list"),
-            pytest.param({}, id="table-empty-mapping"),
-            pytest.param([], id="service-empty-list"),
-            pytest.param({}, id="service-empty-mapping"),
+            u.Tests.param([], id="table-empty-list"),
+            u.Tests.param({}, id="table-empty-mapping"),
+            u.Tests.param([], id="service-empty-list"),
+            u.Tests.param({}, id="service-empty-mapping"),
         ],
     )
     def test_format_table_returns_empty_string_for_empty_data(
@@ -147,13 +147,13 @@ class TestsFlextCliTables:
     @pytest.mark.parametrize(
         ("rows", "table_format"),
         [
-            pytest.param(
+            u.Tests.param(
                 [{"name": "Alice", "status": "active"}],
                 c.Cli.TabularFormat.GRID,
                 id="explicit-grid-rows",
             ),
-            pytest.param({"name": "Alice", "age": 30}, None, id="single-record"),
-            pytest.param({"a": 1, "b": 2}, None, id="mapping"),
+            u.Tests.param({"name": "Alice", "age": 30}, None, id="single-record"),
+            u.Tests.param({"a": 1, "b": 2}, None, id="mapping"),
         ],
     )
     def test_format_table_is_idempotent_for_identical_input(
@@ -174,15 +174,15 @@ class TestsFlextCliTables:
     @pytest.mark.parametrize(
         ("data", "table_format", "marker", "route"),
         [
-            pytest.param({"a": 1, "b": 2}, c.Cli.TabularFormat.GRID, "+", "settings"),
-            pytest.param({"a": 1, "b": 2}, c.Cli.TabularFormat.PIPE, "|", "settings"),
-            pytest.param(
+            u.Tests.param({"a": 1, "b": 2}, c.Cli.TabularFormat.GRID, "+", "settings"),
+            u.Tests.param({"a": 1, "b": 2}, c.Cli.TabularFormat.PIPE, "|", "settings"),
+            u.Tests.param(
                 {"name": "Alice", "age": 30}, c.Cli.TabularFormat.GRID, "+", "model"
             ),
-            pytest.param(
+            u.Tests.param(
                 {"name": "Alice", "age": 30}, c.Cli.TabularFormat.PIPE, "|", "model"
             ),
-            pytest.param(
+            u.Tests.param(
                 {"name": "Alice", "age": 30}, c.Cli.TabularFormat.RST, "=", "model"
             ),
         ],
@@ -210,7 +210,7 @@ class TestsFlextCliTables:
     @staticmethod
     def test_format_table_accepts_config_via_keyword_argument() -> None:
         """A keyword field and an explicit config model produce the same output."""
-        data = {"name": "Alice", "age": 30}
+        data: t.Cli.TableDataSource = {"name": "Alice", "age": 30}
         config = m.Cli.TableConfig(table_format=c.Cli.TabularFormat.GRID)
         via_kwarg = tm.ok(cli.format_table(data, table_format=c.Cli.TabularFormat.GRID))
         tm.that(via_kwarg, eq=tm.ok(cli.format_table(data, config)))
@@ -244,7 +244,7 @@ class TestsFlextCliTables:
 
     @staticmethod
     def test_show_table_prints_title_before_rendered_table(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """show_table prints the title ahead of the rendered table body."""
         cli.show_table(
@@ -258,7 +258,7 @@ class TestsFlextCliTables:
 
     @staticmethod
     def test_show_table_reports_configuration_failure_to_console(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """An invalid configuration is surfaced on the console rather than raising."""
         cli.show_table([{"name": "Alice"}], bogus_kwarg=1)
@@ -269,38 +269,38 @@ class TestsFlextCliTables:
     @pytest.mark.parametrize(
         ("data", "title", "route", "cells"),
         [
-            pytest.param(
+            u.Tests.param(
                 {"name": "Alice", "age": 30}, None, "keyword", (), id="return-none"
             ),
-            pytest.param(
+            u.Tests.param(
                 [{"col": "val1"}, {"col": "val2"}],
                 None,
                 "keyword",
                 ("val1", "val2"),
                 id="mapping-row-output",
             ),
-            pytest.param(
+            u.Tests.param(
                 {"name": "Alice", "age": 30},
                 "Quarterly Numbers",
                 "model",
                 ("Quarterly Numbers", "Alice"),
                 id="configured-title",
             ),
-            pytest.param(
+            u.Tests.param(
                 {"a": 1, "b": 2},
                 None,
                 "keyword",
                 ("a", c.ParserBooleanToken.ONE),
                 id="mapping-output",
             ),
-            pytest.param(
+            u.Tests.param(
                 {"a": 1, "b": 2},
                 "My Title",
                 "keyword",
                 ("My Title", "a", c.ParserBooleanToken.ONE),
                 id="keyword-title",
             ),
-            pytest.param(
+            u.Tests.param(
                 [["col1", "col2"], ["a", "b"]],
                 None,
                 "keyword",
@@ -310,7 +310,7 @@ class TestsFlextCliTables:
         ],
     )
     def test_show_table_returns_none_and_renders_cells(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         data: t.Cli.TableDataSource,
         title: str | None,
         route: Literal["keyword", "model"],
@@ -330,7 +330,7 @@ class TestsFlextCliTables:
 
     @staticmethod
     def test_show_table_emits_config_error_on_invalid_format(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """An invalid format is reported through the same public console boundary."""
         cli.show_table({"a": 1, "b": 2}, table_format="invalid")

@@ -8,7 +8,7 @@ from __future__ import annotations
 
 from typing import ClassVar
 
-from flext_cli import m
+from flext_cli import m, t
 from flext_cli._utilities import (
     FlextCliUtilitiesAuth,
     FlextCliUtilitiesCmd,
@@ -42,7 +42,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesXlsx,
     FlextCliUtilitiesYaml,
 )
-from flext_cli._utilities._options.fields import FlextCliUtilitiesOptionsFields
+from flext_cli._utilities.options_fields import FlextCliUtilitiesOptionsFields
 
 
 class FlextCliUtilitiesCli(
@@ -79,9 +79,9 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesPptx,
     FlextCliUtilitiesYaml,
 ):
-    """Compose utilities; document adapters load only during their operation."""
+    """Compose utilities; DOCX and PPTX owners load here, XLSX on its operation."""
 
-    model_config: ClassVar[m.ConfigDict] = m.ConfigDict(ignored_types=(type,))
+    model_config: ClassVar[t.ConfigDict] = m.ConfigDict(ignored_types=(type,))
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesCli",)

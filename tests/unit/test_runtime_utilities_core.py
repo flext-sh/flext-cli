@@ -19,7 +19,7 @@ import pytest
 from flext_cli import FlextCliUtilitiesCli
 from tests import c, m, p, tm, u
 
-_OUTPUT_CASES = pytest.mark.parametrize(
+_OUTPUT_CASES = c.Tests.MARK.parametrize(
     "case",
     m.Tests.RuntimeCommandCase.output_cases(),
     ids=m.Tests.RuntimeCommandCase.id_for,
@@ -78,7 +78,7 @@ def _start_session_descendant(
     return process, descendant_pid
 
 
-@pytest.fixture
+@u.Tests.fixture
 def runner() -> FlextCliUtilitiesCli:
     """Provide the public process facade to synchronous and managed consumers.
 
@@ -111,8 +111,8 @@ class TestsFlextCliUtilitiesRuntimeCore:
     @staticmethod
     def _case_output(
         result: p.Result[p.Cli.CommandOutput],
-        case: m.Tests.RuntimeCommandCase,
-    ) -> m.Cli.CommandOutput:
+        case: p.Tests.RuntimeCommandCase,
+    ) -> p.Cli.CommandOutput:
         """Validate one successful case result and its stdout expectation.
 
         Returns:
@@ -133,7 +133,7 @@ class TestsFlextCliUtilitiesRuntimeCore:
     def test_run_raw_cases(
         runner: FlextCliUtilitiesCli,
         tmp_path: Path,
-        case: m.Tests.RuntimeCommandCase,
+        case: p.Tests.RuntimeCommandCase,
     ) -> None:
         """Verify that run raw cases."""
         cwd = tmp_path if case.use_tmp_path else None
@@ -167,7 +167,7 @@ class TestsFlextCliUtilitiesRuntimeCore:
     def test_run_cases(
         runner: FlextCliUtilitiesCli,
         tmp_path: Path,
-        case: m.Tests.RuntimeCommandCase,
+        case: p.Tests.RuntimeCommandCase,
     ) -> None:
         """Verify that run cases."""
         cwd = tmp_path if case.use_tmp_path else None
@@ -190,7 +190,7 @@ class TestsFlextCliUtilitiesRuntimeCore:
     def test_capture_cases(
         runner: FlextCliUtilitiesCli,
         tmp_path: Path,
-        case: m.Tests.RuntimeCommandCase,
+        case: p.Tests.RuntimeCommandCase,
     ) -> None:
         """Verify that capture cases."""
         cwd = tmp_path if case.use_tmp_path else None

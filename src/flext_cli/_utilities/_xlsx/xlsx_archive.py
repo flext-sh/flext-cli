@@ -9,7 +9,9 @@ from __future__ import annotations
 from io import BytesIO
 from zipfile import BadZipFile, LargeZipFile, ZipFile
 
-from flext_cli import c, m, p, r
+from flext_core import r
+
+from flext_cli import c, m, p
 from flext_cli._utilities._xlsx import FlextCliUtilitiesXlsxArchiveChecks
 
 
@@ -22,13 +24,13 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
     def _inventory(
         cls,
         archive: p.Cli.XlsxArchiveReader,
-        policy: m.Cli.XlsxArchivePolicy,
-    ) -> m.Cli.XlsxArchiveInventory:
+        policy: p.Cli.XlsxArchivePolicy,
+    ) -> p.Cli.XlsxArchiveInventory:
         members: tuple[str, ...] = ()
         blocked: frozenset[str] = frozenset()
         seen: frozenset[str] = frozenset()
         total_size = 0
-        violations: tuple[m.Cli.XlsxArchiveViolation, ...] = ()
+        violations: tuple[p.Cli.XlsxArchiveViolation, ...] = ()
         for info in archive.infolist():
             member = info.filename
             members = (*members, member)
@@ -77,8 +79,8 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
     def _inspect_archive(
         cls,
         archive: p.Cli.XlsxArchiveReader,
-        policy: m.Cli.XlsxArchivePolicy,
-    ) -> p.Result[m.Cli.XlsxArchiveInspection]:
+        policy: p.Cli.XlsxArchivePolicy,
+    ) -> p.Result[p.Cli.XlsxArchiveInspection]:
         inventory = cls._inventory(archive, policy)
         violations = inventory.violations
         workbook_member = c.Cli.XLSX_WORKBOOK_MEMBER
@@ -119,7 +121,7 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
         for member in xml_members:
             root_result = cls._xml_root(archive, member)
             if root_result.failure:
-                return r[m.Cli.XlsxArchiveInspection].from_failure(root_result)
+                return r[p.Cli.XlsxArchiveInspection].from_failure(root_result)
             root = root_result.value
             if member in worksheets:
                 violations = (
@@ -140,17 +142,17 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
             violations=violations,
             clean=not violations,
         )
-        return r[m.Cli.XlsxArchiveInspection].ok(inspection)
+        return r[p.Cli.XlsxArchiveInspection].ok(inspection)
 
     @classmethod
     def inspect_archive(
         cls,
-        request: m.Cli.XlsxArchiveInspectionRequest,
-    ) -> p.Result[m.Cli.XlsxArchiveInspection]:
+        request: p.Cli.XlsxArchiveInspectionRequest,
+    ) -> p.Result[p.Cli.XlsxArchiveInspection]:
         """Inspect workbook bytes without extracting or trusting package XML.
 
         Returns:
-            The resulting ``p.Result[m.Cli.XlsxArchiveInspection]``.
+            The resulting ``p.Result[p.Cli.XlsxArchiveInspection]``.
 
         """
         try:
@@ -159,7 +161,7 @@ class FlextCliUtilitiesXlsxArchive(FlextCliUtilitiesXlsxArchiveChecks):
                 return cls._inspect_archive(archive, request.policy)
         except (BadZipFile, LargeZipFile, OSError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxArchiveInspection].fail(
+            return r[p.Cli.XlsxArchiveInspection].fail(
                 f"{c.Cli.XlsxError.ARCHIVE_INVALID}: {detail}",
             )
 

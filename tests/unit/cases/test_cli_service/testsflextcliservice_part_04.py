@@ -9,7 +9,7 @@ from __future__ import annotations
 from flext_cli import cli
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
-from tests import m, t, tm
+from tests import m, p, t, tm
 
 
 class TestsFlextCliServicePart04:
@@ -74,7 +74,7 @@ class TestsFlextCliServicePart04:
         )
         group = cli.create_group(help_text="Grouped failure commands", name="group")
 
-        def fail_handler(_params: m.Tests.SampleInput) -> t.JsonValue:
+        def fail_handler(_params: p.Tests.SampleInput) -> t.JsonValue:
             cli.exit(code=1)
             return True
 

@@ -15,7 +15,10 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import TYPE_CHECKING
 
-from flext_cli._utilities import FlextCliUtilitiesAtomicFilePath
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFilePath,
+    FlextCliUtilitiesAtomicParentFailure,
+)
 
 if TYPE_CHECKING:
     from flext_cli.typings import DirectoryChainInspection
@@ -104,8 +107,8 @@ class FlextCliUtilitiesAtomicParentDescriptor:
         Raises:
             FileNotFoundError: If a ``FileNotFoundError`` is caught.
             OSError: If ``len(parts) != len(ancestry) or len(lineage) != len(ancestry) -
-                1``; or if ``file_path.identity(root_state) != ancestry[0]``; or if
-                ``file_path.identity(state) != ancestry[index + 1]``.
+                1``; or if ``file_path.path_identity(root_state) != ancestry[0]``; or if
+                ``file_path.path_identity(state) != ancestry[index + 1]``.
 
         """
         parts = path.parts
@@ -115,7 +118,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
         root = Path(path.anchor)
         root_state = root.lstat()
         FlextCliUtilitiesAtomicFilePath.validate_directory_state(root, root_state)
-        if FlextCliUtilitiesAtomicFilePath.identity(root_state) != ancestry[0]:
+        if FlextCliUtilitiesAtomicFilePath.path_identity(root_state) != ancestry[0]:
             message = f"atomic file parent ancestry changed: {path}"
             raise OSError(errno.ESTALE, message, path)
         for index, holder in enumerate(lineage):
@@ -133,7 +136,10 @@ class FlextCliUtilitiesAtomicParentDescriptor:
                     root.joinpath(*parts[1 : index + 2]),
                     state,
                 )
-            if FlextCliUtilitiesAtomicFilePath.identity(state) != ancestry[index + 1]:
+            if (
+                FlextCliUtilitiesAtomicFilePath.path_identity(state)
+                != ancestry[index + 1]
+            ):
                 message = f"atomic file parent ancestry changed: {path}"
                 raise OSError(errno.ESTALE, message, path)
 
@@ -146,7 +152,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
 
         Raises:
             OSError: If ``current.ancestry != ancestry or
-                file_path.identity(current.state)
+                file_path.path_identity(current.state)
                 != (state.st_dev, state.st_ino)``.
 
         """
@@ -181,11 +187,15 @@ class FlextCliUtilitiesAtomicParentDescriptor:
         with FlextCliUtilitiesAtomicParentDescriptor.physical_directory(
             anchor,
         ) as current:
-            if current.ancestry != ancestry or FlextCliUtilitiesAtomicFilePath.identity(
-                current.state,
-            ) != (
-                state.st_dev,
-                state.st_ino,
+            if (
+                current.ancestry != ancestry
+                or FlextCliUtilitiesAtomicFilePath.path_identity(
+                    current.state,
+                )
+                != (
+                    state.st_dev,
+                    state.st_ino,
+                )
             ):
                 message = f"atomic directory-chain anchor changed: {anchor}"
                 raise OSError(errno.ESTALE, message, anchor)
@@ -235,7 +245,7 @@ class FlextCliUtilitiesAtomicParentDescriptor:
         state = os.fstat(descriptor)
         FlextCliUtilitiesAtomicFilePath.validate_directory_state(root, state)
         ancestry: list[tuple[int, int]] = [
-            FlextCliUtilitiesAtomicFilePath.identity(state),
+            FlextCliUtilitiesAtomicFilePath.path_identity(state),
         ]
         parts = path.relative_to(root).parts
         for index, component in enumerate(parts):
@@ -267,14 +277,14 @@ class FlextCliUtilitiesAtomicParentDescriptor:
                 path,
                 descriptor_state,
             )
-            if FlextCliUtilitiesAtomicFilePath.identity(
+            if FlextCliUtilitiesAtomicFilePath.path_identity(
                 relative_state,
-            ) != FlextCliUtilitiesAtomicFilePath.identity(descriptor_state):
+            ) != FlextCliUtilitiesAtomicFilePath.path_identity(descriptor_state):
                 message = f"atomic parent component identity changed: {path}"
                 raise OSError(errno.ESTALE, message, path)
             descriptor = next_descriptor
             state = descriptor_state
-            ancestry.append(FlextCliUtilitiesAtomicFilePath.identity(state))
+            ancestry.append(FlextCliUtilitiesAtomicFilePath.path_identity(state))
         return descriptor, state, tuple(ancestry), len(parts)
 
     @staticmethod
@@ -313,18 +323,12 @@ class FlextCliUtilitiesAtomicParentDescriptor:
                 path,
             )
         except OSError as close_error:
-            message = f"atomic operation failed ({operation_error}); {close_error}"
-            if isinstance(operation_error, Exception):
-                causes = ExceptionGroup(
-                    "atomic operation and descriptor close failed",
-                    [operation_error, close_error],
-                )
-                raise OSError(errno.EIO, message, path) from causes
-            group_message = "atomic operation and descriptor close failed"
-            raise BaseExceptionGroup(
-                group_message,
-                [operation_error, close_error],
-            ) from close_error
+            FlextCliUtilitiesAtomicParentFailure.raise_combined_failure(
+                path,
+                operation_error,
+                (close_error,),
+                ("atomic operation", "descriptor close"),
+            )
 
 
 __all__: list[str] = ["FlextCliUtilitiesAtomicParentDescriptor"]

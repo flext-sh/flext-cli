@@ -8,12 +8,13 @@ from __future__ import annotations
 
 from typing import cast
 
+from flext_core import r
 from openpyxl.worksheet.datavalidation import DataValidation
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import c, m, p, r, t
-from flext_cli._utilities import (
-    FlextCliUtilitiesXlsxAddresses,
+from flext_cli import c, m, p, t
+from flext_cli._utilities._xlsx.xlsx_addresses import FlextCliUtilitiesXlsxAddresses
+from flext_cli._utilities._xlsx.xlsx_formula_codec import (
     FlextCliUtilitiesXlsxFormulaCodec,
 )
 
@@ -70,7 +71,7 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
         return formula
 
     @classmethod
-    def _data_validation(cls, plan: m.Cli.XlsxDataValidationPlan) -> DataValidation:
+    def _data_validation(cls, plan: p.Cli.XlsxDataValidationPlan) -> DataValidation:
         messages = plan.messages
         formula1: str | None = None
         formula2: str | None = None
@@ -97,7 +98,7 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
                 formula2 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
                     comparison.maximum,
                 )
-            else:
+            elif isinstance(comparison, m.Cli.XlsxUnaryComparison):
                 formula1 = FlextCliUtilitiesXlsxFormulaCodec.storage_formula(
                     comparison.expression,
                 )
@@ -121,7 +122,7 @@ class FlextCliUtilitiesXlsxValidations(FlextCliUtilitiesXlsxAddresses):
     def _apply_validations(
         cls,
         worksheet: Worksheet,
-        plans: tuple[m.Cli.XlsxDataValidationPlan, ...],
+        plans: tuple[p.Cli.XlsxDataValidationPlan, ...],
     ) -> p.Result[bool]:
         try:
             for plan in plans:

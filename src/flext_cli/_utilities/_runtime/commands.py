@@ -10,7 +10,9 @@ import shlex
 from collections.abc import Sequence
 from typing import TYPE_CHECKING
 
-from flext_cli import p, r, t
+from flext_core import r
+
+from flext_cli import c, p, t
 from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessOutcome
 
 
@@ -44,6 +46,11 @@ class FlextCliUtilitiesRuntimeCommands(
     ) -> p.Result[p.Cli.CommandOutput]:
         """Require a zero exit without timeout or forwarded interruption.
 
+        A non-zero, timed-out or interrupted child fails with its typed
+        outcome in ``error_data`` (``c.Cli.PROCESS_EXIT_CODE_KEY``,
+        ``PROCESS_TIMED_OUT_KEY``, ``PROCESS_FORWARDED_SIGNAL_KEY``), so the
+        caller propagates the child's exit without parsing the message.
+
         Returns:
             The resulting ``p.Result[p.Cli.CommandOutput]``.
 
@@ -59,6 +66,13 @@ class FlextCliUtilitiesRuntimeCommands(
                     f"{shlex.join(list(cmd))}: "
                     f"timed_out={output.outcome.timed_out}, "
                     f"forwarded_signal={output.outcome.forwarded_signal}: {detail}",
+                    error_data={
+                        c.Cli.PROCESS_EXIT_CODE_KEY: output.outcome.raw_return_code,
+                        c.Cli.PROCESS_TIMED_OUT_KEY: output.outcome.timed_out,
+                        c.Cli.PROCESS_FORWARDED_SIGNAL_KEY: (
+                            output.outcome.forwarded_signal
+                        ),
+                    },
                 )
             return r[p.Cli.CommandOutput].ok(output)
 

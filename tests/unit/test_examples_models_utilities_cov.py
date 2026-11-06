@@ -16,7 +16,6 @@ from pathlib import Path
 
 import pytest
 
-import tests
 from flext_cli import cli
 from tests import c, m, t, tm, u
 
@@ -117,7 +116,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
         match: str,
     ) -> None:
         """Verify that advanced settings rejects invalid field."""
-        with pytest.raises(ValueError, match=match):
+        with u.Tests.raises(ValueError, match=match):
             m.Examples.AppSettingsAdvanced.model_validate(kwargs)
 
     @staticmethod
@@ -128,7 +127,7 @@ class TestsFlextCliModelsUtilitiesExampleCov:
             host=host,
             name="production",
             username="db-user",
-            password=tests.c.Tests.CREDENTIAL_SAMPLE_VALUE,
+            password=c.Tests.CREDENTIAL_SAMPLE_VALUE,
         )
 
         tm.that(config.host, eq=host)
@@ -136,12 +135,12 @@ class TestsFlextCliModelsUtilitiesExampleCov:
     @staticmethod
     def test_database_config_rejects_invalid_host() -> None:
         """Verify that database config rejects invalid host."""
-        with pytest.raises(ValueError, match=c.EXAMPLE_ERR_INVALID_HOST):
+        with u.Tests.raises(ValueError, match=c.EXAMPLE_ERR_INVALID_HOST):
             m.Examples.AdvancedDatabaseConfig(
                 host="invalid-host",
                 name="production",
                 username="db-user",
-                password=tests.c.Tests.CREDENTIAL_SAMPLE_VALUE,
+                password=c.Tests.CREDENTIAL_SAMPLE_VALUE,
             )
 
     # ------------------------------------------------------------------

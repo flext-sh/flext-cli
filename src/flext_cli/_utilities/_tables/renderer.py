@@ -9,7 +9,7 @@ from __future__ import annotations
 from collections.abc import Callable, Mapping, Sequence
 from typing import ClassVar
 
-from flext_cli import c, m, t
+from flext_cli import c, m, p, t
 
 
 class FlextCliUtilitiesTablesRenderer:
@@ -77,43 +77,44 @@ class FlextCliUtilitiesTablesRenderer:
             return []
         return list(headers)
 
-    @classmethod
-    def _column_alignments(
-        cls,
-        column_count: int,
+    @staticmethod
+    def _column_alignment(
+        index: int,
         numeric_columns: set[int],
-        *,
         colalign: Sequence[str],
-        settings: m.Cli.TableConfig,
-    ) -> list[str]:
-        alignments: list[str] = []
-        for index in range(column_count):
-            override = (
-                colalign[index]
-                if index < len(colalign)
-                else FlextCliUtilitiesTablesRenderer._EMPTY
-            )
-            if override:
-                resolved = (
-                    "right"
-                    if override in FlextCliUtilitiesTablesRenderer._DECIMAL_ALIASES
-                    else override
-                )
-            elif index in numeric_columns:
-                resolved = (
-                    "right"
-                    if settings.numalign
-                    in FlextCliUtilitiesTablesRenderer._DECIMAL_ALIASES
-                    else settings.numalign
-                )
-            else:
-                resolved = settings.stralign
-            alignments.append(
-                resolved
-                if resolved in FlextCliUtilitiesTablesRenderer._PAD_METHODS
+        settings: p.Cli.TableConfig,
+    ) -> str:
+        """Resolve the padding alignment of one column.
+
+        Returns:
+            The explicit override, the numeric or text default, or ``left``.
+
+        """
+        override = (
+            colalign[index]
+            if index < len(colalign)
+            else FlextCliUtilitiesTablesRenderer._EMPTY
+        )
+        if override:
+            requested = override
+        elif index in numeric_columns:
+            requested = settings.numalign
+        else:
+            return (
+                settings.stralign
+                if settings.stralign in FlextCliUtilitiesTablesRenderer._PAD_METHODS
                 else "left"
             )
-        return alignments
+        resolved = (
+            "right"
+            if requested in FlextCliUtilitiesTablesRenderer._DECIMAL_ALIASES
+            else requested
+        )
+        return (
+            resolved
+            if resolved in FlextCliUtilitiesTablesRenderer._PAD_METHODS
+            else "left"
+        )
 
     @classmethod
     def _row_values(cls, row: t.Cli.TableRow) -> list[t.JsonPayload]:
@@ -127,7 +128,7 @@ class FlextCliUtilitiesTablesRenderer:
         data_rows: Sequence[t.Cli.TableRow],
         column_count: int,
         *,
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> list[list[str]]:
         return [
             [
@@ -145,7 +146,7 @@ class FlextCliUtilitiesTablesRenderer:
         cls,
         cells: Sequence[Sequence[str]],
         *,
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> set[int]:
         if settings.disable_numparse is True or not cells:
             return set()
@@ -168,10 +169,8 @@ class FlextCliUtilitiesTablesRenderer:
     def render(
         cls,
         rows: Sequence[t.Cli.TableRow],
-        headers: str | Sequence[str],
-        *,
-        colalign: Sequence[str],
-        settings: m.Cli.TableConfig,
+        policy: p.Cli.TableColumnPolicy,
+        settings: p.Cli.TableConfig,
     ) -> str:
         """Render normalized rows with the configured tabular format shape.
 
@@ -179,8 +178,8 @@ class FlextCliUtilitiesTablesRenderer:
             The resulting ``str``.
 
         """
-        header_labels = cls._header_labels(rows, headers)
-        data_rows = rows[1:] if headers == "firstrow" and rows else rows
+        header_labels = cls._header_labels(rows, policy.headers)
+        data_rows = rows[1:] if policy.headers == "firstrow" and rows else rows
         indexed_labels, indexed_rows = cls._apply_index(data_rows, settings)
         if indexed_labels is not None:
             header_labels = [*indexed_labels, *header_labels]
@@ -191,25 +190,31 @@ class FlextCliUtilitiesTablesRenderer:
         )
         cells = cls._prepare_cells(data_rows, column_count, settings=settings)
         numeric_columns = cls._numeric_columns(cells, settings=settings)
-        alignments = cls._column_alignments(
-            column_count,
-            numeric_columns,
-            colalign=colalign,
+        return cls._compose(
+            m.Cli.TableLayout(
+                cells=tuple(tuple(row) for row in cells),
+                header_labels=tuple(header_labels),
+                widths=tuple(
+                    max([
+                        len(header_labels[index]) if index < len(header_labels) else 0,
+                        *(len(row[index]) for row in cells),
+                    ])
+                    for index in range(column_count)
+                ),
+                alignments=tuple(
+                    cls._column_alignment(
+                        index, numeric_columns, policy.colalign, settings
+                    )
+                    for index in range(column_count)
+                ),
+            ),
             settings=settings,
         )
-        widths = [
-            max([
-                len(header_labels[index]) if index < len(header_labels) else 0,
-                *(len(row[index]) for row in cells),
-            ])
-            for index in range(column_count)
-        ]
-        return cls._compose(cells, header_labels, widths, alignments, settings=settings)
 
     @staticmethod
     def _apply_index(
         data_rows: Sequence[t.Cli.TableRow],
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> tuple[list[str] | None, Sequence[t.Cli.TableRow]]:
         if settings.showindex is True:
             return (
@@ -229,12 +234,9 @@ class FlextCliUtilitiesTablesRenderer:
     @classmethod
     def _compose_pipe(
         cls,
-        cells: Sequence[Sequence[str]],
-        header_labels: Sequence[str],
-        widths: Sequence[int],
-        alignments: list[str],
+        layout: p.Cli.TableLayout,
         *,
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> str:
         """Compose the header, separator, and rows of a pipe table.
 
@@ -242,6 +244,8 @@ class FlextCliUtilitiesTablesRenderer:
             The rendered pipe table.
 
         """
+        cells, header_labels = layout.cells, layout.header_labels
+        widths, alignments = layout.widths, layout.alignments
         lines: list[str] = []
         if header_labels and settings.show_header:
             lines.extend([
@@ -274,7 +278,7 @@ class FlextCliUtilitiesTablesRenderer:
         cells: Sequence[Sequence[str]],
         header_labels: Sequence[str],
         *,
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> str:
         """Compose an unpadded tab-separated header and rows.
 
@@ -293,27 +297,22 @@ class FlextCliUtilitiesTablesRenderer:
     @classmethod
     def _compose(
         cls,
-        cells: Sequence[Sequence[str]],
-        header_labels: Sequence[str],
-        widths: Sequence[int],
-        alignments: list[str],
+        layout: p.Cli.TableLayout,
         *,
-        settings: m.Cli.TableConfig,
+        settings: p.Cli.TableConfig,
     ) -> str:
         shape = FlextCliUtilitiesTablesRenderer._SHAPES.get(
             settings.table_format, FlextCliUtilitiesTablesRenderer._SHAPE_SIMPLE
         )
-        lines: list[str] = []
         if shape == "pipe":
-            return cls._compose_pipe(
-                cells,
-                header_labels,
-                widths,
-                alignments,
-                settings=settings,
-            )
+            return cls._compose_pipe(layout, settings=settings)
         if shape == "tsv":
-            return cls._compose_tsv(cells, header_labels, settings=settings)
+            return cls._compose_tsv(
+                layout.cells, layout.header_labels, settings=settings
+            )
+        cells, header_labels = layout.cells, layout.header_labels
+        widths, alignments = layout.widths, layout.alignments
+        lines: list[str] = []
         border = (
             FlextCliUtilitiesTablesRenderer._ROW_EDGE
             + FlextCliUtilitiesTablesRenderer._ROW_EDGE.join(

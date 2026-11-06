@@ -11,11 +11,11 @@ from collections.abc import Sequence
 from typing import ClassVar
 
 import tomlkit
-from flext_core import u
+from flext_core import r, u
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli import c, p, r, t
+from flext_cli import c, p, t
 from flext_cli._utilities import FlextCliUtilitiesConversion
 from flext_cli._utilities._toml import FlextCliUtilitiesTomlPart02
 
@@ -73,6 +73,26 @@ class FlextCliUtilitiesTomlPart01:
             return ()
         # NOTE (multi-agent): String sequences are immutable at this boundary.
         return tuple(str(item) for item in normalized)
+
+    @staticmethod
+    def toml_string_list_change(
+        current: Sequence[str],
+        expected: Sequence[str],
+        *,
+        sort_values: bool,
+    ) -> list[str] | None:
+        """Return the normalized expected string list when it differs.
+
+        Returns:
+            The normalized expected values, or ``None`` when ``current``
+            already holds them.
+
+        """
+        normalized_expected = sorted(expected) if sort_values else [*expected]
+        normalized_current = sorted(current) if sort_values else [*current]
+        if normalized_current == normalized_expected:
+            return None
+        return normalized_expected
 
     @staticmethod
     def toml_array(items: Sequence[str]) -> Array:

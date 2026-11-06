@@ -11,9 +11,9 @@ import shlex
 from collections.abc import Mapping, Sequence
 from typing import BinaryIO, ClassVar, override
 
-from flext_core import u
+from flext_core import r, u
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities._runtime import (
     FlextCliUtilitiesRuntimeCommands,
     FlextCliUtilitiesRuntimeRunToFile,
@@ -80,12 +80,10 @@ class FlextCliUtilitiesRuntime(
     @staticmethod
     @override
     def _spawn_streamed_process(
-        cmd: Sequence[str],
-        cwd: t.Cli.TextPath | None,
-        env: Mapping[str, str] | None,
+        command: p.Cli.RuntimeSpawnCommand,
         stdin_handle: BinaryIO | None,
         *,
-        options: m.Cli.RuntimeSpawnOptions,
+        options: p.Cli.RuntimeSpawnOptions,
     ) -> p.Cli.ProcessHandle:
         """Delegate child creation to the single native process engine.
 
@@ -94,10 +92,10 @@ class FlextCliUtilitiesRuntime(
 
         """
         return spawn_streamed_process(
-            cmd,
-            cwd=cwd,
-            env=env,
-            stdin_handle=stdin_handle,
+            command.cmd,
+            command.cwd,
+            command.env,
+            stdin_handle,
             options=options,
         )
 
@@ -176,7 +174,11 @@ class FlextCliUtilitiesRuntime(
                 ),
             )
 
-        launch = options if options is not None else m.Cli.ProcessOptions()
+        launch = (
+            m.Cli.ProcessOptions.model_validate(options, from_attributes=True)
+            if options is not None
+            else m.Cli.ProcessOptions()
+        )
         if env is not None or remove_env_keys is not None:
             launch = m.Cli.ProcessOptions(
                 env=env if env is not None else launch.env,
@@ -187,6 +189,7 @@ class FlextCliUtilitiesRuntime(
                 ),
                 inherit_environment=launch.inherit_environment,
                 input_data=launch.input_data,
+                inherit_stdin=launch.inherit_stdin,
                 live=launch.live,
                 heartbeat_seconds=launch.heartbeat_seconds,
                 deadline=launch.deadline,
@@ -196,28 +199,13 @@ class FlextCliUtilitiesRuntime(
                 signal_wave=launch.signal_wave,
             )
         return cls._execute_streamed_process(
-            m.Cli.RuntimeProcessRequest(
-                cmd=cmd,
-                cwd=cwd,
-                env=cls._resolved_env(
-                    launch.env,
-                    launch.remove_env_keys,
-                    inherit_environment=launch.inherit_environment,
-                ),
-                input_data=launch.input_data,
-                capture_output=capture,
-                timeout=timeout,
-                deadline=launch.deadline,
-                live=launch.live,
-                heartbeat_seconds=launch.heartbeat_seconds,
-                isolation=launch.isolation,
-                pass_fds=tuple(launch.pass_fds),
-                signal_wave=launch.signal_wave,
-            ),
+            m.Cli.RuntimeProcessRequest.model_validate({
+                **cls._runtime_request_fields(cmd, cwd, timeout, launch),
+                "capture_output": capture,
+            }),
         ).flat_map(decode_output)
 
     @classmethod
-    @override
     def run_bytes(
         cls,
         cmd: Sequence[str],
@@ -232,24 +220,14 @@ class FlextCliUtilitiesRuntime(
             The resulting ``p.Result[p.Cli.CommandBytesOutput]``.
 
         """
-        launch = options if options is not None else m.Cli.ProcessOptions()
+        launch = (
+            m.Cli.ProcessOptions.model_validate(options, from_attributes=True)
+            if options is not None
+            else m.Cli.ProcessOptions()
+        )
         return cls._execute_streamed_process(
-            m.Cli.RuntimeProcessRequest(
-                cmd=cmd,
-                cwd=cwd,
-                env=cls._resolved_env(
-                    launch.env,
-                    launch.remove_env_keys,
-                    inherit_environment=launch.inherit_environment,
-                ),
-                input_data=launch.input_data,
-                timeout=timeout,
-                deadline=launch.deadline,
-                live=launch.live,
-                heartbeat_seconds=launch.heartbeat_seconds,
-                isolation=launch.isolation,
-                pass_fds=tuple(launch.pass_fds),
-                signal_wave=launch.signal_wave,
+            m.Cli.RuntimeProcessRequest.model_validate(
+                cls._runtime_request_fields(cmd, cwd, timeout, launch),
             ),
         )
 

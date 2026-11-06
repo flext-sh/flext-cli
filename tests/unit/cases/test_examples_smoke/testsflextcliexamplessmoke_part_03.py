@@ -9,18 +9,17 @@ from __future__ import annotations
 from collections.abc import Iterator
 from pathlib import Path
 
-import pytest
 from examples import ExamplesFlextCliAuthentication, ExamplesFlextCliSettings
 
 from flext_cli import cli, settings
-from tests import c, tm
+from tests import c, tm, u
 
 
 class TestsFlextCliExamplesSmokePart03:
     """Implementation part for TestsFlextCliExamplesSmokePart03."""
 
+    @u.Tests.fixture
     @staticmethod
-    @pytest.fixture
     def restore_token_file() -> Iterator[None]:
         """Restore the canonical token file setting after an example mutates it."""
         original_token_file = settings.cli_token_file
@@ -30,7 +29,7 @@ class TestsFlextCliExamplesSmokePart03:
             settings.cli_token_file = original_token_file
 
     @staticmethod
-    @pytest.mark.usefixtures("restore_token_file")
+    @c.Tests.MARK.usefixtures("restore_token_file")
     def test_authentication_example_surfaces_missing_invalid_and_failed_login(
         tmp_path: Path,
     ) -> None:
@@ -65,7 +64,7 @@ class TestsFlextCliExamplesSmokePart03:
         tm.ok(broken_token_path.exists())
 
     @staticmethod
-    @pytest.mark.usefixtures("restore_token_file")
+    @c.Tests.MARK.usefixtures("restore_token_file")
     def test_authentication_example_surfaces_logout_unlink_failure(
         tmp_path: Path,
     ) -> None:
@@ -119,7 +118,7 @@ class TestsFlextCliExamplesSmokePart03:
         tm.that(testing_settings["max_workers"], eq=1)
         tm.that(testing_settings["enable_metrics"], eq=False)
 
-        with pytest.raises(TypeError):
+        with u.Tests.raises(TypeError):
             ExamplesFlextCliSettings.apply_environment_overrides(
                 {"max_workers": "bad", "enable_metrics": False},
                 c.DeploymentEnvironment.PRODUCTION,

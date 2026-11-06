@@ -12,8 +12,6 @@ import sys
 from pathlib import Path
 from types import FrameType
 
-import pytest
-
 from tests import t, tm, u
 
 
@@ -88,7 +86,7 @@ class TestsFlextCliAtomicFileGuards:
         descriptor = descriptors[-1]
         expected = os.fstat(descriptor)
         os.lseek(descriptor, 0, os.SEEK_END)
-        with pytest.raises(
+        with u.Tests.raises(
             OSError, match="atomic destination changed during authenticated read"
         ) as rejected:
             next(chunks)

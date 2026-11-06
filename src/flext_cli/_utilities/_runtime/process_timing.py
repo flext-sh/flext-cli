@@ -8,7 +8,9 @@ from __future__ import annotations
 
 import shlex
 
-from flext_cli import c, m, p, r
+from flext_core import r
+
+from flext_cli import c, m, p
 
 
 class FlextCliUtilitiesRuntimeProcessTiming:
@@ -16,14 +18,14 @@ class FlextCliUtilitiesRuntimeProcessTiming:
 
     @staticmethod
     def _resolve_process_timing(
-        request: m.Cli.RuntimeProcessRequest,
+        request: p.Cli.RuntimeProcessRequest,
         started: float,
         *,
         on_main_thread: bool,
-    ) -> p.Result[tuple[float | None, float]]:
+    ) -> p.Result[p.Cli.RuntimeProcessTiming]:
         timeout, deadline = request.timeout, request.deadline
         if timeout is not None and deadline is not None:
-            return r[tuple[float | None, float]].fail(
+            return r[p.Cli.RuntimeProcessTiming].fail(
                 "timeout and deadline are mutually exclusive",
             )
         output_error = (
@@ -33,7 +35,7 @@ class FlextCliUtilitiesRuntimeProcessTiming:
             )
         )
         if output_error is not None:
-            return r[tuple[float | None, float]].fail(output_error)
+            return r[p.Cli.RuntimeProcessTiming].fail(output_error)
         absolute_deadline: float | None = None
         grace_seconds = 0.0
 
@@ -43,7 +45,7 @@ class FlextCliUtilitiesRuntimeProcessTiming:
 
         elif timeout is not None:
             if timeout <= 0:
-                return r[tuple[float | None, float]].fail(
+                return r[p.Cli.RuntimeProcessTiming].fail(
                     f"timeout {timeout}s: {shlex.join(list(request.cmd))}",
                 )
             absolute_deadline = started + timeout
@@ -51,14 +53,19 @@ class FlextCliUtilitiesRuntimeProcessTiming:
         if absolute_deadline is not None:
             remaining = absolute_deadline - started
             if remaining <= 0 or grace_seconds <= 0 or grace_seconds >= remaining:
-                return r[tuple[float | None, float]].fail(
+                return r[p.Cli.RuntimeProcessTiming].fail(
                     "process deadline must leave a positive grace reserve",
                 )
-        return r[tuple[float | None, float]].ok((absolute_deadline, grace_seconds))
+        return r[p.Cli.RuntimeProcessTiming].ok(
+            m.Cli.RuntimeProcessTiming(
+                absolute_deadline=absolute_deadline,
+                grace_seconds=grace_seconds,
+            ),
+        )
 
     @staticmethod
     def _shares_output_destination(
-        request: m.Cli.RuntimeProcessRequest,
+        request: p.Cli.RuntimeProcessRequest,
     ) -> bool:
         """Report whether stdout and stderr resolve to one filesystem leaf.
 
@@ -78,7 +85,7 @@ class FlextCliUtilitiesRuntimeProcessTiming:
 
     @staticmethod
     def _process_output_policy_error(
-        request: m.Cli.RuntimeProcessRequest,
+        request: p.Cli.RuntimeProcessRequest,
         *,
         on_main_thread: bool,
     ) -> str | None:

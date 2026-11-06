@@ -15,9 +15,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from examples import c as examples_c
-from flext_tests import c as flext_tests_c
 
-from flext_cli import c as flext_cli_c
 from tests._constants import (
     TestsFlextCliConstantsCore,
     TestsFlextCliConstantsPart01,
@@ -27,13 +25,11 @@ from tests._constants import (
 
 
 class TestsFlextCliConstants(
+    examples_c,
     TestsFlextCliConstantsCore,
     TestsFlextCliConstantsRulesOptions,
     TestsFlextCliConstantsYamlOutput,
     TestsFlextCliConstantsPart01,
-    examples_c,
-    flext_tests_c,
-    flext_cli_c,
 ):
     """Public facade for TestsFlextCliConstants."""
 

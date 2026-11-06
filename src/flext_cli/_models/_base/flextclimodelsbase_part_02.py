@@ -10,7 +10,7 @@ from collections.abc import Mapping, Sequence
 from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
-from flext_core import m
+from flext_core import m, t
 
 from flext_cli import c
 from flext_cli._models import FlextCliModelsAtomicState
@@ -19,17 +19,26 @@ from flext_cli._models import FlextCliModelsAtomicState
 class FlextCliModelsBasePart02:
     """Implementation part for FlextCliModelsBasePart02."""
 
-    class AtomicFileIdentity(m.BaseModel):
-        """Shared physical identity of an existing or absent regular file."""
+    class AtomicPhysicalIdentity(m.BaseModel):
+        """Physical identity shared by every descriptor-authenticated leaf state.
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        A subclass whose presence is not the physical device itself overrides
+        ``_physically_present``; the identity validation is shared by every
+        state, and each subclass keeps its own failure wording.
+        """
+
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             frozen=True,
             arbitrary_types_allowed=True,
-            ser_json_bytes="base64",
-            val_json_bytes="base64",
         )
-        path: Annotated[Path, m.Field(description="Absolute file path")]
+        atomic_state_label: ClassVar[str] = "atomic physical state"
+        atomic_presence_message: ClassVar[str] = (
+            "atomic physical state requires mode, device, inode, and link count "
+            "exactly when it exists"
+        )
+
+        path: Annotated[Path, m.Field(description="Absolute leaf path")]
         parent_device: Annotated[
             int | None,
             m.Field(
@@ -103,54 +112,66 @@ class FlextCliModelsBasePart02:
             """
             return FlextCliModelsAtomicState.validate_atomic_state_path(
                 value,
-                label="atomic file state",
+                label=cls.atomic_state_label,
             )
 
-        @m.model_validator(mode="after")
-        def _validate_presence_tuple(self) -> Self:
-            """Require one complete, uniquely owned, non-reparse state.
+        def _physically_present(self) -> bool:
+            """Return whether the leaf physically exists.
 
             Returns:
-                The resulting ``Self``.
-
-            Raises:
-                ValueError: If atomic file state must contain bytes, mode, device,
-                    inode, and link count, or none of them; or if absent atomic file
-                    state cannot contain host metadata.
+                ``True`` when the identity carries a physical device.
 
             """
-            presence = tuple(
-                value is not None
-                for value in (
-                    self.mode,
-                    self.device,
-                    self.inode,
-                    self.link_count,
-                )
-            )
-            if any(presence) != all(presence):
-                msg = (
-                    "atomic file identity must contain mode, device, inode, and "
-                    "link count, or none of them"
-                )
-                raise ValueError(msg)
-            if self.device is None and (
+            return self.device is not None
+
+        @m.model_validator(mode="after")
+        def _validate_physical_identity(self) -> Self:
+            """Require one complete, uniquely owned, non-reparse identity.
+
+            Returns:
+                The validated model instance.
+
+            Raises:
+                ValueError: If the physical tuple does not match presence, an
+                    absent leaf carries host metadata, the parent identity is
+                    incomplete, or the leaf is a reparse point.
+
+            """
+            label = self.atomic_state_label
+            present = self._physically_present()
+            physical = (self.mode, self.device, self.inode, self.link_count)
+            if any((value is not None) != present for value in physical):
+                raise ValueError(self.atomic_presence_message)
+            if not present and (
                 self.file_attributes is not None or self.reparse_tag is not None
             ):
-                msg = "absent atomic file state cannot contain host metadata"
+                msg = f"absent {label} cannot contain host metadata"
                 raise ValueError(msg)
             FlextCliModelsAtomicState.validate_parent_identity(
                 self.parent_device,
                 self.parent_inode,
-                present=self.device is not None,
-                label="atomic file state",
+                present=present,
+                label=label,
             )
             FlextCliModelsAtomicState.validate_non_reparse_state(
                 self.file_attributes,
                 self.reparse_tag,
-                label="atomic file state",
+                label=label,
             )
             return self
+
+    class AtomicFileIdentity(AtomicPhysicalIdentity):
+        """Shared physical identity of an existing or absent regular file."""
+
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
+            ser_json_bytes="base64",
+            val_json_bytes="base64",
+        )
+        atomic_state_label: ClassVar[str] = "atomic file state"
+        atomic_presence_message: ClassVar[str] = (
+            "atomic file identity must contain mode, device, inode, and link "
+            "count, or none of them"
+        )
 
     class AtomicFileState(AtomicFileIdentity):
         """Exact content and physical identity for one regular file version."""
@@ -221,19 +242,17 @@ class FlextCliModelsBasePart02:
     class PromptRuntimeState(m.FlexibleInternalModel):
         """Centralized runtime state for CLI prompt behavior."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
 
-        interactive: Annotated[
-            bool,
-            m.Field(default=True, description="Whether prompt interaction is enabled"),
-        ] = True
-        quiet: Annotated[
-            bool,
-            m.Field(default=False, description="Whether prompt output is suppressed"),
-        ] = False
+        interactive: bool = m.Field(
+            default=True, description="Whether prompt interaction is enabled"
+        )
+        quiet: bool = m.Field(
+            default=False, description="Whether prompt output is suppressed"
+        )
         default_timeout: Annotated[
             int,
             m.Field(description="Default prompt timeout in seconds"),
@@ -242,7 +261,7 @@ class FlextCliModelsBasePart02:
     class AuthCredentialsPayload(m.BaseModel):
         """Validated auth payload for token or username/password flows."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )
@@ -262,7 +281,7 @@ class FlextCliModelsBasePart02:
     class ProcessEnvironmentSpec(m.BaseModel):
         """Validated process environment contract for runtime command execution."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
         base_env: Annotated[
             Mapping[str, str],
             m.Field(

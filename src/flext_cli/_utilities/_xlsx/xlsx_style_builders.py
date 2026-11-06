@@ -6,14 +6,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from openpyxl.styles import Alignment, Border, Color, Font, GradientFill, NamedStyle
 from openpyxl.styles.borders import Side
 from openpyxl.styles.fills import PatternFill, Stop
 
-if TYPE_CHECKING:
-    from flext_cli import m
+from flext_cli import p
 
 
 class FlextCliUtilitiesXlsxStyleBuilders:
@@ -22,7 +19,7 @@ class FlextCliUtilitiesXlsxStyleBuilders:
     # NOTE (multi-agent, mro-j2yt.1): protection is deliberately absent from
     # every builder and is applied only by the worksheet protection adapter.
     @staticmethod
-    def _color(spec: m.Cli.XlsxColor | None) -> Color | None:
+    def _color(spec: p.Cli.XlsxColor | None) -> Color | None:
         if spec is None:
             return None
         if spec.kind == "rgb":
@@ -34,7 +31,7 @@ class FlextCliUtilitiesXlsxStyleBuilders:
         return Color(auto=True, tint=spec.tint)
 
     @classmethod
-    def _font(cls, spec: m.Cli.XlsxFontSpec) -> Font:
+    def _font(cls, spec: p.Cli.XlsxFontSpec) -> Font:
         return Font(
             name=spec.name,
             size=spec.size,
@@ -54,7 +51,7 @@ class FlextCliUtilitiesXlsxStyleBuilders:
         )
 
     @classmethod
-    def _fill(cls, spec: m.Cli.XlsxFillSpec) -> PatternFill | GradientFill:
+    def _fill(cls, spec: p.Cli.XlsxFillSpec) -> PatternFill | GradientFill:
         if spec.kind == "pattern":
             foreground = cls._color(spec.foreground)
             background = cls._color(spec.background)
@@ -78,13 +75,13 @@ class FlextCliUtilitiesXlsxStyleBuilders:
         )
 
     @classmethod
-    def _side(cls, spec: m.Cli.XlsxBorderSideSpec | None) -> Side | None:
+    def _side(cls, spec: p.Cli.XlsxBorderSideSpec | None) -> Side | None:
         if spec is None:
             return None
         return Side(style=spec.style, color=cls._color(spec.color))
 
     @classmethod
-    def _border(cls, spec: m.Cli.XlsxBorderSpec) -> Border:
+    def _border(cls, spec: p.Cli.XlsxBorderSpec) -> Border:
         return Border(
             left=cls._side(spec.left),
             right=cls._side(spec.right),
@@ -101,7 +98,7 @@ class FlextCliUtilitiesXlsxStyleBuilders:
         )
 
     @staticmethod
-    def _alignment(spec: m.Cli.XlsxAlignmentSpec) -> Alignment:
+    def _alignment(spec: p.Cli.XlsxAlignmentSpec) -> Alignment:
         return Alignment(
             horizontal=spec.horizontal,
             vertical=spec.vertical,
@@ -115,7 +112,7 @@ class FlextCliUtilitiesXlsxStyleBuilders:
         )
 
     @classmethod
-    def _named_style(cls, spec: m.Cli.XlsxNamedStyleSpec) -> NamedStyle:
+    def _named_style(cls, spec: p.Cli.XlsxNamedStyleSpec) -> NamedStyle:
         visual = spec.visual
         return NamedStyle(
             name=spec.name,

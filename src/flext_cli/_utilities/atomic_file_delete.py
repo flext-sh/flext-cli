@@ -7,8 +7,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import errno
-from typing import TYPE_CHECKING
+from collections.abc import MutableSequence
+from pathlib import Path
 
+from flext_cli import p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileDurability,
@@ -18,19 +20,23 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileState,
 )
 
-if TYPE_CHECKING:
-    from flext_cli import m
-
 
 class FlextCliUtilitiesAtomicFileDelete:
     """Canonical namespace owner."""
 
     @staticmethod
-    def remove_guarded_file(state: m.Cli.AtomicFileState) -> None:
+    def remove_guarded_file(
+        state: p.Cli.AtomicFileState,
+        *,
+        published_paths: MutableSequence[Path] | None = None,
+    ) -> None:
         """Unlink the complete physical file version authorized by the caller.
 
+        The receipt records the native unlink before durability and final proof;
+        those later failures retain the original exception and the physical effect.
+
         Raises:
-            OSError: If ``file_state.destination_state(path, parent=parent) is not
+            OSError: If ``file_state.file_destination_state(path, parent=parent) is not
             None``.
 
         """
@@ -44,7 +50,7 @@ class FlextCliUtilitiesAtomicFileDelete:
             unlink=True,
         ) as parent:
             FlextCliUtilitiesAtomicFileModel.require_parent(state, parent.state)
-            expected = FlextCliUtilitiesAtomicFileState.destination_state(
+            expected = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 path,
                 parent=parent,
             )
@@ -53,7 +59,6 @@ class FlextCliUtilitiesAtomicFileDelete:
                 path,
                 expected,
                 content,
-                enabled=True,
                 parent=parent,
             )
             FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
@@ -67,9 +72,13 @@ class FlextCliUtilitiesAtomicFileDelete:
                 parent=parent,
             )
             FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, path)
+            if published_paths is not None:
+                published_paths.append(path)
             FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             if (
-                FlextCliUtilitiesAtomicFileState.destination_state(path, parent=parent)
+                FlextCliUtilitiesAtomicFileState.file_destination_state(
+                    path, parent=parent
+                )
                 is not None
             ):
                 message = f"atomic destination still exists after delete: {path}"

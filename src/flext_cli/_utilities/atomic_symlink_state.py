@@ -11,7 +11,7 @@ import os
 import stat
 from pathlib import Path
 
-from flext_cli import m
+from flext_cli import m, p
 from flext_cli._utilities import FlextCliUtilitiesAtomicFileDescriptor
 
 
@@ -24,7 +24,7 @@ class FlextCliUtilitiesAtomicSymlinkState:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         *,
         required: bool = False,
-    ) -> m.Cli.AtomicSymlinkState:
+    ) -> p.Cli.AtomicSymlinkState:
         """Read link text through the same pinned parent as its lstat identity.
 
         Returns:
@@ -66,11 +66,14 @@ class FlextCliUtilitiesAtomicSymlinkState:
             parent_device=parent.state.st_dev,
             parent_inode=parent.state.st_ino,
             target=target,
-            identity=FlextCliUtilitiesAtomicSymlinkState.symlink_identity(observed),
+            identity=m.Cli.AtomicSymlinkIdentity.model_validate(
+                FlextCliUtilitiesAtomicSymlinkState.symlink_identity(observed),
+                from_attributes=True,
+            ),
         )
 
     @staticmethod
-    def symlink_identity(observed: os.stat_result) -> m.Cli.AtomicSymlinkIdentity:
+    def symlink_identity(observed: os.stat_result) -> p.Cli.AtomicSymlinkIdentity:
         """Bind mutation-relevant identity without read-induced access time.
 
         Returns:
@@ -92,7 +95,7 @@ class FlextCliUtilitiesAtomicSymlinkState:
 
     @staticmethod
     def require_symlink_state(
-        before: m.Cli.AtomicSymlinkState,
+        before: p.Cli.AtomicSymlinkState,
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
     ) -> None:
         """Reject any parent, leaf identity or link-text drift before mutation.

@@ -6,91 +6,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Protocol, runtime_checkable
-
-from flext_core import p
-
-if TYPE_CHECKING:
-    from flext_cli import t
+from typing import Protocol, runtime_checkable
 
 
 class FlextCliProtocolsBasePart01:
     """Implementation part for FlextCliProtocolsBasePart01."""
-
-    @runtime_checkable
-    class AtomicFileReceipt(p.Model, Protocol):
-        """Read-only source, parent identity and digest of a captured file."""
-
-        @property
-        def path(self) -> t.Cli.TextPath: ...
-
-        @property
-        def version_key(self) -> tuple[int, ...] | None: ...
-
-        @property
-        def size(self) -> int | None: ...
-
-        @property
-        def mode(self) -> int | None: ...
-
-        @property
-        def parent_device(self) -> int | None: ...
-
-        @property
-        def parent_inode(self) -> int | None: ...
-
-        @property
-        def sha256(self) -> str | None: ...
-
-        @property
-        def device(self) -> int | None: ...
-
-        @property
-        def inode(self) -> int | None: ...
-
-        @property
-        def link_count(self) -> int | None: ...
-
-        @property
-        def file_attributes(self) -> int | None: ...
-
-        @property
-        def reparse_tag(self) -> int | None: ...
-
-    @runtime_checkable
-    class RuntimeComponents(p.Base, Protocol):
-        """Public availability state of the canonical CLI components."""
-
-        @property
-        def settings(self) -> str: ...
-
-        @property
-        def formatters(self) -> str: ...
-
-        @property
-        def prompts(self) -> str: ...
-
-        @property
-        def rules(self) -> str: ...
-
-    @runtime_checkable
-    class RuntimeStatus(p.Base, Protocol):
-        """Complete public status payload returned by CLI service handlers."""
-
-        @property
-        def status(self) -> str: ...
-
-        @property
-        def service(self) -> str: ...
-
-        @property
-        def timestamp(self) -> str: ...
-
-        @property
-        def version(self) -> str: ...
-
-        @property
-        def components(self) -> FlextCliProtocolsBasePart01.RuntimeComponents: ...
 
     @runtime_checkable
     class CliSettings(Protocol):
@@ -100,7 +20,7 @@ class FlextCliProtocolsBasePart01:
         are flat ``cli_*`` scalars loadable from env/.env. Test-runtime
         detection moved to ``u.Cli.cli_test_env`` (behavior lives in the
         utilities layer, never on settings). Plain ``Protocol`` (not
-        ``p.Model``): pyrefly cannot reconcile pydantic ``model_fields``
+        ``p.BaseModel``): pyrefly cannot reconcile pydantic ``model_fields``
         metaclass descriptors on this hot path — structural field access is
         the whole contract.
         """

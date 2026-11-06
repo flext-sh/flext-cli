@@ -66,8 +66,9 @@ class TestsFlextCliAtomicFileIdentity:
                 **replacement.model_dump(),
                 "sha256": u.Cli.sha256_bytes(b"foreign"),
             })
+        concrete = m.Cli.AtomicFileReceipt.model_validate(replacement.model_dump())
         tm.fail(
-            u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, replacement)
+            u.Cli.atomic_publish_staged_binary_file_receipt_guarded(before, concrete)
         )
         tm.ok(staged.exists())
         tm.that(
@@ -151,7 +152,7 @@ class TestsFlextCliAtomicFileIdentity:
                     replacement.write_bytes(payload)
                     replacement.replace(path)
 
-        with pytest.raises(OSError, match="changed"):
+        with u.Tests.raises(OSError, match="changed"):
             mutate_during_consumption()
 
     @staticmethod
@@ -188,19 +189,19 @@ class TestsFlextCliAtomicFileIdentity:
             replacement = tmp_path / "replacement.bin"
             replacement.write_bytes(b"another inode")
             replacement.replace(path)
-        with pytest.raises(OSError, match="changed"):
+        with u.Tests.raises(OSError, match="changed"):
             tuple(stream)
 
     @staticmethod
     def test_authenticated_stream_rejects_absence_and_symlink(tmp_path: Path) -> None:
         """Required streamed input cannot be missing or alias a foreign leaf."""
         path = tmp_path / "stream.bin"
-        with pytest.raises(FileNotFoundError):
+        with u.Tests.raises(FileNotFoundError):
             tuple(u.Cli.atomic_iter_binary_file(path))
         target = tmp_path / "target.bin"
         target.write_bytes(b"foreign input")
         path.symlink_to(target)
-        with pytest.raises(OSError, match="not a regular file") as rejected:
+        with u.Tests.raises(OSError, match="not a regular file") as rejected:
             tuple(u.Cli.atomic_iter_binary_file(path))
         tm.that(rejected.value.errno, eq=errno.EINVAL)
         tm.ok(path.is_symlink())
@@ -242,7 +243,7 @@ class TestsFlextCliAtomicFileIdentity:
         tm.that(target.read_bytes(), eq=original)
         tm.that(target.stat().st_mtime_ns, eq=modified_ns)
         tm.that(result.exception, is_=OSError)
-        with pytest.raises(OSError, match="not a regular file") as raised:
+        with u.Tests.raises(OSError, match="not a regular file") as raised:
             result.unwrap()
         tm.ok(raised.value is result.exception)
 

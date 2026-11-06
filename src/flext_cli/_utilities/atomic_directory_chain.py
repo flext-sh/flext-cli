@@ -7,13 +7,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import errno
-from collections.abc import Sequence
+from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 
-from flext_cli import m, t
+from flext_cli import m, p, t
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryCreate,
-    FlextCliUtilitiesAtomicDirectoryDelete,
     FlextCliUtilitiesAtomicDirectoryDescriptor,
     FlextCliUtilitiesAtomicDirectorySnapshot,
     FlextCliUtilitiesAtomicFileMode,
@@ -25,7 +24,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
     """Canonical namespace owner."""
 
     @staticmethod
-    def plan_directory_chain(target: t.Cli.TextPath) -> m.Cli.AtomicDirectoryChainPlan:
+    def plan_directory_chain(target: t.Cli.TextPath) -> p.Cli.AtomicDirectoryChainPlan:
         """Snapshot one physical anchor and every descendant observed absent.
 
         Returns:
@@ -49,8 +48,8 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def verify_guarded_directory_chain(
-        plan: m.Cli.AtomicDirectoryChainPlan,
-        created: Sequence[m.Cli.AtomicDirectoryState],
+        plan: p.Cli.AtomicDirectoryChainPlan,
+        created: Sequence[p.Cli.AtomicDirectoryState],
     ) -> None:
         """Verify original ancestry and the exact ordered creation receipts.
 
@@ -81,14 +80,18 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def create_guarded_directory_chain(
-        plan: m.Cli.AtomicDirectoryChainPlan,
+        plan: p.Cli.AtomicDirectoryChainPlan,
         *,
         permission_mode: int,
-    ) -> Sequence[m.Cli.AtomicDirectoryState]:
-        """Create every planned level, rolling back successful levels on failure.
+        created: MutableSequence[p.Cli.AtomicDirectoryState],
+    ) -> Sequence[p.Cli.AtomicDirectoryState]:
+        """Create planned levels while retaining every completed effect.
+
+        The caller-owned collection records progress before the next native
+        operation. A failure never removes a successfully created level.
 
         Returns:
-            The resulting ``Sequence[m.Cli.AtomicDirectoryState]``.
+            The resulting ``Sequence[p.Cli.AtomicDirectoryState]``.
 
         Raises:
             OSError: If ``mode is None``.
@@ -101,34 +104,33 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         if mode is None:
             message = "permission_mode is required for directory-chain creation"
             raise OSError(errno.EINVAL, message, plan.target)
-        FlextCliUtilitiesAtomicDirectoryDescriptor.require_create_capabilities(
+        FlextCliUtilitiesAtomicDirectoryDescriptor.require_directory_create_capabilities(
             plan.target,
         )
         FlextCliUtilitiesAtomicDirectoryChain.require_anchor(plan)
-        created: list[m.Cli.AtomicDirectoryState] = []
-        expected_parent = (plan.anchor_device, plan.anchor_inode)
+        initial_count = len(created)
         try:
-            created = FlextCliUtilitiesAtomicDirectoryChain._create_chained_directories(
+            FlextCliUtilitiesAtomicDirectoryChain._create_chained_directories(
                 plan,
                 mode,
                 created,
-                expected_parent,
+                (plan.anchor_device, plan.anchor_inode),
             )
         except BaseException as operation_error:
-            FlextCliUtilitiesAtomicDirectoryChain._rollback_created(
-                created,
-                operation_error,
-            )
+            for state in created[initial_count:]:
+                operation_error.add_note(
+                    f"created directory receipt: {state.model_dump_json()}",
+                )
             raise
-        return tuple(created)
+        return tuple(created[initial_count:])
 
     @staticmethod
     def _create_chained_directories(
-        plan: m.Cli.AtomicDirectoryChainPlan,
+        plan: p.Cli.AtomicDirectoryChainPlan,
         mode: int,
-        created: list[m.Cli.AtomicDirectoryState],
+        created: MutableSequence[p.Cli.AtomicDirectoryState],
         expected_parent: tuple[int, int],
-    ) -> list[m.Cli.AtomicDirectoryState]:
+    ) -> MutableSequence[p.Cli.AtomicDirectoryState]:
         """Create each planned directory, advancing the expected identity.
 
         Returns:
@@ -160,7 +162,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         return created
 
     @staticmethod
-    def require_anchor(plan: m.Cli.AtomicDirectoryChainPlan) -> None:
+    def require_anchor(plan: p.Cli.AtomicDirectoryChainPlan) -> None:
         with FlextCliUtilitiesAtomicParentDescriptor.physical_directory(
             plan.anchor_path,
         ) as current:
@@ -173,7 +175,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def require_planned_parent(
-        path: Path, state: m.Cli.AtomicDirectoryState, expected: tuple[int, int]
+        path: Path, state: p.Cli.AtomicDirectoryState, expected: tuple[int, int]
     ) -> None:
         if (state.parent_device, state.parent_inode) != expected:
             message = f"atomic directory-chain parent changed: {path}"
@@ -181,39 +183,12 @@ class FlextCliUtilitiesAtomicDirectoryChain:
 
     @staticmethod
     def require_created_identity(
-        state: m.Cli.AtomicDirectoryState,
+        state: p.Cli.AtomicDirectoryState,
     ) -> tuple[int, int]:
         if state.device is None or state.inode is None:
             message = f"created directory has no physical identity: {state.path}"
             raise OSError(errno.EINVAL, message, state.path)
         return state.device, state.inode
-
-    @staticmethod
-    def _rollback_created(
-        created: list[m.Cli.AtomicDirectoryState],
-        operation_error: BaseException,
-    ) -> None:
-        for state in reversed(created):
-            try:
-                FlextCliUtilitiesAtomicDirectoryDelete.remove_guarded_empty_directory(
-                    state,
-                )
-            except OSError as cleanup_error:
-                message = (
-                    f"directory-chain creation failed ({operation_error}); "
-                    f"rollback failed ({cleanup_error})"
-                )
-                if isinstance(operation_error, Exception):
-                    causes = ExceptionGroup(
-                        "directory-chain creation and rollback failed",
-                        [operation_error, cleanup_error],
-                    )
-                    raise OSError(errno.EIO, message, state.path) from causes
-                group_message = "directory-chain creation and rollback failed"
-                raise BaseExceptionGroup(
-                    group_message,
-                    [operation_error, cleanup_error],
-                ) from cleanup_error
 
 
 __all__: list[str] = ["FlextCliUtilitiesAtomicDirectoryChain"]

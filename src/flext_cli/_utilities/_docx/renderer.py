@@ -6,93 +6,51 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping
 from datetime import UTC, datetime
 from io import BytesIO
-from typing import TYPE_CHECKING, ClassVar
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from docx import Document
 from docx.document import Document as DocumentType
-from docx.enum.section import WD_ORIENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_COLOR_INDEX, WD_UNDERLINE
-from docx.shared import Inches, Pt, RGBColor
+from flext_core import r
 
-from flext_cli import c, m, p, r, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesFiles
+from flext_cli._utilities._docx.layout import FlextCliUtilitiesDocxLayout
+from flext_cli._utilities._files.native_results import (
+    FlextCliUtilitiesFilesNativeResults,
+)
 
-if TYPE_CHECKING:
-    from docx.text.font import Font
-    from docx.text.paragraph import Paragraph
-    from docx.text.parfmt import ParagraphFormat
 
-
-class FlextCliUtilitiesDocxRenderer:
+class FlextCliUtilitiesDocxRenderer(FlextCliUtilitiesDocxLayout):
     """Render one immutable document plan into DOCX bytes."""
 
-    _HEX_COLOR_WITH_ALPHA_LENGTH = 8
     _ZIP_EPOCH_FLOOR_YEAR = 1980
 
     # NOTE (multi-agent, mro-j2yt.1): python-docx objects stay inside this
     # module; consumers exchange only validated plans and bytes.
 
-    _ALIGNMENT_MAP: ClassVar[Mapping[str, WD_ALIGN_PARAGRAPH]] = {
-        "left": WD_ALIGN_PARAGRAPH.LEFT,
-        "center": WD_ALIGN_PARAGRAPH.CENTER,
-        "right": WD_ALIGN_PARAGRAPH.RIGHT,
-        "justify": WD_ALIGN_PARAGRAPH.JUSTIFY,
-        "distribute": WD_ALIGN_PARAGRAPH.DISTRIBUTE,
-    }
-
-    _UNDERLINE_MAP: ClassVar[Mapping[str, WD_UNDERLINE | None]] = {
-        "single": WD_UNDERLINE.SINGLE,
-        "double": WD_UNDERLINE.DOUBLE,
-        "singleAccounting": WD_UNDERLINE(9),
-        "doubleAccounting": WD_UNDERLINE(11),
-    }
-
-    _HIGHLIGHT_MAP: ClassVar[Mapping[str, WD_COLOR_INDEX | None]] = {
-        name: getattr(WD_COLOR_INDEX, name.upper(), None)
-        for name in (
-            "yellow",
-            "green",
-            "cyan",
-            "magenta",
-            "blue",
-            "red",
-            "darkBlue",
-            "darkCyan",
-            "darkGreen",
-            "darkMagenta",
-            "darkRed",
-            "darkYellow",
-            "darkGray",
-            "lightGray",
-            "black",
-        )
-    }
-
     @classmethod
     def docx_render(
         cls,
-        request: m.Cli.DocxRenderRequest,
-    ) -> p.Result[m.Cli.DocxRenderResult]:
+        request: p.Cli.DocxRenderRequest,
+    ) -> p.Result[p.Cli.DocxRenderResult]:
         """Render typed paragraphs, tables, and sections into document bytes.
 
         Returns:
-            The resulting ``p.Result[m.Cli.DocxRenderResult]``.
+            The resulting ``p.Result[p.Cli.DocxRenderResult]``.
 
         """
         document_result = cls._document_for_request(request)
         if document_result.failure:
-            return r[m.Cli.DocxRenderResult].from_failure(document_result)
+            return r[p.Cli.DocxRenderResult].from_failure(document_result)
         document = document_result.value
         try:
             cls._apply_document(document, request.plan)
             cls._apply_source_date(document, request.source_date_epoch)
         except (KeyError, TypeError, ValueError, AttributeError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.DocxRenderResult].fail(
+            return r[p.Cli.DocxRenderResult].fail(
                 f"{c.Cli.DocxError.RENDER_FAILED}: {detail}",
             )
         content = cls._serialize_document(
@@ -100,26 +58,28 @@ class FlextCliUtilitiesDocxRenderer:
             source_date_epoch=request.source_date_epoch,
         )
         if content.failure:
-            return r[m.Cli.DocxRenderResult].from_failure(content)
-        return r[m.Cli.DocxRenderResult].ok(
-            m.Cli.DocxRenderResult(content=content.value, plan=request.plan),
+            return r[p.Cli.DocxRenderResult].from_failure(content)
+        return r[p.Cli.DocxRenderResult].ok(
+            m.Cli.DocxRenderResult(
+                content=content.value,
+                plan=m.Cli.DocxDocumentPlan.model_validate(
+                    request.plan, from_attributes=True
+                ),
+            ),
         )
 
     @classmethod
     def _document_for_request(
         cls,
-        request: m.Cli.DocxRenderRequest,
+        request: p.Cli.DocxRenderRequest,
     ) -> p.Result[DocumentType]:
         if request.template is None:
             return r[DocumentType].ok(Document())
-        try:
-            document = Document(BytesIO(request.template))
-        except (OSError, ValueError, KeyError) as exc:
-            detail = str(exc).strip() or exc.__class__.__name__
-            return r[DocumentType].fail(
-                f"{c.Cli.DocxError.DOCUMENT_LOAD_FAILED}: {detail}",
-            )
-        return r[DocumentType].ok(document)
+        return FlextCliUtilitiesFilesNativeResults.coded_result(
+            Document,
+            c.Cli.DocxError.DOCUMENT_LOAD_FAILED,
+            (OSError, ValueError, KeyError),
+        )(BytesIO(request.template))
 
     @classmethod
     def _apply_source_date(
@@ -201,7 +161,7 @@ class FlextCliUtilitiesDocxRenderer:
     def _apply_document(
         cls,
         document: DocumentType,
-        plan: m.Cli.DocxDocumentPlan,
+        plan: p.Cli.DocxDocumentPlan,
     ) -> None:
         cls._apply_core_properties(document, plan.core_properties)
         for paragraph in plan.paragraphs:
@@ -220,178 +180,6 @@ class FlextCliUtilitiesDocxRenderer:
         for key, value in properties.items():
             if hasattr(core_props, key):
                 setattr(core_props, key, value)
-
-    @classmethod
-    def _apply_paragraph(
-        cls,
-        container: DocumentType | p.Cli.DocxParagraphContainer,
-        plan: m.Cli.DocxParagraphPlan,
-        paragraph: Paragraph | None = None,
-    ) -> Paragraph:
-        if paragraph is None:
-            paragraph = container.add_paragraph()
-        if plan.style:
-            paragraph.style = plan.style
-        if plan.alignment:
-            paragraph.alignment = cls._ALIGNMENT_MAP[plan.alignment]
-        if plan.style_spec:
-            cls._apply_paragraph_style(paragraph, plan.style_spec)
-        for run in plan.runs:
-            cls._apply_run(paragraph, run)
-        return paragraph
-
-    @classmethod
-    def _apply_paragraph_style(
-        cls,
-        paragraph: Paragraph,
-        spec: m.Cli.DocxParagraphStyleSpec,
-    ) -> None:
-        if spec.font:
-            if not paragraph.runs:
-                paragraph.add_run()
-            cls._apply_font(paragraph.runs[0].font, spec.font)
-        if spec.paragraph_format:
-            cls._apply_paragraph_format(
-                paragraph.paragraph_format,
-                spec.paragraph_format,
-            )
-
-    @classmethod
-    def _apply_run(cls, paragraph: Paragraph, plan: m.Cli.DocxRunPlan) -> None:
-        run = paragraph.add_run(plan.text)
-        if plan.style and plan.style.font:
-            cls._apply_font(run.font, plan.style.font)
-
-    @classmethod
-    def _apply_font(cls, font: Font, spec: m.Cli.DocxFontSpec) -> None:
-        if spec.name is not None:
-            font.name = spec.name
-        if spec.size is not None:
-            font.size = Pt(spec.size)
-        if spec.bold is not None:
-            font.bold = spec.bold
-        if spec.italic is not None:
-            font.italic = spec.italic
-        if spec.underline is not None:
-            font.underline = cls._UNDERLINE_MAP.get(spec.underline, WD_UNDERLINE.SINGLE)
-        if spec.strike is not None:
-            font.strike = spec.strike
-        if spec.color is not None:
-            font.color.rgb = cls._color_value(spec.color)
-        if spec.highlight is not None:
-            font.highlight_color = cls._HIGHLIGHT_MAP.get(spec.highlight)
-        cls._apply_font_variants(font, spec)
-
-    @classmethod
-    def _apply_font_variants(
-        cls,
-        font: p.Cli.DocxFontVariants,
-        spec: m.Cli.DocxFontSpec,
-    ) -> None:
-        if spec.superscript is not None:
-            font.superscript = spec.superscript
-        if spec.subscript is not None:
-            font.subscript = spec.subscript
-        if spec.all_caps is not None:
-            font.all_caps = spec.all_caps
-        if spec.small_caps is not None:
-            font.small_caps = spec.small_caps
-
-    @classmethod
-    def _apply_paragraph_format(
-        cls,
-        fmt: ParagraphFormat,
-        spec: m.Cli.DocxParagraphFormatSpec,
-    ) -> None:
-        if spec.alignment is not None:
-            fmt.alignment = cls._ALIGNMENT_MAP[spec.alignment]
-        if spec.space_before is not None:
-            fmt.space_before = Inches(spec.space_before / 72)  # approximate points
-        if spec.space_after is not None:
-            fmt.space_after = Inches(spec.space_after / 72)
-        if spec.line_spacing is not None:
-            fmt.line_spacing = spec.line_spacing
-        if spec.first_line_indent is not None:
-            fmt.first_line_indent = Inches(spec.first_line_indent / 72)
-        if spec.left_indent is not None:
-            fmt.left_indent = Inches(spec.left_indent / 72)
-        if spec.right_indent is not None:
-            fmt.right_indent = Inches(spec.right_indent / 72)
-        cls._apply_paragraph_pagination(fmt, spec)
-
-    @classmethod
-    def _apply_paragraph_pagination(
-        cls,
-        fmt: p.Cli.DocxParagraphPagination,
-        spec: m.Cli.DocxParagraphFormatSpec,
-    ) -> None:
-        if spec.keep_together is not None:
-            fmt.keep_together = spec.keep_together
-        if spec.keep_with_next is not None:
-            fmt.keep_with_next = spec.keep_with_next
-        if spec.page_break_before is not None:
-            fmt.page_break_before = spec.page_break_before
-        if spec.widow_control is not None:
-            fmt.widow_control = spec.widow_control
-
-    @classmethod
-    def _apply_table(cls, document: DocumentType, plan: m.Cli.DocxTablePlan) -> None:
-        table = document.add_table(rows=len(plan.rows), cols=cls._table_columns(plan))
-        if plan.style:
-            table.style = plan.style
-        for row_idx, row_plan in enumerate(plan.rows):
-            for cell_idx, cell_plan in enumerate(row_plan.cells):
-                cell = table.rows[row_idx].cells[cell_idx]
-                for idx, paragraph in enumerate(cell_plan.paragraphs):
-                    if idx == 0:
-                        cell.paragraphs[0].text = ""
-                        cls._apply_paragraph(cell, paragraph, cell.paragraphs[0])
-                    else:
-                        cls._apply_paragraph(cell, paragraph)
-
-    @classmethod
-    def _table_columns(cls, plan: m.Cli.DocxTablePlan) -> int:
-        if not plan.rows:
-            return 0
-        return max(len(row.cells) for row in plan.rows) if plan.rows else 0
-
-    @classmethod
-    def _apply_sections(
-        cls,
-        document: DocumentType,
-        sections: tuple[m.Cli.DocxSectionPlan, ...],
-    ) -> None:
-        for section_plan in sections:
-            section = document.add_section()
-            if section_plan.width is not None:
-                section.page_width = Inches(
-                    section_plan.width / 914400,
-                )  # EMU to inches
-            if section_plan.height is not None:
-                section.page_height = Inches(section_plan.height / 914400)
-            if section_plan.orientation == "landscape":
-                section.orientation = WD_ORIENT.LANDSCAPE
-            if section_plan.left_margin is not None:
-                section.left_margin = Inches(section_plan.left_margin / 914400)
-            if section_plan.right_margin is not None:
-                section.right_margin = Inches(section_plan.right_margin / 914400)
-            if section_plan.top_margin is not None:
-                section.top_margin = Inches(section_plan.top_margin / 914400)
-            if section_plan.bottom_margin is not None:
-                section.bottom_margin = Inches(section_plan.bottom_margin / 914400)
-
-    @classmethod
-    def _color_value(cls, color: m.Cli.DocxColor) -> RGBColor:
-        if color.kind == "rgb":
-            value = color.value
-            if len(value) == cls._HEX_COLOR_WITH_ALPHA_LENGTH:
-                value = value[2:]
-            return RGBColor.from_string(value)
-        if color.kind == "theme":
-            # python-docx does not expose theme colors directly; fall back to a
-            # neutral gray so the document remains valid.
-            return RGBColor(0x80, 0x80, 0x80)
-        return RGBColor(0x00, 0x00, 0x00)
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesDocxRenderer",)

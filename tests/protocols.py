@@ -1,3 +1,4 @@
+# AUTO-GENERATED FILE — Regenerate with: make gen
 """Test protocols for flext-cli.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
@@ -10,13 +11,24 @@ from typing import Protocol
 
 from flext_tests import FlextTestsProtocols
 
-from flext_cli import FlextCliProtocols
+from tests._protocols import (
+    TestsFlextCliProtocolsTestsCli,
+    TestsFlextCliProtocolsTestsRuntime,
+)
 
 
-class TestsFlextCliProtocols(FlextTestsProtocols, FlextCliProtocols):
+class TestsFlextCliProtocols(
+    FlextTestsProtocols,
+    TestsFlextCliProtocolsTestsCli,
+    TestsFlextCliProtocolsTestsRuntime,
+):
     """Test protocols for flext-cli."""
 
-    class Tests(FlextTestsProtocols.Tests):
+    class Tests(
+        FlextTestsProtocols.Tests,
+        TestsFlextCliProtocolsTestsCli,
+        TestsFlextCliProtocolsTestsRuntime,
+    ):
         """Test-specific protocols."""
 
         class ServiceGreeting(Protocol):

@@ -9,13 +9,14 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from collections.abc import MutableSequence, Sequence
 from typing import TYPE_CHECKING
 
 from examples import ExamplesFlextCliUtilities
 from flext_tests import FlextTestsUtilities
 
-from flext_cli import FlextCliUtilities, cli
-from tests import TestsFlextCliSettings, m, p, r, tm
+from flext_cli import FlextCliUtilities, cli, r
+from tests import TestsFlextCliSettings, p, t, tm
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -33,7 +34,7 @@ class TestsFlextCliUtilities(
         path: Path,
         *,
         required: bool = False,
-    ) -> m.Cli.AtomicDirectoryState:
+    ) -> p.Cli.AtomicDirectoryState:
         """Read one authenticated empty-directory state through the facade.
 
         Returns:
@@ -57,6 +58,41 @@ class TestsFlextCliUtilities(
             """
             settings: p.Cli.Settings = TestsFlextCliSettings()
             return r[p.Cli.Settings].ok(settings)
+
+        @staticmethod
+        def sample_group_app[M: t.Cli.ModelLike](
+            model_cls: t.ModelClass[M],
+            *,
+            command_name: str,
+        ) -> tuple[p.Cli.Application, Sequence[M]]:
+            """Mount one capturing model command under the ``sample`` group.
+
+            The application is built through the public facade; every request
+            model the command parses is appended to the returned sequence.
+
+            Returns:
+                The root application and the live sequence of parsed requests.
+
+            """
+            captured: MutableSequence[M] = []
+            app = cli.create_app_with_common_params(
+                name="root",
+                help_text="Root application",
+            )
+            group = cli.create_group(help_text="Sample group", name="sample")
+
+            def handle(params: M) -> t.JsonValue:
+                captured.append(params)
+                return True
+
+            cli.register_command(
+                group,
+                name=command_name,
+                help_text=f"Run {command_name} command",
+                command=cli.model_command(model_cls, handle),
+            )
+            cli.add_group(app, name="sample", group=group)
+            return app, captured
 
         @staticmethod
         def create_cli_app() -> p.Result[p.Cli.Application]:

@@ -18,7 +18,7 @@ from flext_cli import cli
 from tests import c, h, m, p, r, s, t, tm, u
 
 
-@pytest.mark.usefixtures("preserve_logging")
+@c.Tests.MARK.usefixtures("preserve_logging")
 class TestsFlextCliServiceRoutes:
     """Behavioral contract of service-derived CLI routes."""
 
@@ -112,8 +112,8 @@ class TestsFlextCliServiceRoutes:
     @pytest.mark.parametrize(
         "provider_available",
         [
-            pytest.param(True, id="configured-provider"),
-            pytest.param(False, id="unavailable-provider-never-constructed"),
+            u.Tests.param(True, id="configured-provider"),
+            u.Tests.param(False, id="unavailable-provider-never-constructed"),
         ],
     )
     def test_invalid_input_exits_non_zero_with_validation_cause(
@@ -182,14 +182,14 @@ class TestsFlextCliServiceRoutes:
         """Only formatted text crosses the heterogeneous route boundary."""
         request = m.Tests.ServiceGreeting(name="ana")
         receipt = m.Tests.ServiceStatus(ready=1)
-        requests: list[m.Tests.ServiceGreeting] = []
-        receipts: list[m.Tests.ServiceStatus] = []
+        requests: list[p.Tests.ServiceGreeting] = []
+        receipts: list[p.Tests.ServiceStatus] = []
 
-        def execute(value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+        def execute(value: p.Tests.ServiceGreeting) -> p.Result[p.Tests.ServiceStatus]:
             requests.append(value)
-            return r[m.Tests.ServiceStatus].ok(receipt)
+            return r[p.Tests.ServiceStatus].ok(receipt)
 
-        def render(value: m.Tests.ServiceStatus) -> str:
+        def render(value: p.Tests.ServiceStatus) -> str:
             receipts.append(value)
             return f"ready={value.ready}"
 
@@ -213,17 +213,17 @@ class TestsFlextCliServiceRoutes:
         """A failed typed operation reaches the public failure boundary intact."""
         request = m.Tests.ServiceGreeting(name="ana")
         cause = ValueError("operation rejected the input")
-        failure = r[m.Tests.ServiceStatus].fail(
+        failure = r[p.Tests.ServiceStatus].fail(
             str(cause),
             error_code="operation-rejected",
             error_data={"name": request.name},
             exception=cause,
         )
 
-        def execute(_value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+        def execute(_value: p.Tests.ServiceGreeting) -> p.Result[p.Tests.ServiceStatus]:
             return failure
 
-        def render(_value: m.Tests.ServiceStatus) -> str:
+        def render(_value: p.Tests.ServiceStatus) -> str:
             message = "a failed operation must not format a receipt"
             raise AssertionError(message)
 
@@ -250,12 +250,12 @@ class TestsFlextCliServiceRoutes:
         """Neither execution nor output formatting normalizes the first cause."""
         cause = ValueError(f"{origin} rejected execution")
 
-        def execute(_value: m.Tests.ServiceGreeting) -> p.Result[m.Tests.ServiceStatus]:
+        def execute(_value: p.Tests.ServiceGreeting) -> p.Result[p.Tests.ServiceStatus]:
             if origin == "handler":
                 raise cause
-            return r[m.Tests.ServiceStatus].ok(m.Tests.ServiceStatus(ready=1))
+            return r[p.Tests.ServiceStatus].ok(m.Tests.ServiceStatus(ready=1))
 
-        def render(_value: m.Tests.ServiceStatus) -> str:
+        def render(_value: p.Tests.ServiceStatus) -> str:
             raise cause
 
         route = cli.result_route(
@@ -268,7 +268,7 @@ class TestsFlextCliServiceRoutes:
             success_formatter=render,
         )
 
-        with pytest.raises(
+        with u.Tests.raises(
             ValueError, match=f"^{origin} rejected execution$"
         ) as captured:
             route.handler(m.Tests.ServiceGreeting(name="ana"))
@@ -292,7 +292,7 @@ class TestsFlextCliServiceRoutes:
         """Executing a command builds the service through the provider."""
         app = self._app(self._unconfigured)
 
-        with pytest.raises(RuntimeError, match="not configured"):
+        with u.Tests.raises(RuntimeError, match="not configured"):
             cli.execute_app(app, prog_name="greeter", args=["report"])
 
     @staticmethod
@@ -302,5 +302,5 @@ class TestsFlextCliServiceRoutes:
         class Hidden(m.BaseModel):
             token: str = m.Field(exclude=True)
 
-        with pytest.raises(TypeError, match="token"):
+        with u.Tests.raises(TypeError, match="token"):
             cli.model_command(Hidden, lambda _params: True)

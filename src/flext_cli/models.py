@@ -10,23 +10,21 @@ from __future__ import annotations
 from flext_core import m as flext_core_m
 
 from flext_cli._models import (
-    FlextCliModelsAtomicPublication,
+    FlextCliModelsAtomicQueries,
     FlextCliModelsAtomicState,
-    FlextCliModelsAtomicSymlink,
     FlextCliModelsBase,
     FlextCliModelsColor,
     FlextCliModelsConfig,
     FlextCliModelsDocx,
-    FlextCliModelsDocxDocument,
-    FlextCliModelsDocxStyles,
     FlextCliModelsFileChange,
     FlextCliModelsFiles,
     FlextCliModelsMarkdown,
     FlextCliModelsPipeline,
     FlextCliModelsPptx,
-    FlextCliModelsPptxPresentation,
     FlextCliModelsProcess,
+    FlextCliModelsProcessRuntime,
     FlextCliModelsRules,
+    FlextCliModelsTableRender,
     FlextCliModelsTemplate,
     FlextCliModelsXlsx,
 )
@@ -36,23 +34,21 @@ class FlextCliModels(flext_core_m):
     """FlextCli models extending FlextModels."""
 
     class Cli(
+        FlextCliModelsAtomicQueries,
         FlextCliModelsAtomicState,
         FlextCliModelsBase,
-        FlextCliModelsAtomicPublication,
-        FlextCliModelsAtomicSymlink,
         FlextCliModelsColor,
         FlextCliModelsConfig,
         FlextCliModelsDocx,
-        FlextCliModelsDocxDocument,
-        FlextCliModelsDocxStyles,
         FlextCliModelsFileChange,
         FlextCliModelsFiles,
         FlextCliModelsMarkdown,
         FlextCliModelsPipeline,
         FlextCliModelsPptx,
-        FlextCliModelsPptxPresentation,
         FlextCliModelsProcess,
+        FlextCliModelsProcessRuntime,
         FlextCliModelsRules,
+        FlextCliModelsTableRender,
         FlextCliModelsTemplate,
         FlextCliModelsXlsx,
     ):

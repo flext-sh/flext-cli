@@ -11,7 +11,9 @@ import threading
 from collections.abc import MutableSequence
 from typing import IO, BinaryIO, ClassVar
 
-from flext_cli import m, p, r
+from flext_core import r
+
+from flext_cli import p
 
 
 class FlextCliUtilitiesRuntimeProcessStream:
@@ -60,8 +62,8 @@ class FlextCliUtilitiesRuntimeProcessStream:
     def _pump_process_output(
         cls,
         source: IO[bytes],
-        target: m.Cli.RuntimeOutputTarget,
-        state: m.Cli.RuntimeProcessState,
+        target: p.Cli.RuntimeOutputTarget,
+        state: p.Cli.RuntimeProcessState,
     ) -> None:
         """Own one child pipe until EOF and preserve each byte exactly once."""
         live_available = target.live_fd is not None

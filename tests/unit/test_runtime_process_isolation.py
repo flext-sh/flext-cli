@@ -13,14 +13,14 @@ from pathlib import Path
 import pytest
 
 from flext_cli import config
-from tests import m, tm, u
+from tests import m, p, tm, u
 
 
 class TestsFlextCliRuntimeProcessIsolation:
     """Isolation prerequisites fail before any command can execute."""
 
     @staticmethod
-    def _request(tmp_path: Path) -> m.Cli.ProcessReadOnlyIsolation:
+    def _request(tmp_path: Path) -> p.Cli.ProcessReadOnlyIsolation:
         """Capture real local files for negative pre-execution contracts.
 
         Returns:
@@ -186,7 +186,7 @@ class TestsFlextCliRuntimeProcessIsolation:
         """Native reference imports cannot weaken the external syscall contract."""
         policy = config.ProcessIsolation.denied_syscalls
 
-        with pytest.raises(ValueError, match="denied_syscalls"):
+        with u.Tests.raises(ValueError, match="denied_syscalls"):
             m.Cli.ProcessIsolation.model_validate({
                 "compiler_resource_parts": (
                     config.ProcessIsolation.compiler_resource_parts
@@ -209,7 +209,7 @@ class TestsFlextCliRuntimeProcessIsolation:
         else:
             payload[field] = ()
 
-        with pytest.raises(ValueError, match=field):
+        with u.Tests.raises(ValueError, match=field):
             m.Cli.ProcessIsolation.model_validate(payload)
 
     @staticmethod
@@ -242,7 +242,7 @@ class TestsFlextCliRuntimeProcessIsolation:
     @staticmethod
     def test_resource_declaration_refuses_parent_escape() -> None:
         """The source locator must remain inside the selected installed package."""
-        with pytest.raises(ValueError, match="compiler_resource_parts"):
+        with u.Tests.raises(ValueError, match="compiler_resource_parts"):
             m.Cli.ProcessIsolation.model_validate({
                 "compiler_resource_parts": ("..",),
                 "denied_syscalls": config.ProcessIsolation.denied_syscalls,
@@ -252,8 +252,8 @@ class TestsFlextCliRuntimeProcessIsolation:
     def test_raw_filter_is_not_a_qualification_input(tmp_path: Path) -> None:
         """An arbitrary allow-all BPF field has no admission route."""
         isolation = TestsFlextCliRuntimeProcessIsolation._request(tmp_path)
-        payload = isolation.model_dump()
+        payload: dict[str, object] = dict(isolation.model_dump())
         payload["seccomp_filter"] = isolation.sources[0]
 
-        with pytest.raises(ValueError, match="seccomp_filter"):
+        with u.Tests.raises(ValueError, match="seccomp_filter"):
             m.Cli.ProcessReadOnlyIsolation.model_validate(payload)

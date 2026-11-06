@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 
 import pytest
 
-from tests import c, p, tm
+from tests import c, m, p, tm, u
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -53,7 +53,9 @@ class TestsFlextCliPromptsCov:
         quiet: bool,
     ) -> None:
         """Verify that prompt returns default when non interactive."""
-        prompts = make_prompts(interactive_mode=False, quiet=quiet)
+        prompts = make_prompts(
+            state=m.Cli.PromptRuntimeState(interactive=False, quiet=quiet)
+        )
         result = prompts.prompt("message", default="fallback")
         tm.ok(result, eq="fallback")
 
@@ -63,7 +65,7 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """An input-port failure escapes ``prompt`` with its original cause."""
         prompts = make_prompts(error=ValueError("boom"))
-        with pytest.raises(ValueError, match="boom"):
+        with u.Tests.raises(ValueError, match="boom"):
             prompts.prompt("message", default="default")
 
     @staticmethod
@@ -107,7 +109,7 @@ class TestsFlextCliPromptsCov:
         default: bool,
     ) -> None:
         """Verify that confirm returns default when non interactive."""
-        prompts = make_prompts(interactive_mode=False)
+        prompts = make_prompts(state=m.Cli.PromptRuntimeState(interactive=False))
         result = prompts.confirm("message", default=default)
         tm.ok(result, eq=default, is_=bool)
 
@@ -136,7 +138,7 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """Any other input-port failure escapes ``confirm`` unchanged."""
         prompts = make_prompts(error=ValueError("bad"))
-        with pytest.raises(ValueError, match="bad"):
+        with u.Tests.raises(ValueError, match="bad"):
             prompts.confirm("message", default=False)
 
     @staticmethod
@@ -166,7 +168,7 @@ class TestsFlextCliPromptsCov:
         make_prompts: Callable[..., p.Tests.Prompts],
     ) -> None:
         """Verify that prompt password fails when non interactive."""
-        prompts = make_prompts(interactive_mode=False)
+        prompts = make_prompts(state=m.Cli.PromptRuntimeState(interactive=False))
         result = prompts.prompt_password("Password:")
         tm.fail(result, has=c.Cli.ERR_INTERACTIVE_MODE_DISABLED)
 
@@ -176,5 +178,5 @@ class TestsFlextCliPromptsCov:
     ) -> None:
         """A password-port failure escapes ``prompt_password`` unchanged."""
         prompts = make_prompts(error=ValueError("no tty"))
-        with pytest.raises(ValueError, match="no tty"):
+        with u.Tests.raises(ValueError, match="no tty"):
             prompts.prompt_password("Password:")

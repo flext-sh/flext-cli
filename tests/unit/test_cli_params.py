@@ -16,12 +16,12 @@ from flext_cli import cli
 from tests import c, p, tm, u
 
 
-@pytest.mark.usefixtures("preserve_logging")
+@c.Tests.MARK.usefixtures("preserve_logging")
 class TestsFlextCliCliParams:
     """Behavioral tests for FlextCliCommonParams public contract."""
 
+    @u.Tests.fixture
     @staticmethod
-    @pytest.fixture
     def settings() -> p.Cli.Settings:
         """Fresh CLI settings instance built through the public factory.
 

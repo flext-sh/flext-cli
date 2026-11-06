@@ -6,16 +6,11 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import IO, TYPE_CHECKING, Protocol, runtime_checkable
+from typing import IO, Protocol, runtime_checkable
 
 from flext_core import p
 
 from flext_cli._protocols._base import FlextCliProtocolsBasePart01
-
-if TYPE_CHECKING:
-    from flext_cli._models._base.flextclimodelsbase_part_01 import (
-        FlextCliModelsBasePart01,
-    )
 
 
 class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
@@ -40,86 +35,7 @@ class FlextCliProtocolsBasePart02(FlextCliProtocolsBasePart01):
             """Reset the process-wide singleton (test isolation only)."""
             ...
 
-    @runtime_checkable
-    class ProcessOutcome(Protocol):
-        """Causal completion state for one fully reaped process."""
-
-        @property
-        def raw_return_code(self) -> int:
-            """The operating-system process status without normalization."""
-            ...
-
-        @property
-        def timed_out(self) -> bool:
-            """Whether the process deadline expired."""
-            ...
-
-        @property
-        def forwarded_signal(self) -> int | None:
-            """First operator signal forwarded to the process, when present."""
-            ...
-
-    @runtime_checkable
-    class CommandOutputEnvelope(Protocol):
-        """Causal envelope contract shared by command output contracts."""
-
-        @property
-        def duration(self) -> float:
-            """Command duration in seconds."""
-            ...
-
-        @property
-        def exit_code(self) -> int:
-            """Raw process return code, derived from the completion outcome."""
-            ...
-
-        @property
-        def outcome(self) -> FlextCliModelsBasePart01.ProcessOutcome:
-            """Causal process completion state."""
-            ...
-
-    @runtime_checkable
-    class CommandOutput(CommandOutputEnvelope, Protocol):
-        """Minimal external command execution output contract."""
-
-        @property
-        def stderr(self) -> str:
-            """Command standard error."""
-            ...
-
-        @property
-        def stdout(self) -> str:
-            """Command standard output."""
-            ...
-
     # mro-zf1s: binary command consumers type against p, never the model owner.
-    @runtime_checkable
-    class CommandBytesOutput(CommandOutputEnvelope, Protocol):
-        """Byte-exact external command execution output contract."""
-
-        @property
-        def stderr(self) -> bytes:
-            """Command standard error as raw bytes."""
-            ...
-
-        @property
-        def stdout(self) -> bytes:
-            """Command standard output as raw bytes."""
-            ...
-
-    @runtime_checkable
-    class ProcessDeadline(Protocol):
-        """Absolute monotonic deadline for one complete process lifecycle."""
-
-        @property
-        def expires_at_monotonic(self) -> float:
-            """Absolute time.monotonic expiry in seconds."""
-            ...
-
-        @property
-        def termination_grace_seconds(self) -> float:
-            """Reserved graceful termination and drain budget."""
-            ...
 
     @runtime_checkable
     class ProcessHandle(Protocol):

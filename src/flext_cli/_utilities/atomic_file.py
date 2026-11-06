@@ -10,9 +10,10 @@ import errno
 import os
 import signal
 import stat
+from collections.abc import MutableSequence
 from pathlib import Path
 
-from flext_cli import c, m
+from flext_cli import c, m, p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileCleanup,
     FlextCliUtilitiesAtomicFileDescriptor,
@@ -29,91 +30,54 @@ from flext_cli._utilities import (
 class FlextCliUtilitiesAtomicFile:
     """Canonical namespace owner."""
 
-    class _NoPrecondition:
-        """Marker for callers that do not supply an expected version."""
-
-    _NO_PRECONDITION = _NoPrecondition()
-
-    @staticmethod
-    def write_atomic_bytes(
-        path: Path,
-        content: object,  # ast-grep-ignore: ban-broad-annotation
-        *,
-        expected_state: m.Cli.AtomicFileState | _NoPrecondition = _NO_PRECONDITION,
-        permission_mode: int | None = None,
-        durability: c.Cli.WriteDurability = c.Cli.WriteDurability.DURABLE,
-    ) -> None:
-        """Replace bytes and mode for a uniquely owned regular destination.
-
-        ``expected_state`` is a complete physical precondition for a caller that
-        holds the same exclusive cooperative lock from planning through publication.
-        The descriptor-bound replace is not compare-and-swap against actors that
-        ignore that lock. ``DURABLE`` syncs the staged inode and containing
-        directory; ``SCRATCH`` keeps every atomic and physical check but skips
-        both syncs for throwaway trees.
-
-        Raises:
-            OSError: If ``not isinstance(content, bytes)``.
-
-        """
-        path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
-        if not isinstance(content, bytes):
-            message = "atomic file content must be bytes"
-            raise OSError(errno.EINVAL, message, path)
-        FlextCliUtilitiesAtomicFile.write_atomic_state(
-            path,
-            content,
-            expected_state=expected_state,
-            permission_mode=permission_mode,
-            durability=durability,
-        )
-
     @staticmethod
     def write_atomic_state(
         path: Path,
         content: bytes,
+        options: p.Cli.AtomicWriteOptions | None = None,
         *,
-        expected_state: m.Cli.AtomicFileState | _NoPrecondition,
-        permission_mode: int | None,
-        durability: c.Cli.WriteDurability,
-        owner_uid: int | None = None,
-    ) -> m.Cli.AtomicFileState:
-        """Retain the original publication proof for the existing writer APIs.
+        published_paths: MutableSequence[Path] | None = None,
+    ) -> p.Cli.AtomicFileState:
+        """Replace bytes and mode for a uniquely owned regular destination.
+
+        ``options`` carries the precondition, mode, durability and owner policy
+        declared by ``m.Cli.AtomicWriteOptions``. The descriptor-bound replace is
+        not compare-and-swap against actors that ignore the cooperative lock.
+        ``published_paths`` receives the native physical effect before a later
+        durability or validation failure; it never attests successful completion.
 
         Returns:
             The original bytes and descriptor-authenticated published state.
 
         """
+        opts = options or m.Cli.AtomicWriteOptions()
         path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(path)
-        planned = FlextCliUtilitiesAtomicFile._parse_precondition(path, expected_state)
+        planned = FlextCliUtilitiesAtomicFile._parse_precondition(
+            path, opts.expected_state
+        )
         with FlextCliUtilitiesAtomicFileDescriptor.parent_descriptor(
             path,
             replace=True,
             unlink=True,
         ) as parent:
-            expected = FlextCliUtilitiesAtomicFileState.destination_state(
+            expected = FlextCliUtilitiesAtomicFileState.file_destination_state(
                 path,
                 parent=parent,
             )
             if planned is None:
-                guarded = False
-                expected_content = None
                 expected_mode: (
                     int | FlextCliUtilitiesAtomicFileMode.NoModePrecondition | None
                 ) = FlextCliUtilitiesAtomicFileMode.NO_MODE_PRECONDITION
             else:
-                guarded = True
-                expected_content = planned.content
                 expected_mode = planned.mode
                 FlextCliUtilitiesAtomicFileModel.require_parent(planned, parent.state)
                 FlextCliUtilitiesAtomicFileModel.require_observed(planned, expected)
-            FlextCliUtilitiesAtomicFileState.validate_precondition(
-                path,
-                expected,
-                expected_content,
-                enabled=guarded,
-                parent=parent,
-            )
+                FlextCliUtilitiesAtomicFileState.validate_precondition(
+                    path,
+                    expected,
+                    planned.content,
+                    parent=parent,
+                )
             FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
                 path,
                 expected,
@@ -121,7 +85,7 @@ class FlextCliUtilitiesAtomicFile:
             )
             target_mode = FlextCliUtilitiesAtomicFileMode.publication_mode(
                 expected,
-                permission_mode,
+                opts.permission_mode,
             )
             FlextCliUtilitiesAtomicFileTemporary.require_mode_capability(
                 path,
@@ -130,19 +94,20 @@ class FlextCliUtilitiesAtomicFile:
             published = FlextCliUtilitiesAtomicFile._stage_and_publish(
                 FlextCliUtilitiesAtomicFile._AtomicStage(
                     parent,
-                    durable=durability is c.Cli.WriteDurability.DURABLE,
+                    durable=opts.durability is c.Cli.WriteDurability.DURABLE,
+                    published_paths=published_paths,
                 ),
                 path,
                 content,
                 expected,
                 target_mode,
             )
-            if owner_uid is not None:
+            if opts.owner_uid is not None:
                 FlextCliUtilitiesAtomicFileState.require_owner(
-                    path.parent, os.fstat(parent.descriptor), owner_uid
+                    path.parent, os.fstat(parent.descriptor), opts.owner_uid
                 )
                 FlextCliUtilitiesAtomicFileState.require_owner(
-                    path, published, owner_uid
+                    path, published, opts.owner_uid
                 )
             return m.Cli.AtomicFileState(
                 path=path,
@@ -160,13 +125,10 @@ class FlextCliUtilitiesAtomicFile:
     @staticmethod
     def _parse_precondition(
         path: Path,
-        expected_state: m.Cli.AtomicFileState | _NoPrecondition,
-    ) -> m.Cli.AtomicFileState | None:
-        if expected_state is FlextCliUtilitiesAtomicFile._NO_PRECONDITION:
+        expected_state: p.Cli.AtomicFileState | None,
+    ) -> p.Cli.AtomicFileState | None:
+        if expected_state is None:
             return None
-        if isinstance(expected_state, FlextCliUtilitiesAtomicFile._NoPrecondition):
-            message = "expected_state sentinel must be the canonical singleton"
-            raise OSError(errno.EINVAL, message, path)
         if expected_state.path != path:
             message = "expected_state path differs from atomic destination"
             raise OSError(errno.EINVAL, message, path)
@@ -192,7 +154,7 @@ class FlextCliUtilitiesAtomicFile:
 
         """
         if expected is None:
-            FlextCliUtilitiesAtomicFileDescriptor.require_create_capabilities(
+            FlextCliUtilitiesAtomicFileDescriptor.require_file_create_capabilities(
                 destination
             )
         try:
@@ -211,6 +173,7 @@ class FlextCliUtilitiesAtomicFile:
             parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
             *,
             durable: bool,
+            published_paths: MutableSequence[Path] | None = None,
         ) -> None:
             self.parent = parent
             self.durable = durable
@@ -219,6 +182,7 @@ class FlextCliUtilitiesAtomicFile:
             self.identity: tuple[int, int] | None = None
             self.mode: int | None = None
             self.replacement_completed = False
+            self.published_paths = published_paths
             self.linked_temporary = False
 
         def acquire(self) -> None:
@@ -240,7 +204,7 @@ class FlextCliUtilitiesAtomicFile:
                         self.temporary,
                     )
                 )
-                self.identity = FlextCliUtilitiesAtomicFileState.identity(
+                self.identity = FlextCliUtilitiesAtomicFilePath.path_identity(
                     os.fstat(self.descriptor),
                 )
             finally:
@@ -262,12 +226,14 @@ class FlextCliUtilitiesAtomicFile:
                 self.identity,
                 parent=self.parent,
             )
-            self.mode = FlextCliUtilitiesAtomicFileTemporary.write_and_sync(
+            FlextCliUtilitiesAtomicFileTemporary.write_exact(
                 self.descriptor,
                 self.temporary,
                 content,
                 target_mode,
-                durable=self.durable,
+            )
+            self.mode = FlextCliUtilitiesAtomicFileTemporary.synced_mode(
+                self.descriptor, durable=self.durable
             )
             os.close(self.descriptor)
             self.descriptor = None
@@ -327,7 +293,7 @@ class FlextCliUtilitiesAtomicFile:
                         self.parent,
                         destination,
                     )
-                    self.replacement_completed = True
+                    self.record_publication(destination)
                     self.linked_temporary = True
                     FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(
                         self.parent,
@@ -344,7 +310,7 @@ class FlextCliUtilitiesAtomicFile:
                     self.parent,
                     destination,
                 )
-            self.replacement_completed = True
+                self.record_publication(destination)
             if self.durable:
                 FlextCliUtilitiesAtomicFileDurability.sync_replacement(
                     self.parent,
@@ -356,6 +322,12 @@ class FlextCliUtilitiesAtomicFile:
                 self.parent,
                 staged,
             )
+
+        def record_publication(self, destination: Path) -> None:
+            """Retain the native completion witness before any later failure."""
+            self.replacement_completed = True
+            if self.published_paths is not None:
+                self.published_paths.append(destination)
 
         def cleanup(self, operation_error: BaseException) -> None:
             """Remove only authenticated staging while preserving the first cause."""
@@ -380,7 +352,7 @@ class FlextCliUtilitiesAtomicFile:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         destination: Path,
         expected: os.stat_result | None,
-        staged: m.Cli.StagedFile,
+        staged: p.Cli.StagedFile,
     ) -> None:
         staged_state = FlextCliUtilitiesAtomicFile._validate_staged(
             parent,
@@ -397,7 +369,6 @@ class FlextCliUtilitiesAtomicFile:
         FlextCliUtilitiesAtomicFilePublishChecks.validate_devices(
             destination,
             parent,
-            expected,
             parent,
             m.Cli.ObservedFile(path=staged.path, state=staged_state),
         )
@@ -420,29 +391,18 @@ class FlextCliUtilitiesAtomicFile:
         mode: int,
         identity: tuple[int, int],
     ) -> os.stat_result:
-        state = FlextCliUtilitiesAtomicFileState.destination_state(
+        state = FlextCliUtilitiesAtomicFileState.file_destination_state(
             temporary,
             parent=parent,
         )
         if state is None:
             message = f"atomic temporary disappeared before publication: {temporary}"
             raise FileNotFoundError(errno.ENOENT, message, temporary)
-        FlextCliUtilitiesAtomicFilePublishChecks.require_identity(
-            temporary,
-            state,
-            identity,
+        FlextCliUtilitiesAtomicFilePath.require_identity(
+            temporary, state, identity, subject="file"
         )
-        FlextCliUtilitiesAtomicFileState.validate_precondition(
-            temporary,
-            state,
-            content,
-            enabled=True,
-            parent=parent,
-        )
-        FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
-            temporary,
-            state,
-            mode,
+        FlextCliUtilitiesAtomicFilePublishChecks.validate_version(
+            parent, temporary, state, (content, mode)
         )
         return state
 

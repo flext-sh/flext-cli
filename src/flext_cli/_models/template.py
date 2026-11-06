@@ -53,17 +53,12 @@ class FlextCliModelsTemplate:
                 ),
             ),
         ]
-        when: Annotated[
-            bool,
-            m.Field(default=True, description="Render only when True (else skipped)"),
-        ] = True
-        overwrite: Annotated[
-            bool,
-            m.Field(
-                default=False,
-                description="Overwrite an existing destination file",
-            ),
-        ] = False
+        when: bool = m.Field(
+            default=True, description="Render only when True (else skipped)"
+        )
+        overwrite: bool = m.Field(
+            default=False, description="Overwrite an existing destination file"
+        )
 
     class TemplateRenderReport(m.ArbitraryTypesModel):
         """Outcome of a generic folder render."""

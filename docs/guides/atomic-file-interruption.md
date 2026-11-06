@@ -9,6 +9,15 @@ staging and publication. An interruption after authentication removes only the m
 staged inode. The original exception escapes with its original traceback. A real cleanup
 failure retains both causes through the existing cleanup error contract.
 
+Atomic replacement authenticates the pinned source and destination parent
+directories as its rename namespace. Their filesystem devices must agree.
+Regular-file devices do not establish that namespace: on
+[OverlayFS](https://docs.kernel.org/filesystems/overlayfs.html#overlay-objects),
+lower and upper files may report backing-layer devices while their directories
+report the same overlay device. Each file retains its own captured identity,
+bytes, mode and ownership checks; those facts are not compared with a directory's
+device. The native rename still refuses an actual cross-filesystem operation.
+
 An authenticated read can fail before its final pathname or parent validation.
 That read failure remains the primary exception with its original traceback and
 errno even if final validation also fails. Retain later validation failures as
@@ -24,7 +33,7 @@ consume that owner directly, without wrapping its descriptors in callable aliase
 file and process consumers retain their public APIs through `u.Cli`.
 Receipt construction likewise uses the original retained native state and stream.
 
-The public byte-state reader returns `p.Result[m.Cli.AtomicFileState]` through
+The public byte-state reader returns `p.Result[p.Cli.AtomicFileState]` through
 Core's generic `r.ok` and covariant failure factory. It constructs and validates
 the state model once from the retained native observation; the result carries
 that instance by reference. Specializing the result class at each read solely
@@ -65,6 +74,11 @@ acquisition and serves repeated `read_range(offset, length)` calls through that
 descriptor. Each range rejects changed metadata and short reads; completion checks
 the path and parent again. The reader becomes unusable when its context closes.
 `u.Cli.atomic_read_binary_file_range` provides the same contract for one range.
+
+The receipt exposes its validated `pathlib.Path` through the owning protocol.
+`t.Cli.TextPath` describes accepted input; it does not describe the recorded path.
+Protocol projection preserves the model's complete physical identity fields and
+the shared model serialization capability without changing capture or validation.
 
 `u.Cli.atomic_publish_staged_binary_file_receipt_guarded` uses the existing guarded
 replacement and durability owners. It verifies the destination and staged receipts,

@@ -7,13 +7,10 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import threading
-from typing import IO, TYPE_CHECKING
+from typing import IO
 
-from flext_cli import m
+from flext_cli import m, p
 from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessThreads
-
-if TYPE_CHECKING:
-    from flext_cli import p
 
 
 class FlextCliUtilitiesRuntimeProcessOutput(
@@ -25,11 +22,10 @@ class FlextCliUtilitiesRuntimeProcessOutput(
     def _start_process_output(
         cls,
         process: p.Cli.ProcessHandle,
-        state: m.Cli.RuntimeProcessState,
-        live_fds: tuple[int | None, int | None],
-        *,
-        capture_output: bool,
+        state: p.Cli.RuntimeProcessState,
+        plan: p.Cli.RuntimeOutputPlan,
     ) -> tuple[tuple[threading.Thread, IO[bytes]], ...]:
+        capture_output, live_fds = plan.capture_output, plan.live_fds
         combine_output = state.durable_log is not None and state.durable_stderr is None
         pump_streams: list[tuple[threading.Thread, IO[bytes]]] = []
         for source, sink, captured, live_fd, channel in (
@@ -55,20 +51,25 @@ class FlextCliUtilitiesRuntimeProcessOutput(
                 state.failures.append(f"process {channel} is not available")
             elif source is not None:
                 state.stack.callback(source.close)
-                pump = cls._start_output_pump(
-                    source,
-                    m.Cli.RuntimeOutputTarget(
-                        durable_log=sink,
-                        captured_output=captured if capture_output else None,
-                        live_fd=live_fd,
+                pump = threading.Thread(
+                    target=cls._pump_process_output,
+                    args=(
+                        source,
+                        m.Cli.RuntimeOutputTarget(
+                            durable_log=sink,
+                            captured_output=captured if capture_output else None,
+                            live_fd=live_fd,
+                        ),
+                        state,
                     ),
-                    state,
-                    thread_name=(
+                    name=(
                         "flext-cli-process-output"
                         if combine_output and channel == "stdout"
                         else f"flext-cli-process-{channel}"
                     ),
+                    daemon=False,
                 )
+                pump.start()
                 pump_streams.append((pump, source))
         return tuple(pump_streams)
 

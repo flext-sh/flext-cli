@@ -18,7 +18,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-import pytest
 from tomlkit.items import Table
 
 from tests import t, tm, u
@@ -27,8 +26,8 @@ from tests import t, tm, u
 class TestsFlextCliTomlSyncCoverage:
     """Public-contract behavior of the ``u.Cli.toml_*`` synchronizers."""
 
+    @u.Tests.fixture
     @staticmethod
-    @pytest.fixture
     def project_table() -> Table:
         """Fresh ``[project]`` table inside an empty document.
 
@@ -146,8 +145,8 @@ class TestsFlextCliTomlSyncCoverage:
 
     # -- plain-mapping helpers ------------------------------------------
 
+    @u.Tests.fixture
     @staticmethod
-    @pytest.fixture
     def payload() -> t.JsonDict:
         """Fresh plain pyproject-style mapping.
 

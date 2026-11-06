@@ -7,10 +7,11 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import signal
-from collections.abc import Mapping, Sequence
 from typing import TYPE_CHECKING, BinaryIO
 
-from flext_cli import m, p, r, t
+from flext_core import r
+
+from flext_cli import m, p
 
 
 class FlextCliUtilitiesRuntimeProcessStart:
@@ -20,12 +21,10 @@ class FlextCliUtilitiesRuntimeProcessStart:
 
         @staticmethod
         def _spawn_streamed_process(
-            cmd: Sequence[str],
-            cwd: t.Cli.TextPath | None,
-            env: Mapping[str, str] | None,
+            command: p.Cli.RuntimeSpawnCommand,
             stdin_handle: BinaryIO | None,
             *,
-            options: m.Cli.RuntimeSpawnOptions,
+            options: p.Cli.RuntimeSpawnOptions,
         ) -> p.Cli.ProcessHandle: ...
 
         @staticmethod
@@ -35,10 +34,8 @@ class FlextCliUtilitiesRuntimeProcessStart:
         def _signal_process_tree(
             cls,
             process: p.Cli.ProcessHandle,
-            signal_number: int,
             job_handle: int,
-            *,
-            force: bool,
+            tree_signal: p.Cli.ProcessTreeSignal,
         ) -> p.Result[bool]: ...
 
         @classmethod
@@ -53,24 +50,15 @@ class FlextCliUtilitiesRuntimeProcessStart:
     @classmethod
     def _start_contained_process(
         cls,
-        cmd: Sequence[str],
-        cwd: t.Cli.TextPath | None,
-        env: Mapping[str, str] | None,
+        command: p.Cli.RuntimeSpawnCommand,
         stdin_handle: BinaryIO | None,
         *,
-        options: m.Cli.RuntimeSpawnOptions,
+        options: p.Cli.RuntimeSpawnOptions,
     ) -> p.Result[tuple[p.Cli.ProcessHandle, int]]:
-        process = cls._spawn_streamed_process(
-            cmd,
-            cwd,
-            env,
-            stdin_handle,
-            options=options.model_copy(
-                update={
-                    "creation_flags": cls._streamed_creation_flags(),
-                },
-            ),
+        contained = options.model_copy(
+            update={"creation_flags": cls._streamed_creation_flags()},
         )
+        process = cls._spawn_streamed_process(command, stdin_handle, options=contained)
         job_result = cls._windows_job_create(process.pid)
         if job_result.failure:
             cls._discard_uncontained_process(process, 0)
@@ -88,7 +76,11 @@ class FlextCliUtilitiesRuntimeProcessStart:
         process: p.Cli.ProcessHandle,
         job_handle: int,
     ) -> None:
-        _ = cls._signal_process_tree(process, signal.SIGKILL, job_handle, force=True)
+        _ = cls._signal_process_tree(
+            process,
+            job_handle,
+            m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True),
+        )
         process.wait()
         _ = cls._windows_job_close(job_handle)
 

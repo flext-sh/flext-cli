@@ -7,9 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, MutableSequence, Sequence
-from inspect import Parameter
+from inspect import Parameter, Signature
 
-from flext_cli import c, m, p, r, t, u
+from flext_cli import c, p, r, t, u
 from flext_cli.services._cli import FlextCliCliPart01, FlextCliCliPart02
 
 
@@ -22,34 +22,48 @@ class FlextCliCliPart03(FlextCliCliPart02):
         model_cls: t.ModelClass[M],
         handler: p.Cli.ModelCommandHandler[M, TResult],
         settings: t.Cli.ModelLike | None = None,
-        *,
-        result_border: bool = False,
     ) -> t.Cli.CliCommand[TResult]:
         """Build a Typer command directly from a Pydantic request model.
 
         A field marked ``exclude=True`` gets no option, so it must carry a
         default: a required excluded field raises ``TypeError`` at build time.
-        ``result_border`` turns rejected input into ``e.fail_validation`` with a
-        non-zero exit instead of raising the ``ValidationError``.
+        Rejected input raises the ``ValidationError``; result routes register
+        through ``register_result_command`` to exit non-zero instead.
 
         Args:
             model_cls: Request model whose fields declare the options.
             handler: Callable receiving the parsed request model.
             settings: Optional model instance supplying current field values.
-            result_border: Whether rejected input exits non-zero instead of
-                raising the validation error.
 
         Returns:
             The command preserving the handler's return type.
 
+        """
+        command: FlextCliCliPart01._ModelCommand[M, TResult] = cls._ModelCommand(
+            handler=handler,
+            model_cls=model_cls,
+            signature=cls._model_signature(model_cls, settings),
+            result_border=False,
+        )
+        return command
+
+    @classmethod
+    def _model_signature(
+        cls,
+        model_cls: t.ModelClass[t.Cli.ModelLike],
+        settings: t.Cli.ModelLike | None,
+    ) -> Signature:
+        """Declare one keyword-only option per non-excluded request field.
+
+        Returns:
+            The option signature of the request model.
+
         Raises:
-            TypeError: If ``field_info.is_required()``.
+            TypeError: If an excluded field is required.
 
         """
         parameters: MutableSequence[Parameter] = []
-        annotations: t.Cli.CliAnnotations = {"return": type(None)}
-        fields = model_cls.model_fields
-        for field_name, field_info in fields.items():
+        for field_name, field_info in model_cls.model_fields.items():
             if field_info.exclude is True:
                 if field_info.is_required():
                     raise TypeError(
@@ -59,21 +73,10 @@ class FlextCliCliPart03(FlextCliCliPart02):
                         ),
                     )
                 continue
-            parameter, annotation = cls._build_model_parameter(
-                field_name,
-                field_info,
-                settings,
+            parameters.append(
+                cls._build_model_parameter(field_name, field_info, settings),
             )
-            parameters.append(parameter)
-            annotations[field_name] = annotation
-        command: FlextCliCliPart01._ModelCommand[M, TResult] = cls._ModelCommand(
-            handler=handler,
-            model_cls=model_cls,
-            parameters=parameters,
-            result_border=result_border,
-        )
-        command.__annotations__ = dict(annotations)
-        return command
+        return Signature(parameters, return_annotation=type(None))
 
     @staticmethod
     def invoke_app(
@@ -82,7 +85,7 @@ class FlextCliCliPart03(FlextCliCliPart02):
         args: Sequence[str] | None = None,
         charset: str = c.DEFAULT_ENCODING,
         env: Mapping[str, str] | None = None,
-    ) -> p.Result[m.Cli.InvocationResult]:
+    ) -> p.Result[p.Cli.InvocationResult]:
         """Invoke an application through the private real-framework boundary.
 
         A foreign application or an invalid runner argument is a caller defect
@@ -95,10 +98,10 @@ class FlextCliCliPart03(FlextCliCliPart02):
             env: Optional environment mapping for the invocation.
 
         Returns:
-            The resulting ``p.Result[m.Cli.InvocationResult]``.
+            The resulting ``p.Result[p.Cli.InvocationResult]``.
 
         """
-        return r[m.Cli.InvocationResult].ok(
+        return r[p.Cli.InvocationResult].ok(
             u.Cli.framework_invoke(app, args=args, charset=charset, env=env),
         )
 

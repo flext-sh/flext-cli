@@ -7,6 +7,9 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import MutableSequence
+from inspect import Signature
+
+from flext_core import FlextContainer
 
 from flext_cli import c, m, p, r, s, t, u
 from flext_cli.services import FlextCliCommonParams
@@ -21,23 +24,23 @@ class FlextCliCli(s[p.Cli.RuntimeStatus], FlextCliCliPart06):
         applied = FlextCliCommonParams.apply_to_config(self.settings, params=params)
         if applied.failure:
             self._exit_failure(r[bool].from_failure(applied))
-        self._apply_updated_settings(applied.value)
         u.configure_structlog(
             settings=self.structlog_options,
-            runtime_settings=self.settings,
+            runtime_settings=applied.value,
         )
+        self._apply_updated_settings(applied.value)
 
     def _apply_updated_settings(self, updated_settings: p.Cli.Settings) -> None:
         """Rebind the existing DI scope without replacing settings singletons."""
-        if updated_settings.model_dump() == self.settings.model_dump():
-            return
         current = self._get_runtime()
-        self._runtime = u.build_service_runtime(
+        self._runtime = FlextContainer.build_service_runtime(
             m.RuntimeBootstrapOptions(
                 settings=updated_settings,
                 container=current.container,
                 context=current.context,
                 dispatcher=current.dispatcher,
+                logger=current.logger if current.logger_injected else None,
+                logging_options=self.structlog_options,
             ),
         )
 
@@ -70,22 +73,19 @@ class FlextCliCli(s[p.Cli.RuntimeStatus], FlextCliCliPart06):
             return True
 
         parameters: MutableSequence[t.Cli.CommandParameter] = []
-        annotations: t.Cli.CliAnnotations = {"return": bool}
         for field_name in c.Cli.CLI_GLOBAL_PARAM_FIELDS:
-            parameter, annotation = self._build_model_parameter(
+            parameter = self._build_model_parameter(
                 field_name,
                 m.Cli.CliParamsConfig.model_fields[field_name],
                 None,
             )
             parameters.append(parameter)
-            annotations[field_name] = annotation
         global_callback = self._ModelCommand(
             handler=apply_common_params,
             model_cls=m.Cli.CliParamsConfig,
-            parameters=parameters,
+            signature=Signature(parameters, return_annotation=bool),
             result_border=True,
         )
-        global_callback.__annotations__ = dict(annotations)
         u.Cli.framework_register_callback(app, global_callback)
         return app
 

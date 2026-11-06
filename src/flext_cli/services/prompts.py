@@ -9,7 +9,7 @@ from __future__ import annotations
 from typing import override
 
 from flext_cli import c, p, r, u
-from flext_cli.services import FlextCliServicesPromptsSupport
+from flext_cli.services._prompts import FlextCliServicesPromptsSupport
 
 
 class FlextCliPrompts(FlextCliServicesPromptsSupport):

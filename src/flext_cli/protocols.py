@@ -11,13 +11,25 @@ from flext_core import p as flext_core_p
 
 from flext_cli._protocols import (
     FlextCliProtocolsAtomicFile,
+    FlextCliProtocolsAtomicQueries,
     FlextCliProtocolsBase,
+    FlextCliProtocolsColor,
     FlextCliProtocolsConfig,
     FlextCliProtocolsDocx,
+    FlextCliProtocolsDocxDocument,
+    FlextCliProtocolsDocxStyles,
     FlextCliProtocolsDomain,
+    FlextCliProtocolsFileChange,
+    FlextCliProtocolsFiles,
     FlextCliProtocolsFramework,
+    FlextCliProtocolsMarkdown,
     FlextCliProtocolsPipeline,
+    FlextCliProtocolsPptxPresentation,
     FlextCliProtocolsProcess,
+    FlextCliProtocolsProcessRuntime,
+    FlextCliProtocolsRules,
+    FlextCliProtocolsTableRender,
+    FlextCliProtocolsTemplate,
     FlextCliProtocolsXlsx,
 )
 
@@ -30,15 +42,27 @@ class FlextCliProtocols(flext_core_p):
     """
 
     class Cli(
-        FlextCliProtocolsPipeline,
-        FlextCliProtocolsDomain,
-        FlextCliProtocolsFramework,
-        FlextCliProtocolsBase,
-        FlextCliProtocolsConfig,
-        FlextCliProtocolsXlsx,
-        FlextCliProtocolsProcess,
         FlextCliProtocolsAtomicFile,
+        FlextCliProtocolsAtomicQueries,
+        FlextCliProtocolsBase,
+        FlextCliProtocolsColor,
+        FlextCliProtocolsConfig,
         FlextCliProtocolsDocx,
+        FlextCliProtocolsDocxDocument,
+        FlextCliProtocolsDocxStyles,
+        FlextCliProtocolsDomain,
+        FlextCliProtocolsFileChange,
+        FlextCliProtocolsFiles,
+        FlextCliProtocolsFramework,
+        FlextCliProtocolsMarkdown,
+        FlextCliProtocolsPipeline,
+        FlextCliProtocolsPptxPresentation,
+        FlextCliProtocolsProcess,
+        FlextCliProtocolsProcessRuntime,
+        FlextCliProtocolsRules,
+        FlextCliProtocolsTableRender,
+        FlextCliProtocolsTemplate,
+        FlextCliProtocolsXlsx,
     ):
         """Unified CLI protocol namespace."""
 

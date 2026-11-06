@@ -17,7 +17,7 @@ from flext_cli import FlextCli, settings
 from tests import c, m, p, r, t, tm, u
 
 
-@pytest.mark.usefixtures("preserve_logging")
+@c.Tests.MARK.usefixtures("preserve_logging")
 class TestsFlextCliServiceSettingsContract:
     """A real CLI elects its injected Core policy without losing DI bindings."""
 
@@ -41,7 +41,7 @@ class TestsFlextCliServiceSettingsContract:
         stages: MutableSequence[str],
         exception: BaseException,
         initial_context: p.Context | None = None,
-    ) -> tuple[m.StructlogOptions, FlextCli, p.Cli.Application]:
+    ) -> tuple[p.StructlogOptions, FlextCli, p.Cli.Application]:
         """Build a real service electing two native sinks sharing one stage.
 
         Returns:
@@ -83,7 +83,7 @@ class TestsFlextCliServiceSettingsContract:
                 trace=False,
             ),
             initial_context=initial_context,
-            logging_options=options,
+            structlog_options=options,
         )
         app = service.create_app_with_common_params(
             name="native",
@@ -190,10 +190,10 @@ class TestsFlextCliServiceSettingsContract:
             eq=True,
         )
         tm.ok(u.logging_options().observers[0] is options.observers[0])
-        tm.ok(service.logging_options is options)
-        tm.fail("logging_options" in service.model_dump())
+        tm.ok(service.structlog_options is options)
+        tm.fail("structlog_options" in service.model_dump())
         tm.that(
-            "logging_options"
+            "structlog_options"
             in service.model_json_schema(mode="serialization")["properties"],
             eq=False,
         )
@@ -211,21 +211,20 @@ class TestsFlextCliServiceSettingsContract:
     @staticmethod
     def test_public_constructor_rejects_nonconforming_logging_port() -> None:
         """The model-owned native collaborator is validated at the API boundary."""
-        with pytest.raises(c.ValidationError):
-            _ = FlextCli.model_validate({"logging_options": "not a logging port"})
+        with u.Tests.raises(c.ValidationError):
+            _ = FlextCli.model_validate({"structlog_options": "not a logging port"})
 
     @staticmethod
     @pytest.mark.parametrize(
-        ("flags", "initial_level", "expected_level", "trace"),
+        ("flags", "initial_level", "expected_level"),
         [
-            (["--debug"], c.LogLevel.WARNING, c.LogLevel.DEBUG, False),
-            (["--trace"], c.LogLevel.DEBUG, c.LogLevel.DEBUG, True),
-            (["--verbose"], c.LogLevel.ERROR, c.LogLevel.ERROR, False),
+            (["--debug"], c.LogLevel.WARNING, c.LogLevel.DEBUG),
+            (["--trace"], c.LogLevel.DEBUG, c.LogLevel.DEBUG),
+            (["--verbose"], c.LogLevel.ERROR, c.LogLevel.ERROR),
             (
                 ["--log-level", c.LogLevel.ERROR, "--debug", "--trace"],
                 c.LogLevel.WARNING,
                 c.LogLevel.ERROR,
-                True,
             ),
         ],
     )
@@ -233,11 +232,10 @@ class TestsFlextCliServiceSettingsContract:
         flags: Sequence[str],
         initial_level: t.LogLevel,
         expected_level: t.LogLevel,
-        capsys: pytest.CaptureFixture[str],
-        *,
-        trace: bool,
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Explicit severity wins shorthand while trace controls failure detail."""
+        trace = "--trace" in flags
         service = FlextCli.with_settings(
             settings.clone(
                 log_level=initial_level,
@@ -256,7 +254,7 @@ class TestsFlextCliServiceSettingsContract:
             runtime_settings=service.settings,
         )
         original_cause = ValueError("original CLI cause")
-        with pytest.raises(ValueError, match="original CLI cause") as caught:
+        with u.Tests.raises(ValueError, match="original CLI cause") as caught:
             raise original_cause
         failed = r[t.JsonPayload].fail(
             "cli-original-failure",
@@ -265,7 +263,7 @@ class TestsFlextCliServiceSettingsContract:
             error_data={"source": "cli"},
         )
 
-        def fail(params: m.Tests.SampleInput) -> p.Result[t.JsonPayload]:
+        def fail(params: p.Tests.SampleInput) -> p.Result[t.JsonPayload]:
             u.debug("cli-debug-event", input_name=params.name)
             return failed
 
@@ -310,7 +308,7 @@ class TestsFlextCliServiceSettingsContract:
 
     @staticmethod
     def test_invalid_level_leaves_settings_and_business_effects_unchanged(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Rejected policy never rebinds DI or reaches the application command."""
         service = FlextCli.with_settings(settings.clone())

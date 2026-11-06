@@ -6,6 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from flext_core import r
 from openpyxl.utils.cell import (
     absolute_coordinate,
     get_column_letter,
@@ -13,7 +14,7 @@ from openpyxl.utils.cell import (
     range_boundaries,
 )
 
-from flext_cli import c, m, p, r
+from flext_cli import c, m, p
 
 
 class FlextCliUtilitiesXlsxAddresses:
@@ -22,11 +23,11 @@ class FlextCliUtilitiesXlsxAddresses:
     # NOTE (multi-agent, mro-j2yt.1): address rendering is implementation
     # policy, shared by cells, layout, tables, names, and worksheet rules.
     @staticmethod
-    def _cell_ref(address: m.Cli.XlsxCellAddress) -> str:
+    def _cell_ref(address: p.Cli.XlsxCellAddress) -> str:
         return f"{get_column_letter(address.column)}{address.row}"
 
     @classmethod
-    def _range_ref(cls, area: m.Cli.XlsxCellRange) -> str:
+    def _range_ref(cls, area: p.Cli.XlsxCellRange) -> str:
         if area.first.row > area.last.row or area.first.column > area.last.column:
             msg = (
                 "XLSX range starts after it ends: "
@@ -36,7 +37,7 @@ class FlextCliUtilitiesXlsxAddresses:
         return f"{cls._cell_ref(area.first)}:{cls._cell_ref(area.last)}"
 
     @classmethod
-    def _absolute_range_ref(cls, area: m.Cli.XlsxCellRange) -> str:
+    def _absolute_range_ref(cls, area: p.Cli.XlsxCellRange) -> str:
         reference: str = absolute_coordinate(cls._range_ref(area))
         return reference
 
@@ -51,7 +52,7 @@ class FlextCliUtilitiesXlsxAddresses:
         return reference
 
     @classmethod
-    def _format_reference(cls, request: m.Cli.XlsxFormatReferenceRequest) -> str:
+    def _format_reference(cls, request: p.Cli.XlsxFormatReferenceRequest) -> str:
         if request.collapse_single_cell and request.area.first == request.area.last:
             reference = cls._cell_ref(request.area.first)
             if request.absolute:
@@ -65,18 +66,18 @@ class FlextCliUtilitiesXlsxAddresses:
         return reference
 
     @staticmethod
-    def _range_failure(detail: str) -> p.Result[m.Cli.XlsxCellRange]:
-        return r[m.Cli.XlsxCellRange].fail(f"{c.Cli.XlsxError.RANGE_INVALID}: {detail}")
+    def _range_failure(detail: str) -> p.Result[p.Cli.XlsxCellRange]:
+        return r[p.Cli.XlsxCellRange].fail(f"{c.Cli.XlsxError.RANGE_INVALID}: {detail}")
 
     @classmethod
     def parse_cell_range(
         cls,
-        request: m.Cli.XlsxParseRangeRequest,
-    ) -> p.Result[m.Cli.XlsxCellRange]:
+        request: p.Cli.XlsxParseRangeRequest,
+    ) -> p.Result[p.Cli.XlsxCellRange]:
         """Parse one concrete A1 cell/range through the XLSX adapter.
 
         Returns:
-            The resulting ``p.Result[m.Cli.XlsxCellRange]``.
+            The resulting ``p.Result[p.Cli.XlsxCellRange]``.
 
         """
         try:
@@ -85,7 +86,7 @@ class FlextCliUtilitiesXlsxAddresses:
             )
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or request.reference
-            return r[m.Cli.XlsxCellRange].fail(
+            return r[p.Cli.XlsxCellRange].fail(
                 f"{c.Cli.XlsxError.RANGE_INVALID}: {detail}",
                 exception=exc,
             )
@@ -98,7 +99,7 @@ class FlextCliUtilitiesXlsxAddresses:
             return cls._range_failure(request.reference)
         if first_column > last_column or first_row > last_row:
             return cls._range_failure(request.reference)
-        return r[m.Cli.XlsxCellRange].ok(
+        return r[p.Cli.XlsxCellRange].ok(
             m.Cli.XlsxCellRange(
                 first=m.Cli.XlsxCellAddress(row=first_row, column=first_column),
                 last=m.Cli.XlsxCellAddress(row=last_row, column=last_column),
@@ -109,22 +110,22 @@ class FlextCliUtilitiesXlsxAddresses:
     @classmethod
     def format_cell_reference(
         cls,
-        request: m.Cli.XlsxFormatReferenceRequest,
-    ) -> p.Result[m.Cli.XlsxReference]:
+        request: p.Cli.XlsxFormatReferenceRequest,
+    ) -> p.Result[p.Cli.XlsxReference]:
         """Format one validated range as a canonical Excel reference.
 
         Returns:
-            The resulting ``p.Result[m.Cli.XlsxReference]``.
+            The resulting ``p.Result[p.Cli.XlsxReference]``.
 
         """
         try:
             reference = cls._format_reference(request)
         except (TypeError, ValueError) as exc:
             detail = str(exc).strip() or exc.__class__.__name__
-            return r[m.Cli.XlsxReference].fail(
+            return r[p.Cli.XlsxReference].fail(
                 f"{c.Cli.XlsxError.RANGE_INVALID}: {detail}",
             )
-        return r[m.Cli.XlsxReference].ok(m.Cli.XlsxReference(reference=reference))
+        return r[p.Cli.XlsxReference].ok(m.Cli.XlsxReference(reference=reference))
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxAddresses",)

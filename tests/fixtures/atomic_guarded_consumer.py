@@ -6,40 +6,13 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
-
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
-
-import re
-from collections.abc import (
-    Iterable,
-    Iterator,
-    Mapping,
-    MutableMapping,
-    MutableSequence,
-    Sequence,
-)
 import errno
 import sys
 from pathlib import Path
 
 from flext_tests import tm
 
-from flext_cli import t, u
+from tests import c, t, u
 
 
 class TestsFlextCliAtomicGuardedConsumer:
@@ -78,9 +51,7 @@ class TestsFlextCliAtomicGuardedConsumer:
             tm.that(destination.stat().st_nlink, eq=1)
         else:
             tm.that(destination.read_bytes(), eq=b"concurrent")
-        tm.that(
-            {path.name for path in root.iterdir()}, eq={"consumer.py", "atomic.txt"}
-        )
+        tm.that({path.name for path in root.iterdir()}, eq={"atomic.txt"})
 
 
 if __name__ == "__main__":

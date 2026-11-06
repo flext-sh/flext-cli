@@ -13,11 +13,7 @@ from examples import c, m as examples_m
 from flext_tests import m as flext_tests_m
 
 from flext_cli import m as flext_cli_m
-from tests._models import (
-    TestsFlextCliModelsCli,
-    TestsFlextCliModelsPart01,
-    TestsFlextCliModelsRuntime,
-)
+from tests._models import TestsFlextCliModelsPart01
 
 
 class TestsFlextCliModels(
@@ -28,12 +24,7 @@ class TestsFlextCliModels(
 ):
     """Test model facade composed from canonical FLEXT model owners."""
 
-    class Tests(
-        TestsFlextCliModelsPart01.Tests,
-        TestsFlextCliModelsRuntime,
-        TestsFlextCliModelsCli,
-        flext_tests_m.Tests,
-    ):
+    class Tests(TestsFlextCliModelsPart01.Tests):
         """Consumer-owned records used to exercise typed YAML ingress."""
 
         class InheritedSettings(flext_cli_m.BaseSettings):

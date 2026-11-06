@@ -10,8 +10,8 @@ from collections.abc import Mapping, MutableSequence, Sequence
 from pathlib import Path
 from typing import Annotated, ClassVar
 
-from examples import c, p, r, t
-from flext_cli import m
+from examples import c, p, t
+from flext_cli import m, r
 
 
 class ExamplesFlextCliModelsExamplesAdvanced:
@@ -20,7 +20,7 @@ class ExamplesFlextCliModelsExamplesAdvanced:
     class AppSettingsAdvanced(m.Value):
         """Advanced application settings — Pydantic v2 only."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             extra="forbid",
             validate_assignment=True,
         )

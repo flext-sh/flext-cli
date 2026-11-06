@@ -10,8 +10,7 @@ from collections.abc import Sequence
 from types import MappingProxyType
 from typing import ClassVar
 
-from flext_cli import c
-from tests import t
+from flext_cli import c, t
 
 
 class TestsFlextCliConstantsRulesOptions:

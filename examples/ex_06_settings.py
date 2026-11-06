@@ -28,7 +28,7 @@ from __future__ import annotations
 from collections.abc import Mapping
 from pathlib import Path
 
-from examples import c, m, p, r, t, u
+from examples import c, p, r, t, u
 from flext_cli import cli, settings
 
 
@@ -44,23 +44,17 @@ class ExamplesFlextCliSettings:
 
         """
         cli.print("📋 Current Settings:", style=c.Cli.MessageStyles.BOLD_CYAN)
-        cli.print(f"   Debug Mode: {settings.debug}", style=c.Cli.MessageStyles.CYAN)
-        cli.print(
-            f"   Log Level: {settings.log_level}",
-            style=c.Cli.MessageStyles.CYAN,
-        )
-        cli.print(
-            f"   Output Format: {settings.cli_output_format}",
-            style=c.Cli.MessageStyles.CYAN,
-        )
-        cli.print(
-            f"   App Name: {settings.cli_app_name}",
-            style=c.Cli.MessageStyles.CYAN,
-        )
+        for label, value in (
+            ("Debug Mode", settings.debug),
+            ("Log Level", settings.log_level),
+            ("Output Format", settings.cli_output_format),
+            ("App Name", settings.cli_app_name),
+        ):
+            cli.print(f"   {label}: {value}", style=c.Cli.MessageStyles.CYAN)
         return settings
 
     @staticmethod
-    def show_settings_locations() -> m.Cli.DisplayData:
+    def show_settings_locations() -> p.Cli.DisplayData:
         """Display settings file locations for YOUR application.
 
         Returns:
@@ -123,7 +117,7 @@ class ExamplesFlextCliSettings:
     @classmethod
     def load_application_settings(
         cls,
-        settings_obj: m.Examples.AppSettingsAdvanced,
+        settings_obj: p.Examples.AppSettingsAdvanced,
     ) -> p.Result[Mapping[str, t.JsonValue]]:
         """Load, validate, and derive application settings from the canonical model.
 

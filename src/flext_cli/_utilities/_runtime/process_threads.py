@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import threading
 from collections.abc import MutableSequence
-from typing import IO, TYPE_CHECKING, BinaryIO
+from typing import TYPE_CHECKING, BinaryIO
 
 from flext_cli._utilities._runtime import (
     FlextCliUtilitiesRuntimeProcessStream,
@@ -16,7 +16,7 @@ from flext_cli._utilities._runtime import (
 )
 
 if TYPE_CHECKING:
-    from flext_cli import m, p
+    from flext_cli import p
 
 
 class FlextCliUtilitiesRuntimeProcessThreads(
@@ -52,37 +52,16 @@ class FlextCliUtilitiesRuntimeProcessThreads(
     def _start_root_waiter(
         cls,
         process: p.Cli.ProcessHandle,
-        return_codes: MutableSequence[int],
-        failures: MutableSequence[str],
-        process_done: threading.Event,
-        wake: threading.Event,
+        state: p.Cli.RuntimeProcessState,
     ) -> threading.Thread:
         waiter = threading.Thread(
             target=cls._wait_for_root_process,
-            args=(process, return_codes, failures, process_done, wake),
+            args=(process, state),
             name="flext-cli-process-waiter",
             daemon=False,
         )
         waiter.start()
         return waiter
-
-    @classmethod
-    def _start_output_pump(
-        cls,
-        source: IO[bytes],
-        target: m.Cli.RuntimeOutputTarget,
-        state: m.Cli.RuntimeProcessState,
-        *,
-        thread_name: str,
-    ) -> threading.Thread:
-        pump = threading.Thread(
-            target=cls._pump_process_output,
-            args=(source, target, state),
-            name=thread_name,
-            daemon=False,
-        )
-        pump.start()
-        return pump
 
 
 __all__: list[str] = ["FlextCliUtilitiesRuntimeProcessThreads"]

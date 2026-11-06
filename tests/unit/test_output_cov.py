@@ -10,7 +10,7 @@ from pathlib import Path
 
 import pytest
 
-from tests import c, m, tm, u
+from tests import c, m, t, tm, u
 
 
 class TestsFlextCliOutputCov:
@@ -171,7 +171,7 @@ class TestsFlextCliOutputEmission:
 
     @staticmethod
     def test_emit_raw_writes_text_verbatim(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify that emit raw writes text verbatim."""
         u.Cli.emit_raw("hello test\n")
@@ -179,7 +179,7 @@ class TestsFlextCliOutputEmission:
 
     @staticmethod
     def test_info_emits_message_with_info_level(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify that info emits message with info level."""
         u.Cli.info("test info")
@@ -189,7 +189,7 @@ class TestsFlextCliOutputEmission:
 
     @staticmethod
     def test_error_with_detail_emits_both_lines(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify that error with detail emits both lines."""
         u.Cli.error("fail msg", detail="extra detail")
@@ -201,7 +201,7 @@ class TestsFlextCliOutputEmission:
 
     @staticmethod
     def test_error_without_detail_omits_detail_indent(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify that error without detail omits detail indent."""
         u.Cli.error("just error")
@@ -213,7 +213,7 @@ class TestsFlextCliOutputEmission:
 
     @staticmethod
     def test_warning_emits_message_with_warning_level(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify that warning emits message with warning level."""
         u.Cli.warning("be warned")
@@ -223,7 +223,7 @@ class TestsFlextCliOutputEmission:
 
     @staticmethod
     def test_debug_emits_message_with_debug_level(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify that debug emits message with debug level."""
         u.Cli.debug("debug message")
@@ -233,7 +233,7 @@ class TestsFlextCliOutputEmission:
 
     @staticmethod
     def test_header_frames_title_with_rules(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify that header frames title with rules."""
         u.Cli.header("My Title")
@@ -243,7 +243,7 @@ class TestsFlextCliOutputEmission:
 
     @staticmethod
     def test_progress_emits_project_and_verb(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify that progress emits project and verb."""
         u.Cli.progress(2, 5, "my-proj", "build")
@@ -257,7 +257,7 @@ class TestsFlextCliOutputEmission:
         [(True, c.Cli.OUTPUT_STATUS_OK), (False, c.Cli.OUTPUT_STATUS_FAIL)],
     )
     def test_status_emits_project_and_result_symbol(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
         *,
         result: bool,
         symbol: str,
@@ -270,7 +270,7 @@ class TestsFlextCliOutputEmission:
 
     @staticmethod
     def test_gate_result_emits_gate_name(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify that gate result emits gate name."""
         u.Cli.gate_result("ruff", 0, passed=True, elapsed=0.2)
@@ -280,7 +280,7 @@ class TestsFlextCliOutputEmission:
 
     @staticmethod
     def test_summary_emits_verb_and_counts(
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """Verify that summary emits verb and counts."""
         u.Cli.summary(

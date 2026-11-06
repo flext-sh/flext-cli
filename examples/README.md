@@ -70,7 +70,7 @@ documenting an internal type.
 
 ### Service Base Via `s`
 
-```python notest
+```python
 from __future__ import annotations
 
 from collections.abc import (

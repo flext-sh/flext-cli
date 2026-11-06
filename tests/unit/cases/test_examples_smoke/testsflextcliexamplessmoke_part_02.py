@@ -9,13 +9,11 @@ from __future__ import annotations
 from collections.abc import Iterator, Mapping
 from typing import TYPE_CHECKING
 
-import examples
-import pytest
 from examples import ExamplesFlextCliAuthentication, ExamplesFlextCliSettings
 from examples.ex_04_file_operations import ExamplesFlextCliFileOperations
 
 from flext_cli import cli, settings
-from tests import c, p, tm
+from tests import c, p, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -24,8 +22,8 @@ if TYPE_CHECKING:
 class TestsFlextCliExamplesSmokePart02:
     """Implementation part for TestsFlextCliExamplesSmokePart02."""
 
+    @u.Tests.fixture
     @staticmethod
-    @pytest.fixture
     def restore_token_file() -> Iterator[None]:
         """Restore the canonical token file setting after an example mutates it."""
         original_token_file = settings.cli_token_file
@@ -86,7 +84,7 @@ class TestsFlextCliExamplesSmokePart02:
         tm.fail(incomplete_import)
 
     @staticmethod
-    @pytest.mark.usefixtures("restore_token_file")
+    @c.Tests.MARK.usefixtures("restore_token_file")
     def test_authentication_and_settings_examples(tmp_path: Path) -> None:
         """Auth and settings examples must work through settings and cli auth APIs."""
         settings.cli_token_file = str(tmp_path / "auth_token.json")
@@ -109,13 +107,13 @@ class TestsFlextCliExamplesSmokePart02:
         tm.that(locations.data["Token Exists"], eq="Yes")
 
         profile_result = ExamplesFlextCliSettings.load_profile_settings(
-            examples.c.DeploymentEnvironment.DEVELOPMENT,
+            c.DeploymentEnvironment.DEVELOPMENT,
         )
         tm.ok(profile_result)
         tm.ok(profile_result.value.debug)
         tm.that(
             profile_result.value.cli_output_format,
-            eq=examples.c.Cli.OutputFormats.TABLE,
+            eq=c.Cli.OutputFormats.TABLE,
         )
 
         logout_result = ExamplesFlextCliAuthentication.logout()

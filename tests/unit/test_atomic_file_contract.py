@@ -14,7 +14,7 @@ from pathlib import Path
 
 import pytest
 
-from tests import tm, u
+from tests import m, tm, u
 
 
 class TestsFlextCliAtomicFileContract:
@@ -30,7 +30,7 @@ class TestsFlextCliAtomicFileContract:
         path.write_bytes(content)
         state = tm.ok(u.Cli.atomic_read_binary_file_state(path, required=True))
 
-        restored = type(state).model_validate_json(state.model_dump_json())
+        restored = m.Cli.AtomicFileState.model_validate_json(state.model_dump_json())
 
         tm.that(restored, eq=state)
         tm.that(restored.content, eq=content)

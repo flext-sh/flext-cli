@@ -9,14 +9,11 @@ from __future__ import annotations
 import os
 from collections.abc import MutableSequence, Sequence
 from pathlib import Path
-from typing import TYPE_CHECKING, overload
+from typing import overload
 
 from flext_core import u
 
-from flext_cli import c, m, t
-
-if TYPE_CHECKING:
-    from flext_cli import p
+from flext_cli import c, m, p, t
 
 
 class FlextCliUtilitiesSettings:
@@ -102,7 +99,7 @@ class FlextCliUtilitiesSettings:
         return [int(name) for name in names]
 
     @staticmethod
-    def settings_snapshot_model() -> m.Cli.SettingsSnapshot:
+    def settings_snapshot_model() -> p.Cli.SettingsSnapshot:
         """Return the canonical CLI settings snapshot.
 
         Returns:

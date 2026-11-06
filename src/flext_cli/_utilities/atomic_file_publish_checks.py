@@ -11,10 +11,11 @@ import hashlib
 import os
 from pathlib import Path
 
-from flext_cli import c, m
+from flext_cli import c, m, p
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicFileDescriptor,
     FlextCliUtilitiesAtomicFileMode,
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicFileRead,
     FlextCliUtilitiesAtomicFileState,
 )
@@ -42,25 +43,6 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
             raise OSError(errno.EINVAL, message, path)
 
     @staticmethod
-    def require_identity(
-        path: Path,
-        state: os.stat_result | None,
-        expected: tuple[int, int] | None,
-    ) -> None:
-        """Require an observed physical identity to match its caller snapshot.
-
-        Raises:
-            OSError: If ``observed != expected``.
-
-        """
-        observed = (
-            None if state is None else FlextCliUtilitiesAtomicFileState.identity(state)
-        )
-        if observed != expected:
-            message = f"atomic file physical identity changed: {path}"
-            raise OSError(errno.ESTALE, message, path)
-
-    @staticmethod
     def require_distinct_inode(
         destination: Path,
         destination_state: os.stat_result | None,
@@ -70,12 +52,12 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
 
         Raises:
             OSError: If ``destination_state is not None and
-                file_state.identity(destination_state) == staged_identity``.
+                file_path.path_identity(destination_state) == staged_identity``.
 
         """
         if (
             destination_state is not None
-            and FlextCliUtilitiesAtomicFileState.identity(destination_state)
+            and FlextCliUtilitiesAtomicFilePath.path_identity(destination_state)
             == staged_identity
         ):
             message = "staged file and atomic destination share one inode"
@@ -85,26 +67,22 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
     def validate_devices(
         destination: Path,
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
-        destination_state: os.stat_result | None,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-        staged: m.Cli.ObservedFile,
+        staged: p.Cli.ObservedFile,
     ) -> None:
-        """Require both entries and parents to occupy one filesystem.
+        """Require the pinned rename parents to occupy one filesystem.
+
+        OverlayFS files may expose backing-layer devices independently of
+        their parent directories. File identities remain separately verified.
 
         Raises:
-            OSError: If ``staged_parent.state.st_dev != device or staged.state.st_dev !=
-                staged_parent.state.st_dev or (destination_state is not None and
-                destination_state.st_dev != device)``.
+            OSError: If the source and destination parent devices differ.
 
         """
         device = destination_parent.state.st_dev
-        if (
-            staged_parent.state.st_dev != device
-            or staged.state.st_dev != staged_parent.state.st_dev
-            or (destination_state is not None and destination_state.st_dev != device)
-        ):
+        if staged_parent.state.st_dev != device:
             message = (
-                f"atomic staged and destination entries span filesystems: {staged.path}"
+                f"atomic staged and destination parents span filesystems: {staged.path}"
             )
             raise OSError(errno.EXDEV, message, destination)
 
@@ -113,7 +91,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         destination_parent: (FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor),
         destination: Path,
         staged_parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
-        staged: m.Cli.StagedFile | m.Cli.AtomicFileReceipt,
+        staged: p.Cli.StagedFile | m.Cli.AtomicFileReceipt,
     ) -> os.stat_result:
         """Prove replacement consumed the staged name and retained its exact state.
 
@@ -126,7 +104,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
 
         """
         if (
-            FlextCliUtilitiesAtomicFileState.destination_state(
+            FlextCliUtilitiesAtomicFileState.file_destination_state(
                 staged.path,
                 parent=staged_parent,
             )
@@ -136,7 +114,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
                 f"atomic staged file still exists after publication: {staged.path}"
             )
             raise OSError(errno.ESTALE, message, staged.path)
-        published = FlextCliUtilitiesAtomicFileState.destination_state(
+        published = FlextCliUtilitiesAtomicFileState.file_destination_state(
             destination,
             parent=destination_parent,
         )
@@ -147,22 +125,37 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         )
         if (
             published is None
-            or FlextCliUtilitiesAtomicFileState.identity(published) != staged_identity
+            or FlextCliUtilitiesAtomicFilePath.path_identity(published)
+            != staged_identity
         ):
             message = f"published atomic file has another identity: {destination}"
             raise OSError(errno.ESTALE, message, destination)
-        FlextCliUtilitiesAtomicFilePublishChecks.validate_payload(
+        FlextCliUtilitiesAtomicFilePublishChecks.validate_version(
             destination_parent,
             destination,
             published,
-            staged if isinstance(staged, m.Cli.AtomicFileReceipt) else staged.content,
-        )
-        FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(
-            destination,
-            published,
-            staged.mode,
+            (
+                staged
+                if isinstance(staged, m.Cli.AtomicFileReceipt)
+                else staged.content,
+                staged.mode,
+            ),
         )
         return published
+
+    @staticmethod
+    def validate_version(
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+        path: Path,
+        state: os.stat_result | None,
+        version: tuple[bytes | m.Cli.AtomicFileReceipt | None, int | None],
+    ) -> None:
+        """Authenticate one entry's exact payload and then its exact mode."""
+        payload, mode = version
+        FlextCliUtilitiesAtomicFilePublishChecks.validate_payload(
+            parent, path, state, payload
+        )
+        FlextCliUtilitiesAtomicFileMode.validate_mode_precondition(path, state, mode)
 
     @staticmethod
     def validate_payload(
@@ -179,7 +172,7 @@ class FlextCliUtilitiesAtomicFilePublishChecks:
         """
         if not isinstance(expected, m.Cli.AtomicFileReceipt):
             FlextCliUtilitiesAtomicFileState.validate_precondition(
-                path, state, expected, enabled=True, parent=parent
+                path, state, expected, parent=parent
             )
             return
         if state is None or state.st_size != expected.size:

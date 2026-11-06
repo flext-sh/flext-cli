@@ -6,113 +6,45 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from pathlib import Path
-from typing import Annotated, ClassVar, Self
+from typing import Annotated, ClassVar, override
 
 from flext_core import m
 
 from flext_cli import c, p, t
-from flext_cli._models import FlextCliModelsAtomicState
+from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
 
 
 class FlextCliModelsBasePart03:
     """Implementation part for FlextCliModelsBasePart03."""
 
-    class AtomicDirectoryState(m.BaseModel):
+    class AtomicDirectoryState(FlextCliModelsBasePart02.AtomicPhysicalIdentity):
         """Exact empty-directory presence and physical identity."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
-            extra="forbid",
-            frozen=True,
-            arbitrary_types_allowed=True,
+        atomic_state_label: ClassVar[str] = "atomic directory state"
+        atomic_presence_message: ClassVar[str] = (
+            "atomic directory state requires mode, device, inode, and link "
+            "count exactly when it exists"
         )
-        path: Annotated[Path, m.Field(description="Absolute directory path")]
+
         exists: Annotated[
             bool,
             m.Field(strict=True, description="Whether the directory exists"),
         ]
-        parent_device: Annotated[
-            int | None,
-            m.Field(
-                ge=0,
-                strict=True,
-                description="Physical parent device, or None when the chain is absent",
-            ),
-        ] = None
-        parent_inode: Annotated[
-            int | None,
-            m.Field(
-                ge=0,
-                strict=True,
-                description="Physical parent inode, or None when the chain is absent",
-            ),
-        ] = None
-        mode: Annotated[
-            int | None,
-            m.Field(ge=0, le=0o7777, strict=True, description="Permission bits"),
-        ] = None
-        device: Annotated[
-            int | None,
-            m.Field(ge=0, strict=True, description="Physical device"),
-        ] = None
-        inode: Annotated[
-            int | None,
-            m.Field(ge=0, strict=True, description="Physical inode"),
-        ] = None
-        link_count: Annotated[
-            int | None,
-            m.Field(ge=1, strict=True, description="Exact link count"),
-        ] = None
-        file_attributes: Annotated[
-            int | None,
-            m.Field(ge=0, strict=True, description="Host attributes"),
-        ] = None
-        reparse_tag: Annotated[
-            int | None,
-            m.Field(ge=0, strict=True, description="Host reparse tag"),
-        ] = None
 
-        @m.field_validator("path")
-        @classmethod
-        def _validate_absolute_path(cls, value: Path) -> Path:
-            return FlextCliModelsAtomicState.validate_atomic_state_path(
-                value,
-                label="atomic directory state",
-            )
+        @override
+        def _physically_present(self) -> bool:
+            """Return whether the directory exists.
 
-        @m.model_validator(mode="after")
-        def _validate_presence_tuple(self) -> Self:
-            physical = (self.mode, self.device, self.inode, self.link_count)
-            if (self.exists and not all(value is not None for value in physical)) or (
-                not self.exists and any(value is not None for value in physical)
-            ):
-                msg = (
-                    "atomic directory state requires mode, device, inode, and link "
-                    "count exactly when it exists"
-                )
-                raise ValueError(msg)
-            if not self.exists and (
-                self.file_attributes is not None or self.reparse_tag is not None
-            ):
-                msg = "absent atomic directory state cannot contain host metadata"
-                raise ValueError(msg)
-            FlextCliModelsAtomicState.validate_parent_identity(
-                self.parent_device,
-                self.parent_inode,
-                present=self.exists,
-                label="atomic directory state",
-            )
-            FlextCliModelsAtomicState.validate_non_reparse_state(
-                self.file_attributes,
-                self.reparse_tag,
-                label="atomic directory state",
-            )
-            return self
+            Returns:
+                The declared ``exists`` flag.
+
+            """
+            return self.exists
 
     class CommandEntryModel(m.BaseModel):
         """Single command entry: name + handler. Use m.Cli.CommandEntryModel."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True,
             extra="forbid",
         )
@@ -125,12 +57,12 @@ class FlextCliModelsBasePart03:
     class EmptyRequest(m.BaseModel):
         """Shared request model of a service operation that takes no input."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid", frozen=True)
 
     class CommandMetadata(m.BaseModel):
         """Immutable command identity and user-facing help."""
 
-        model_config: ClassVar[m.ConfigDict] = m.ConfigDict(
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             arbitrary_types_allowed=True,
             extra="forbid",
             frozen=True,

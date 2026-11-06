@@ -10,7 +10,9 @@ import ctypes
 import os
 from ctypes import wintypes
 
-from flext_cli import p, r
+from flext_core import r
+
+from flext_cli import p
 
 
 class FlextCliUtilitiesRuntimeWindowsJobState:
