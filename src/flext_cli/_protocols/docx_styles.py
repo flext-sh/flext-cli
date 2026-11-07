@@ -238,6 +238,8 @@ class FlextCliProtocolsDocxStyles:
             """Optional paragraph format specification."""
             ...
 
+    type DocxColor = DocxRgbColor | DocxThemeColor | DocxAutomaticColor
+
 
 __all__: list[str] = [
     "FlextCliProtocolsDocxStyles",
