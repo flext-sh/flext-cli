@@ -16,7 +16,7 @@ from flext_core import r
 
 from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesFiles
-from flext_cli._utilities._docx.layout import FlextCliUtilitiesDocxLayout
+from flext_cli._utilities._documents.docx_layout import FlextCliUtilitiesDocxLayout
 from flext_cli._utilities._files.native_results import (
     FlextCliUtilitiesFilesNativeResults,
 )

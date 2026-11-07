@@ -1,12 +1,10 @@
-"""Document imports follow their public facade composition contracts.
+"""Heavy engines load only when their public operation runs.
 
-`openpyxl`, `python-docx`, and `python-pptx` are hard dependencies. The DOCX
-behavior owners compose directly through MRO since 8b979810 (2026-10-10), and
-the PPTX reader, renderer, and serializer joined that composition in 04a2f092
-(2026-10-28), whose public names `read_presentation` and `render_presentation`
-ac53dde0 adopted in the PPTX tests. Both stacks therefore load with the
-utility namespace. The XLSX adapters stay behind `_xlsx` delegation and load
-only when an operation runs.
+`openpyxl`, `python-docx`, `python-pptx`, and `networkx` are hard dependencies,
+but every CLI imports the utility namespace. The XLSX, DOCX, PPTX, and DAG
+facades therefore delegate to their `_xlsx`, `_docx`, `_pptx`, and `_dag`
+adapter packages, which load on first use: importing the namespace or the
+public API loads none of them.
 
 These probes run in a fresh interpreter because `sys.modules` is global: once
 any earlier test in the session has imported a document module, an in-process
@@ -48,19 +46,26 @@ def _loaded_heavy_modules(import_statement: str) -> frozenset[str]:
 
 
 class TestsFlextCliDocumentFacadesAreLazy:
-    """Direct MRO owners load with the namespace; other adapters stay lazy."""
+    """No heavy engine loads with the namespace; each loads on its operation."""
 
     @staticmethod
-    def test_utilities_namespace_loads_its_docx_and_pptx_mro_owners() -> None:
+    def test_utilities_namespace_loads_no_heavy_engine() -> None:
         loaded = _loaded_heavy_modules(
             "from flext_cli.utilities import FlextCliUtilities as u\n_ = u.Cli",
         )
-        tm.that(loaded, eq=frozenset({"docx", "pptx"}))
+        tm.that(loaded, eq=frozenset[str]())
 
     @staticmethod
-    def test_public_api_import_does_not_load_document_stacks() -> None:
-        loaded = _loaded_heavy_modules("from flext_cli import FlextCli\n_ = FlextCli")
-        tm.that(loaded.difference({"docx", "pptx"}), eq=frozenset[str]())
+    def test_cli_entry_import_loads_no_heavy_engine() -> None:
+        loaded = _loaded_heavy_modules("from flext_cli import cli\n_ = cli")
+        tm.that(loaded, eq=frozenset[str]())
+
+    @staticmethod
+    def test_dag_operation_still_resolves_through_the_utility_facade() -> None:
+        loaded = _loaded_heavy_modules(
+            "from flext_cli import u\nu.Cli.dag_order({'a': frozenset()})",
+        )
+        tm.ok("networkx" in loaded)
 
     @staticmethod
     def test_xlsx_operation_still_resolves_through_the_utility_facade() -> None:
