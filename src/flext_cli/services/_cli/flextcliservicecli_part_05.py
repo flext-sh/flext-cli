@@ -81,6 +81,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
                 model_cls=route.model_cls,
                 signature=cls._model_signature(route.model_cls, settings),
                 result_border=True,
+                settings=settings,
             ),
         )
 

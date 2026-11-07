@@ -29,6 +29,8 @@ class FlextCliUtilitiesYaml(
             The parsed mapping, or the parser's failure prefixed by ``path``.
 
         """
+        if not path.is_file():
+            return r[t.JsonMapping].fail(c.Cli.YAML_ERR_NOT_FOUND_FMT.format(path=path))
         return FlextCliUtilitiesYaml.yaml_parse(
             path.read_text(encoding=c.DEFAULT_ENCODING)
         ).map_error(lambda error: f"{path}: {error}")
@@ -42,6 +44,10 @@ class FlextCliUtilitiesYaml(
             failure prefixed by ``path``.
 
         """
+        if not path.is_file():
+            return r[Sequence[t.JsonMapping]].fail(
+                c.Cli.YAML_ERR_NOT_FOUND_FMT.format(path=path)
+            )
         return FlextCliUtilitiesYaml.yaml_parse_documents(
             path.read_text(encoding=c.DEFAULT_ENCODING)
         ).map_error(lambda error: f"{path}: {error}")
@@ -68,12 +74,19 @@ class FlextCliUtilitiesYaml(
             The validated documents in their original order.
 
         """
-        return u.Yaml.unique_key_load_all(text).map(
-            lambda values: tuple(
+        loaded = u.Yaml.unique_key_load_all(text)
+        if loaded.failure:
+            return r[Sequence[t.JsonMapping]].from_failure(loaded)
+        try:
+            documents = tuple(
                 FlextCliUtilitiesConversion.YAML_DICT_ADAPTER.validate_python(value)
-                for value in values
+                for value in loaded.value
             )
-        )
+        except c.ValidationError as exc:
+            return r[Sequence[t.JsonMapping]].fail(
+                c.Cli.YAML_ERR_VALIDATION_FMT.format(error=exc), exception=exc
+            )
+        return r[Sequence[t.JsonMapping]].ok(documents)
 
     @staticmethod
     def yaml_load_mapping(path: Path) -> t.JsonMapping:

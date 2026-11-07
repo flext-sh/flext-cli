@@ -72,7 +72,9 @@ class FlextCliUtilitiesYamlEngine(FlextCliUtilitiesYamlConvert):
 
         """
         if not path.is_file():
-            return r[t.Cli.YamlNode].fail(f"YAML file not found: {path}")
+            return r[t.Cli.YamlNode].fail(
+                c.Cli.YAML_ERR_NOT_FOUND_FMT.format(path=path)
+            )
 
         def produce() -> t.Cli.YamlValue:
             with path.open("r", encoding=c.DEFAULT_ENCODING) as fh:
