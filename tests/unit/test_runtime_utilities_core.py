@@ -322,8 +322,8 @@ class TestsFlextCliManagedProcesses:
     def test_process_start_inherits_streams(runner: FlextCliUtilitiesCli) -> None:
         """A supervised child consumes inherited input and forwards both outputs."""
         script = (
-            "import sys; from flext_cli import cli; "
-            "child = cli.process_start("
+            "import sys; from flext_cli import u; "
+            "child = u.Cli.process_start("
             "[sys.executable, '-c', "
             '"import sys; print(sys.stdin.readline().strip()); '
             "print('inherited-error', file=sys.stderr)\"], "
@@ -348,8 +348,8 @@ class TestsFlextCliManagedProcesses:
     ) -> None:
         """A real managed child receives only the elected environment sources."""
         script = (
-            "import sys; from flext_cli import cli, m; "
-            "child = cli.process_start("
+            "import sys; from flext_cli import m, u; "
+            "child = u.Cli.process_start("
             "[sys.executable, '-c', "
             "\"import os; print(os.environ.get('FLEXT_PARENT_ONLY', 'absent')); "
             "print(os.environ['FLEXT_CHILD_ONLY'])\"], "

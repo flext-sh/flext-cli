@@ -107,7 +107,7 @@ class TestsFlextCliModelCommandJsonOptions:
 
     @staticmethod
     def _json(
-        value: t.JsonMapping | t.Cli.ModelLike | Sequence[t.Cli.ModelLike],
+        value: t.JsonMapping | p.BaseModel | Sequence[p.BaseModel],
     ) -> str:
         return u.to_json(value).decode()
 

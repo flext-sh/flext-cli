@@ -44,6 +44,7 @@ class FlextCliCliPart03(FlextCliCliPart02):
             model_cls=model_cls,
             signature=cls._model_signature(model_cls, settings),
             result_border=False,
+            settings=settings,
         )
         return command
 

@@ -30,6 +30,7 @@ class FlextCliCliPart01:
         _handler: p.Cli.ModelCommandHandler[M, TResult]
         _model_cls: t.ModelClass[M]
         _result_border: bool
+        _settings: t.Cli.ModelLike | None
 
         def __init__(
             self,
@@ -38,6 +39,7 @@ class FlextCliCliPart01:
             model_cls: t.ModelClass[M],
             signature: Signature,
             result_border: bool,
+            settings: t.Cli.ModelLike | None = None,
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
             # Typer injects its click context into a parameter annotated with
@@ -64,6 +66,7 @@ class FlextCliCliPart01:
             self._handler = handler
             self._model_cls = model_cls
             self._result_border = result_border
+            self._settings = settings
 
         @staticmethod
         def _tuple_annotated(annotation: object) -> bool:
@@ -80,13 +83,19 @@ class FlextCliCliPart01:
             # aliased field must validate by name as well as by alias. A result
             # border turns rejected input into ``e.fail_validation`` carrying
             # the ValidationError and exits non-zero; a plain command raises it.
-            # Only options the user actually supplied reach the model: a value
-            # Typer filled from its default must stay out of model_fields_set,
-            # so validators that tell "given" from "default" keep working.
+            # Only given values reach the model: options the user supplied and
+            # values the settings instance set explicitly. A value Typer filled
+            # from the model's own default stays out of model_fields_set, so
+            # validators that tell "given" from "default" keep working.
             supplied = u.Cli.framework_supplied_options(
                 kwargs, c.Cli.MODEL_COMMAND_CONTEXT_PARAMETER
             )
             fields = self._model_cls.model_fields
+            if self._settings is not None:
+                given = self._settings.model_dump(
+                    include=set(fields).difference(supplied), exclude_unset=True
+                )
+                supplied = {**given, **supplied}
             values = {
                 key: tuple(value)
                 if isinstance(value, list)
@@ -141,7 +150,9 @@ class FlextCliCliPart01:
         field_annotation = u.Cli.field_annotation(field_name, field_info)
         annotation = u.Cli.resolve_typer_annotation(field_annotation)
         json_annotation = (
-            field_annotation if u.Cli.json_option(field_annotation) else None
+            field_info.rebuild_annotation()
+            if u.Cli.json_option(field_annotation)
+            else None
         )
         help_text = getattr(field_info, "description", None) or ""
         if json_annotation is not None:
@@ -226,7 +237,9 @@ class FlextCliCliPart01:
         spec, annotation = cls.model_option_spec(field_name, field_info, settings)
         field_annotation = u.Cli.field_annotation(field_name, field_info)
         json_annotation = (
-            field_annotation if u.Cli.json_option(field_annotation) else None
+            field_info.rebuild_annotation()
+            if u.Cli.json_option(field_annotation)
+            else None
         )
         return u.Cli.framework_build_parameter(
             field_name,
