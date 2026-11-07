@@ -103,7 +103,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     def _execute_lifecycle(
         cls,
         request: p.Cli.RuntimeProcessRequest,
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         timing: p.Cli.RuntimeProcessTiming,
     ) -> None:
         if threading.current_thread() is threading.main_thread():
@@ -184,7 +184,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
 
     @classmethod
     def _open_durable_log_destinations(
-        cls, state: p.Cli.RuntimeProcessState, request: p.Cli.RuntimeProcessRequest
+        cls, state: m.Cli.RuntimeProcessState, request: p.Cli.RuntimeProcessRequest
     ) -> None:
         """Create and retain unbuffered durable sinks on the lifecycle stack."""
         destinations = (request.output_path, request.stderr_path)
@@ -202,7 +202,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     def _attach_process_streams(
         cls,
         process: p.Cli.ProcessHandle,
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         stdin: tuple[BinaryIO | None, BinaryIO | None, bytes],
         output: p.Cli.RuntimeOutputPlan,
     ) -> threading.Thread:
@@ -244,7 +244,7 @@ class FlextCliUtilitiesRuntimeProcessExecution(
     @classmethod
     def _finalize_lifecycle(
         cls,
-        state: p.Cli.RuntimeProcessState,
+        state: m.Cli.RuntimeProcessState,
         *,
         interrupted: BaseException | None = None,
     ) -> None:
