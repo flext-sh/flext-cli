@@ -15,13 +15,20 @@ if TYPE_CHECKING:
     from tests.unit.test_config_document_ingress import (
         TestsFlextCliConfigDocumentIngress,
     )
+    from tests.unit.test_runtime_argv_verbatim import TestsFlextCliRuntimeArgvVerbatim
 
 
-__all__: tuple[str, ...] = ("TestsFlextCliConfigDocumentIngress",)
+__all__: tuple[str, ...] = (
+    "TestsFlextCliConfigDocumentIngress",
+    "TestsFlextCliRuntimeArgvVerbatim",
+)
 
 install_lazy_exports(
     __name__,
     globals(),
-    {"TestsFlextCliConfigDocumentIngress": ".test_config_document_ingress"},
+    {
+        "TestsFlextCliConfigDocumentIngress": ".test_config_document_ingress",
+        "TestsFlextCliRuntimeArgvVerbatim": ".test_runtime_argv_verbatim",
+    },
     public_exports=__all__,
 )
