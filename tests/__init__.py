@@ -75,7 +75,10 @@ if TYPE_CHECKING:
     from tests.protocols import TestsFlextCliProtocols, p
     from tests.settings import TestsFlextCliSettings
     from tests.typings import TestsFlextCliTypes, t
-    from tests.unit import TestsFlextCliConfigDocumentIngress
+    from tests.unit import (
+        TestsFlextCliConfigDocumentIngress,
+        TestsFlextCliRuntimeArgvVerbatim,
+    )
     from tests.utilities import TestsFlextCliUtilities, u
 
 
@@ -116,6 +119,7 @@ __all__: tuple[str, ...] = (
     "TestsFlextCliProtocols",
     "TestsFlextCliProtocolsTestsCli",
     "TestsFlextCliProtocolsTestsRuntime",
+    "TestsFlextCliRuntimeArgvVerbatim",
     "TestsFlextCliServiceBase",
     "TestsFlextCliSettings",
     "TestsFlextCliTypes",
@@ -189,6 +193,7 @@ install_lazy_exports(
         "TestsFlextCliProtocols": ".protocols",
         "TestsFlextCliProtocolsTestsCli": "._protocols",
         "TestsFlextCliProtocolsTestsRuntime": "._protocols",
+        "TestsFlextCliRuntimeArgvVerbatim": ".unit",
         "TestsFlextCliServiceBase": ".base",
         "TestsFlextCliSettings": ".settings",
         "TestsFlextCliTypes": ".typings",

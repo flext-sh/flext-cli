@@ -7,10 +7,11 @@ Every assertion targets an observable contract of the public API:
   declarations, bool toggles), parses each annotation into the validated
   field value, rejects a missing required option, and seeds omitted options
   from the settings model or the model defaults; and
-* invoking the built command directly drives the same flow: the handler
-  receives a validated model built from parsed values, the settings model
-  used to seed option defaults is left untouched (invocation never writes
-  back into it), and the handler return value flows back to the caller.
+* invoking the built command through the same real app drives the handler
+  flow: the handler receives a validated model built from parsed values, the
+  settings model used to seed option defaults is left untouched (invocation
+  never writes back into it), and the handler computes its return value from
+  that model.
 
 No signature introspection, private attribute access, or patching is used.
 
@@ -20,7 +21,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Mapping, MutableMapping, Sequence
+from collections.abc import Mapping, Sequence
 from types import MappingProxyType
 from typing import Annotated, ClassVar
 
@@ -220,19 +221,13 @@ class TestsFlextCliOptionsUtilsCov:
             received.append(params)
             return True
 
-        app = cli.create_app_with_common_params(
-            name="options-app",
-            help_text="Options app",
+        outcome = u.Tests.invoke_model_command(
+            model_cls,
+            _capture,
+            args,
+            settings=settings,
         )
-        cli.register_command(
-            app,
-            name="run",
-            help_text="Run",
-            command=cli.model_command(model_cls, _capture, settings=settings),
-        )
-        invocation = cli.invoke_app(app, args=["run", *args])
-        tm.ok(invocation)
-        return invocation.value, received
+        return outcome, received
 
     # ---- generated-command contract, observed through real invocation ----
 
@@ -359,35 +354,52 @@ class TestsFlextCliOptionsUtilsCov:
 
     def test_invoking_command_passes_validated_model_to_handler(self) -> None:
         """Verify that invoking command passes validated model to handler."""
-        received: MutableMapping[str, TestsFlextCliOptionsUtilsCov.GreetModel] = {}
+        received: list[TestsFlextCliOptionsUtilsCov.GreetModel] = []
+        returned: list[str] = []
 
         def _capture(params: TestsFlextCliOptionsUtilsCov.GreetModel) -> str:
-            received["model"] = params
-            return f"handled:{params.name}"
+            received.append(params)
+            result = f"handled:{params.name}"
+            returned.append(result)
+            return result
 
-        command = cli.model_command(self.GreetModel, _capture)
-        result = command(name="ada", shout=True)
+        outcome = u.Tests.invoke_model_command(
+            self.GreetModel,
+            _capture,
+            ["--name", "ada", "--shout"],
+        )
 
-        tm.that(result, eq="handled:ada")
-        tm.that(received["model"].name, eq="ada")
-        tm.ok(received["model"].shout)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
+        tm.that(returned, eq=["handled:ada"])
+        tm.that(len(received), eq=1)
+        tm.that(received[0].name, eq="ada")
+        tm.ok(received[0].shout)
 
-    def test_invoking_command_coerces_raw_values_through_model_validation(self) -> None:
-        """Verify that invoking command coerces raw values through model validation."""
+    def test_invoking_command_turns_flag_token_into_model_bool(self) -> None:
+        """The raw ``--shout`` argv token reaches the validated model as a bool."""
+        returned: list[bool] = []
 
         def _handler(params: TestsFlextCliOptionsUtilsCov.GreetModel) -> bool:
+            returned.append(params.shout)
             return params.shout
 
-        command = cli.model_command(self.GreetModel, _handler)
-        result = command(name="grace", shout=c.ParserBooleanToken.TRUE)
+        outcome = u.Tests.invoke_model_command(
+            self.GreetModel,
+            _handler,
+            ["--name", "grace", "--shout"],
+        )
 
-        tm.ok(result)
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
+        tm.that(returned, eq=[True])
 
     def test_invoking_command_rejects_missing_required_field(self) -> None:
         """Verify that invoking command rejects missing required field."""
-        command = cli.model_command(self.GreetModel, self._noop_handler)
-        with u.Tests.raises(m.ValidationError):
-            command(shout=True)
+        outcome, received = self._run(self.GreetModel, ["--shout"])
+
+        tm.fail(u.Cli.process_succeeded(outcome.outcome))
+        tm.ok(u.Cli.cli_usage_error(outcome.stderr))
+        tm.that(outcome.stderr, has="--name")
+        tm.that(received, empty=True)
 
     def test_invoking_command_uses_parsed_values_without_mutating_settings(
         self,
@@ -397,22 +409,22 @@ class TestsFlextCliOptionsUtilsCov:
         # through the validated model and the settings instance stays intact.
         """Verify that invoking command uses parsed values without mutating settings."""
         settings = self.OptionsDefaultsModel(name="start-name")
-        received: MutableMapping[
-            str, TestsFlextCliOptionsUtilsCov.OptionsDefaultsModel
-        ] = {}
+        received: list[TestsFlextCliOptionsUtilsCov.OptionsDefaultsModel] = []
+        returned: list[str] = []
 
         def _capture(params: TestsFlextCliOptionsUtilsCov.OptionsDefaultsModel) -> str:
-            received["model"] = params
+            received.append(params)
+            returned.append(params.name)
             return params.name
 
-        command = cli.model_command(
+        outcome = u.Tests.invoke_model_command(
             self.OptionsDefaultsModel,
             _capture,
+            ["--name", "parsed-name"],
             settings=settings,
         )
 
-        result = command(name="parsed-name")
-
-        tm.that(result, eq="parsed-name")
-        tm.that(received["model"].name, eq="parsed-name")
+        tm.ok(u.Cli.process_succeeded(outcome.outcome))
+        tm.that(returned, eq=["parsed-name"])
+        tm.that(received[0].name, eq="parsed-name")
         tm.that(settings.name, eq="start-name")
