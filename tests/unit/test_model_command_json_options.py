@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from typing import Annotated
 
 import pytest
 
@@ -31,10 +32,16 @@ class TestsFlextCliModelCommandJsonOptions:
     class NestedModel(m.BaseModel):
         """Request carrying a nested model and a sequence of nested models."""
 
-        prefs: m.Tests.UserPreferences
-        others: list[m.Tests.UserPreferences] = m.Field(
-            default_factory=list[m.Tests.UserPreferences],
-        )
+        prefs: Annotated[
+            p.Tests.UserPreferences,
+            t.schema_for_model(lambda: m.Tests.UserPreferences),
+        ]
+        others: list[
+            Annotated[
+                p.Tests.UserPreferences,
+                t.schema_for_model(lambda: m.Tests.UserPreferences),
+            ]
+        ] = m.Field(default_factory=list)
 
     class JsonDefaultsModel(m.BaseModel):
         """Request whose JSON options all carry defaults."""
@@ -43,7 +50,10 @@ class TestsFlextCliModelCommandJsonOptions:
             default_factory=lambda: {"seed": 1},
             description="Label weights.",
         )
-        prefs: m.Tests.UserPreferences = m.Field(
+        prefs: Annotated[
+            p.Tests.UserPreferences,
+            t.schema_for_model(lambda: m.Tests.UserPreferences),
+        ] = m.Field(
             default_factory=lambda: m.Tests.UserPreferences(
                 theme="light",
                 notifications=False,
