@@ -16,7 +16,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesConfig,
     FlextCliUtilitiesConversion,
     FlextCliUtilitiesDag,
-    FlextCliUtilitiesDocx,
+    FlextCliUtilitiesDocuments,
     FlextCliUtilitiesEnv,
     FlextCliUtilitiesFileChanges,
     FlextCliUtilitiesFiles,
@@ -29,7 +29,6 @@ from flext_cli._utilities import (
     FlextCliUtilitiesOutput,
     FlextCliUtilitiesParams,
     FlextCliUtilitiesPipeline,
-    FlextCliUtilitiesPptx,
     FlextCliUtilitiesProcesses,
     FlextCliUtilitiesPrompts,
     FlextCliUtilitiesReport,
@@ -75,8 +74,7 @@ class FlextCliUtilitiesCli(
     FlextCliUtilitiesToml,
     FlextCliUtilitiesValidation,
     FlextCliUtilitiesXlsx,
-    FlextCliUtilitiesDocx,
-    FlextCliUtilitiesPptx,
+    FlextCliUtilitiesDocuments,
     FlextCliUtilitiesYaml,
 ):
     """Compose utilities; DOCX and PPTX owners load here, XLSX on its operation."""

@@ -115,7 +115,7 @@ if TYPE_CHECKING:
     from flext_cli._utilities.config import FlextCliUtilitiesConfig
     from flext_cli._utilities.conversion import FlextCliUtilitiesConversion
     from flext_cli._utilities.dag import FlextCliUtilitiesDag
-    from flext_cli._utilities.docx import FlextCliUtilitiesDocx
+    from flext_cli._utilities.documents import FlextCliUtilitiesDocuments
     from flext_cli._utilities.env import FlextCliUtilitiesEnv
     from flext_cli._utilities.file_changes import FlextCliUtilitiesFileChanges
     from flext_cli._utilities.file_test_helpers import FlextCliUtilitiesFileTestHelpers
@@ -141,7 +141,6 @@ if TYPE_CHECKING:
     from flext_cli._utilities.output_payloads import FlextCliUtilitiesOutputPayloads
     from flext_cli._utilities.params import FlextCliUtilitiesParams
     from flext_cli._utilities.pipeline import FlextCliUtilitiesPipeline
-    from flext_cli._utilities.pptx import FlextCliUtilitiesPptx
     from flext_cli._utilities.processes import FlextCliUtilitiesProcesses
     from flext_cli._utilities.prompts import FlextCliUtilitiesPrompts
     from flext_cli._utilities.report import FlextCliUtilitiesReport
@@ -199,7 +198,7 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesConfig",
     "FlextCliUtilitiesConversion",
     "FlextCliUtilitiesDag",
-    "FlextCliUtilitiesDocx",
+    "FlextCliUtilitiesDocuments",
     "FlextCliUtilitiesEnv",
     "FlextCliUtilitiesFileChanges",
     "FlextCliUtilitiesFileTestHelpers",
@@ -218,7 +217,6 @@ __all__: tuple[str, ...] = (
     "FlextCliUtilitiesOutputPayloads",
     "FlextCliUtilitiesParams",
     "FlextCliUtilitiesPipeline",
-    "FlextCliUtilitiesPptx",
     "FlextCliUtilitiesProcesses",
     "FlextCliUtilitiesPrompts",
     "FlextCliUtilitiesReport",
@@ -282,7 +280,7 @@ install_lazy_exports(
         "FlextCliUtilitiesConfig": ".config",
         "FlextCliUtilitiesConversion": ".conversion",
         "FlextCliUtilitiesDag": ".dag",
-        "FlextCliUtilitiesDocx": ".docx",
+        "FlextCliUtilitiesDocuments": ".documents",
         "FlextCliUtilitiesEnv": ".env",
         "FlextCliUtilitiesFileChanges": ".file_changes",
         "FlextCliUtilitiesFileTestHelpers": ".file_test_helpers",
@@ -301,7 +299,6 @@ install_lazy_exports(
         "FlextCliUtilitiesOutputPayloads": ".output_payloads",
         "FlextCliUtilitiesParams": ".params",
         "FlextCliUtilitiesPipeline": ".pipeline",
-        "FlextCliUtilitiesPptx": ".pptx",
         "FlextCliUtilitiesProcesses": ".processes",
         "FlextCliUtilitiesPrompts": ".prompts",
         "FlextCliUtilitiesReport": ".report",
