@@ -13,6 +13,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from typing import Any
 from typing import Annotated
 
 import pytest
@@ -107,7 +108,7 @@ class TestsFlextCliModelCommandJsonOptions:
 
     @staticmethod
     def _json(
-        value: t.JsonMapping | p.BaseModel | Sequence[p.BaseModel],
+        value: Any,
     ) -> str:
         return u.to_json(value).decode()
 
