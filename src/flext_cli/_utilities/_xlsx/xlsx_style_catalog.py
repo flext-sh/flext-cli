@@ -130,7 +130,9 @@ class FlextCliUtilitiesXlsxStyleCatalog(
             if existing is None:
                 existing = m.Cli.XlsxNamedStyleSpec(
                     name=cls._style_name(request.style_name_prefix, source.visual),
-                    visual=source.visual,
+                    visual=m.Cli.XlsxVisualStyleSpec.model_validate(
+                        source.visual
+                    ),
                 )
                 if any(style.name == existing.name for style in styles):
                     return r[p.Cli.XlsxStyleCatalog].fail(
