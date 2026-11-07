@@ -115,8 +115,12 @@ class FlextCliModelsProcessRuntime:
             description="Whether pump output is retained in the captured buffers.",
         )
 
-    class RuntimeSpawnCommand(m.FrozenModel):
-        """Native argv, working directory, and environment of one child."""
+    class RuntimeSpawnCommand(m.ImmutableValueModel):
+        """Native argv, working directory, and environment of one child.
+
+        Immutable value preset without string normalization: argv and
+        environment reach the operating system exactly as given.
+        """
 
         cmd: tuple[str, ...] = m.Field(
             description="Executable and ordered child arguments.",

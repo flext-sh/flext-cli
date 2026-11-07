@@ -23,14 +23,32 @@ class TestsFlextCliServicePart01:
             debug: bool = False
 
         settings = RuntimeSettings()
+        received: list[p.Cli.CliParamsConfig] = []
 
         def handle(params: p.Cli.CliParamsConfig) -> bool:
+            received.append(params)
             return params.debug is True
 
-        command = cli.model_command(m.Cli.CliParamsConfig, handle, settings=settings)
-        result = command(debug=True)
+        app = cli.create_app_with_common_params(
+            name="runtime-settings",
+            help_text="Runtime settings application",
+        )
+        cli.register_command(
+            app,
+            name="run",
+            help_text="Run",
+            command=cli.model_command(
+                m.Cli.CliParamsConfig,
+                handle,
+                settings=settings,
+            ),
+        )
+        result = cli.invoke_app(app, args=["run", "--debug"])
 
         tm.ok(result)
+        tm.ok(u.Cli.process_succeeded(result.value.outcome))
+        tm.that(len(received), eq=1)
+        tm.that(received[0].debug, eq=True)
 
     @staticmethod
     def _invoke_common_app(args: Sequence[str]) -> p.Result[p.Cli.InvocationResult]:

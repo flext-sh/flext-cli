@@ -95,6 +95,37 @@ class TestsFlextCliUtilities(
             return app, captured
 
         @staticmethod
+        def invoke_model_command[M: t.Cli.ModelLike, TResult: t.JsonPayload](
+            model_cls: t.ModelClass[M],
+            handler: p.Cli.ModelCommandHandler[M, TResult],
+            args: Sequence[str],
+            *,
+            settings: t.Cli.ModelLike | None = None,
+        ) -> p.Cli.InvocationResult:
+            """Register one model command as ``run`` in a real app and invoke it.
+
+            A model command is a Typer command: it is exercised only through the
+            public invocation facade, never called as a plain function.
+
+            Returns:
+                The invocation result of ``run`` with the given arguments.
+
+            """
+            app = cli.create_app_with_common_params(
+                name="model-command-app",
+                help_text="Model command app",
+            )
+            cli.register_command(
+                app,
+                name="run",
+                help_text="Run",
+                command=cli.model_command(model_cls, handler, settings=settings),
+            )
+            invocation = cli.invoke_app(app, args=["run", *args])
+            tm.ok(invocation)
+            return invocation.value
+
+        @staticmethod
         def create_cli_app() -> p.Result[p.Cli.Application]:
             """Create CLI app via Railway pattern.
 

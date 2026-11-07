@@ -43,21 +43,40 @@ class TestsFlextCliServicePart02:
     @staticmethod
     def test_model_command_returns_handler_value() -> None:
         """Return the observable value produced by a model command handler."""
+        returned: list[t.JsonValue] = []
 
         def handle(params: p.Tests.SampleInput) -> t.JsonValue:
-            return {
+            value: t.JsonValue = {
                 "name": params.name,
                 c.Aggregation.COUNT: params.count,
                 "dry_run": params.dry_run,
                 "output_format": params.output_format,
             }
+            returned.append(value)
+            return value
 
-        command = cli.model_command(m.Tests.SampleInput, handle)
-        result = command(
-            name="alice",
-            count=3,
-            dry_run=True,
-            output_format=c.Cli.OutputFormats.JSON,
+        app = cli.create_app_with_common_params(
+            name="handler-app",
+            help_text="Handler app",
+        )
+        cli.register_command(
+            app,
+            name="run",
+            help_text="Run",
+            command=cli.model_command(m.Tests.SampleInput, handle),
+        )
+        invocation = cli.invoke_app(
+            app,
+            args=[
+                "run",
+                "--name",
+                "alice",
+                "--count",
+                "3",
+                "--dry-run",
+                "--output-format",
+                c.Cli.OutputFormats.JSON,
+            ],
         )
 
         expected: t.JsonMapping = {
@@ -66,7 +85,9 @@ class TestsFlextCliServicePart02:
             "dry_run": True,
             "output_format": c.Cli.OutputFormats.JSON,
         }
-        tm.that(result, eq=expected)
+        tm.ok(invocation)
+        tm.ok(u.Cli.process_succeeded(invocation.value.outcome))
+        tm.that(returned, eq=[expected])
 
     @staticmethod
     def test_model_command_uses_custom_param_decls_from_field_extra() -> None:
