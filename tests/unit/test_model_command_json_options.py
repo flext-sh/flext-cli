@@ -32,8 +32,8 @@ class TestsFlextCliModelCommandJsonOptions:
         """Request carrying a nested model and a sequence of nested models."""
 
         prefs: m.Tests.UserPreferences
-        others: list[p.Tests.UserPreferences] = m.Field(
-            default_factory=list[p.Tests.UserPreferences],
+        others: list[m.Tests.UserPreferences] = m.Field(
+            default_factory=list[m.Tests.UserPreferences],
         )
 
     class JsonDefaultsModel(m.BaseModel):
