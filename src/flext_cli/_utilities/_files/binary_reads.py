@@ -196,7 +196,7 @@ class FlextCliUtilitiesFilesPart03:
         required: bool = False,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
-    ) -> p.Result[tuple[p.Cli.AtomicFileState, m.Cli.AtomicFileReceipt]]:
+    ) -> p.Result[tuple[p.Cli.AtomicFileState, p.Cli.AtomicFileReceipt]]:
         """Capture buffered bytes and their receipt from one authenticated read.
 
         The receipt carries the same leaf and parent observation without copying
