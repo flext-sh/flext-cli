@@ -55,9 +55,16 @@ class FlextCliProtocolsDomain:
 
     @runtime_checkable
     class YamlCommentCarrier(Protocol):
-        """ruamel.yaml node exposing its comment surface through ``ca``."""
+        """ruamel.yaml node exposing its comment surface through ``ca``.
 
-        ca: FlextCliProtocolsDomain.YamlCommentSurface
+        ``ca`` is read-only like ruamel's ``CommentedBase.ca`` property, so a
+        ruamel container satisfies this protocol structurally.
+        """
+
+        @property
+        def ca(self) -> FlextCliProtocolsDomain.YamlCommentSurface:
+            """The node's comment surface."""
+            ...
 
     @runtime_checkable
     class YamlBlockStyleSetter(Protocol):

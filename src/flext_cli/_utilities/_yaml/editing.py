@@ -15,6 +15,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import copy
 from collections.abc import Mapping, Sequence
 from typing import ClassVar, cast
 
@@ -83,6 +84,16 @@ class FlextCliUtilitiesYamlEditing(FlextCliUtilitiesYamlEngine):
                         item,
                         dst_seq[index],
                     )
+
+    @staticmethod
+    def yaml_copy_key_comment(
+        source: p.Cli.YamlCommentCarrier,
+        key: str,
+        target: p.Cli.YamlCommentCarrier,
+    ) -> None:
+        """Copy one key's own comments (pre-key and end-of-line) between maps."""
+        if key in source.ca.items:
+            target.ca.items[key] = copy.deepcopy(source.ca.items[key])
 
     @staticmethod
     def yaml_pre_key_tokens(node: CommentedMap, key: str) -> list[RuamelCommentToken]:
