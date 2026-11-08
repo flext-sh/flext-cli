@@ -13,7 +13,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Any
 from typing import Annotated
 
 import pytest
@@ -108,7 +107,7 @@ class TestsFlextCliModelCommandJsonOptions:
 
     @staticmethod
     def _json(
-        value: Any,
+        value: t.JsonMapping | t.Cli.ModelLike | Sequence[t.Cli.ModelLike],
     ) -> str:
         return u.to_json(value).decode()
 
@@ -125,15 +124,13 @@ class TestsFlextCliModelCommandJsonOptions:
     def test_nested_model_options_json_reach_model(self) -> None:
         """Nested models and their sequences validate from JSON options."""
         others = [m.Tests.UserPreferences(theme="solar", notifications=False)]
-        expected = self.NestedModel(
-            prefs=m.Tests.UserPreferences(theme="dark", notifications=True),
-            others=others,
-        )
+        prefs = m.Tests.UserPreferences(theme="dark", notifications=True)
+        expected = self.NestedModel(prefs=prefs, others=others)
         invocation, received = self._invoke(
             self.NestedModel,
             [
                 "--prefs",
-                self._json(expected.prefs),
+                self._json(prefs),
                 "--others",
                 self._json(others),
             ],
