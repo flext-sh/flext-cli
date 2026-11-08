@@ -59,93 +59,45 @@ class FlextCliProtocolsAtomicQueries:
     class AtomicDirectoryQueryProof(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def files(
-            self,
-        ) -> tuple[
+        files: tuple[
             tuple[
                 FlextCliProtocolsBaseFlextclimodelsbasePart02.AtomicFileState,
                 FlextCliProtocolsBaseFlextclimodelsbasePart02.AtomicFileState,
             ],
             ...,
-        ]:
-            """Authenticated file effects as before and after states."""
-            ...
-
+        ]
         membership_policy: t.StrTuple | None
-
-        @property
-        def directories(
-            self,
-        ) -> tuple[
+        directories: tuple[
             FlextCliProtocolsBaseFlextclimodelsbasePart03.AtomicDirectoryState, ...
-        ]:
-            """Own directory creations published in the boundary."""
-            ...
-
-        @property
-        def directory_observations(
-            self,
-        ) -> MutableMapping[
+        ]
+        directory_observations: MutableMapping[
             Path, FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicDirectoryInventory
-        ]:
-            """Directory observations shared by reference in the boundary."""
-            ...
-
-        @property
-        def topology_observations(
-            self,
-        ) -> MutableMapping[
+        ]
+        topology_observations: MutableMapping[
             Path, FlextCliProtocolsBaseFlextclimodelsbasePart08.AtomicDirectoryChainPlan
-        ]:
-            """Ancestry observations shared by reference in the boundary."""
-            ...
+        ]
 
     @runtime_checkable
     class AtomicDirectoryQueryBoundary(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def published(
-            self,
-        ) -> Mapping[
+        published: Mapping[
             Path,
             tuple[
                 FlextCliProtocolsBaseFlextclimodelsbasePart02.AtomicFileState,
                 FlextCliProtocolsBaseFlextclimodelsbasePart02.AtomicFileState,
             ],
-        ]:
-            """Authenticated file effects keyed by their destination."""
-            ...
-
-        @property
-        def created(
-            self,
-        ) -> Mapping[
+        ]
+        created: Mapping[
             Path, FlextCliProtocolsBaseFlextclimodelsbasePart03.AtomicDirectoryState
-        ]:
-            """Own directory creations keyed by their path."""
-            ...
-
+        ]
         ancestors: Mapping[Path, None]
-
-        @property
-        def directory_observations(
-            self,
-        ) -> MutableMapping[
+        directory_observations: MutableMapping[
             Path, FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicDirectoryInventory
-        ]:
-            """Directory observations shared by reference in the boundary."""
-            ...
-
-        @property
-        def topology_observations(
-            self,
-        ) -> MutableMapping[
+        ]
+        topology_observations: MutableMapping[
             Path, FlextCliProtocolsBaseFlextclimodelsbasePart08.AtomicDirectoryChainPlan
-        ]:
-            """Ancestry observations shared by reference in the boundary."""
-            ...
+        ]
 
 
 __all__: list[str] = [

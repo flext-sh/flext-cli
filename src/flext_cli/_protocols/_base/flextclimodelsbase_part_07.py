@@ -26,10 +26,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart07:
     class ServiceOptions(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def structlog_options(self) -> p.StructlogOptions | None:
-            """Optional native Core logging composition for this application."""
-            ...
+        structlog_options: p.StructlogOptions | None
 
     @runtime_checkable
     class TypedExtract(FlextProtocols.BaseModel, Protocol):
