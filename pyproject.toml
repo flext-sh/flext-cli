@@ -437,7 +437,12 @@ reportUnusedVariable = "error"
 typeCheckingMode = "strict"
 useLibraryCodeForTypes = true
 venv = ".venv"
-venvPath = ".."
+venvPath = "."
+
+[[tool.pyright.executionEnvironments]]
+extraPaths = [".", "src"]
+reportPrivateUsage = "error"
+root = "examples"
 
 [[tool.pyright.executionEnvironments]]
 extraPaths = ["src", "."]
@@ -448,11 +453,6 @@ root = "src"
 extraPaths = [".", "src"]
 reportPrivateUsage = "error"
 root = "tests"
-
-[[tool.pyright.executionEnvironments]]
-extraPaths = [".", "src"]
-reportPrivateUsage = "error"
-root = "examples"
 
 [tool.pytest.ini_options]
 addopts = [
