@@ -332,6 +332,22 @@ class TestsFlextCliYamlComments:
 
         tm.that(dumped, has="# doc")
 
+    @staticmethod
+    def test_copy_key_comment_keeps_inline_and_pre_key_comments() -> None:
+        """A key copied into a reordered map keeps both of its own comments."""
+        source = u.Cli.yaml_roundtrip_load_map_text(
+            "a: 1\nb: 2  # inline b\nc: 3\n",
+        ).unwrap()
+        u.Cli.yaml_add_pre_key_comment(source, "b", "# before b")
+        target = CommentedMap()
+
+        for key, value in (("c", 3), ("b", 2), ("a", 1)):
+            target[key] = value
+            u.Cli.yaml_copy_key_comment(source, key, target)
+        dumped = u.Cli.yaml_roundtrip_dump_text(target).unwrap()
+
+        tm.that(dumped, eq="c: 3\n# before b\nb: 2  # inline b\na: 1\n")
+
 
 class TestsFlextCliYamlEdit:
     """In-place edit and overlay contract."""
