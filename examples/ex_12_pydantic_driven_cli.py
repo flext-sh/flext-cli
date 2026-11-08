@@ -168,7 +168,7 @@ class ExamplesFlextCliPydanticDrivenCli:
         default_port = ExamplesFlextCliPydanticDrivenCli._DEFAULT_POSTGRES_PORT
         if settings.ssl_enabled and settings.port == default_port:
             try:
-                settings = m.Examples.AdvancedDatabaseConfig.model_validate(
+                settings = type(settings).model_validate(
                     settings.model_dump()
                     | {"port": ExamplesFlextCliPydanticDrivenCli._SSL_POSTGRES_PORT},
                 )

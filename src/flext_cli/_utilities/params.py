@@ -69,6 +69,8 @@ class FlextCliUtilitiesParams:
             TypeError: If the resolved settings break the CLI settings contract.
 
         """
+        if params.log_level is None and params.debug is None and params.trace is None:
+            return r[p.Cli.Settings].ok(settings)
         try:
             resolved = u.resolve_logging_settings(
                 runtime_settings=settings,

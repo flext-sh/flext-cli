@@ -21,7 +21,12 @@ class TestsFlextCliConstantsCore:
     AUTH_VALUE_SAMPLE: ClassVar[str] = "token-123"
     COMMAND_DURATION_TOLERANCE: ClassVar[float] = 1e-9
     CREDENTIAL_SAMPLE_VALUE: ClassVar[str] = "secret-pass"
-    DOCUMENT_STACK_MODULES: ClassVar[Sequence[str]] = ("openpyxl", "docx", "pptx")
+    DOCUMENT_STACK_MODULES: ClassVar[Sequence[str]] = (
+        "openpyxl",
+        "docx",
+        "pptx",
+        "networkx",
+    )
     ENV_READ_ABSENT_NAME: ClassVar[str] = "FLEXT_CLI_ENV_READ_ABSENT"
     ENV_READ_CASES: ClassVar[Mapping[str, str]] = MappingProxyType({
         "FLEXT_CLI_ENV_READ_A": "value-a",

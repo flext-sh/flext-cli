@@ -11,7 +11,7 @@ from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
 from typing import Annotated, TypeAliasType, get_args, get_origin
 
-from flext_cli import c, m, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesConversion
 
 
@@ -45,7 +45,8 @@ class FlextCliUtilitiesOptionsAnnotations:
     def json_option(cls, annotation: t.Cli.RuntimeAnnotation) -> bool:
         """Return True when a field has no native CLI form and travels as JSON.
 
-        Mappings, nested models, and the collections or unions that carry them
+        Mappings, nested models (a model class or a ``p.BaseModel`` protocol
+        port), and the collections or unions that carry them
         are exposed as one JSON option that Pydantic validates into the
         field's declared type.
 
@@ -61,7 +62,9 @@ class FlextCliUtilitiesOptionsAnnotations:
             origin = get_origin(origin.__value__)
         carrier = resolved if origin is None else origin
         if isinstance(carrier, type) and (
-            issubclass(carrier, m.BaseModel) or issubclass(carrier, Mapping)
+            issubclass(carrier, m.BaseModel)
+            or issubclass(carrier, Mapping)
+            or p.BaseModel in carrier.__mro__
         ):
             return True
         return origin is not None and any(

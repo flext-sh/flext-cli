@@ -69,6 +69,9 @@ class FlextCliConstantsErrors:
     ERR_INVALID_OUTPUT_FORMAT: ClassVar[str] = "Invalid output format: {format}"
     ERR_SETTINGS_INFO_FAILED: ClassVar[str] = "Settings info failed: {error}"
 
+    YAML_ERR_VALIDATION_FMT: ClassVar[str] = "YAML validation error: {error}"
+    YAML_ERR_NOT_FOUND_FMT: ClassVar[str] = "YAML file not found: {path}"
+
     CLI_PARAM_ERR_FIELD_NOT_FOUND_FMT: ClassVar[str] = (
         "Field '{field_name}' not found in CLI parameter registry"
     )

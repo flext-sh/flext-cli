@@ -71,7 +71,7 @@ def _numeric_cell_value(
     source: bytes,
     sheet_name: str,
     coordinate: str,
-) -> p.Cli.XlsxIntegerValue | m.Cli.XlsxDecimalValue:
+) -> p.Cli.XlsxIntegerValue | p.Cli.XlsxDecimalValue:
     snapshot = u.Cli.xlsx_snapshot(
         m.Cli.XlsxSnapshotRequest(source=source, data_only=True),
     )

@@ -13,10 +13,12 @@ from pptx import Presentation
 from pptx.presentation import Presentation as PresentationType
 
 from flext_cli import c, m, p, t
+from flext_cli._utilities._documents.pptx_serializer import (
+    FlextCliUtilitiesPptxSerializer,
+)
 from flext_cli._utilities._files.native_results import (
     FlextCliUtilitiesFilesNativeResults,
 )
-from flext_cli._utilities._pptx import FlextCliUtilitiesPptxSerializer
 
 
 class FlextCliUtilitiesPptxRenderer:

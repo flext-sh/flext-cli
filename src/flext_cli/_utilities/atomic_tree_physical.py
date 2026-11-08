@@ -147,7 +147,7 @@ class FlextCliUtilitiesAtomicTreePhysical:
         root_path: Path,
     ) -> Generator[
         tuple[
-            m.Cli.AtomicPhysicalTreeEntry,
+            p.Cli.AtomicPhysicalTreeEntry,
             FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         ]
     ]:
@@ -382,7 +382,7 @@ class FlextCliUtilitiesAtomicTreePhysical:
         parent: os.stat_result,
         observed: os.stat_result,
         details: p.Cli.TreeEntryDetails,
-    ) -> m.Cli.AtomicPhysicalTreeEntry:
+    ) -> p.Cli.AtomicPhysicalTreeEntry:
         if details.kind == "file" and observed.st_nlink > 1:
             # Cleanup authority is per pathname; a second physical name sharing
             # the inode means pruning this tree must not silently claim the
