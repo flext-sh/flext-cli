@@ -56,51 +56,38 @@ class FlextCliModelsProcess:
         role: Literal["isolation-launcher", "policy-compiler"] = m.Field(
             description="Declared native capability qualified by this bootstrap row"
         )
-        artifact_receipt: Annotated[
-            p.Cli.AtomicFileReceipt,
-            t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileReceipt),
-        ] = m.Field(
-            description="Immutable receipt for the qualified native executable",
+        artifact_receipt: Annotated[FlextCliModelsBasePart02.AtomicFileReceipt,] = (
+            m.Field(
+                description="Immutable receipt for the qualified native executable",
+            )
         )
         declaration_inputs: tuple[
-            Annotated[
-                p.Cli.AtomicFileReceipt,
-                t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileReceipt),
-            ],
+            Annotated[FlextCliModelsBasePart02.AtomicFileReceipt,],
             ...,
         ] = m.Field(min_length=1, description="Captured qualification declarations")
         installation_inputs: tuple[
-            Annotated[
-                p.Cli.AtomicFileReceipt,
-                t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileReceipt),
-            ],
+            Annotated[FlextCliModelsBasePart02.AtomicFileReceipt,],
             ...,
         ] = m.Field(min_length=1, description="Captured native installation inputs")
         source_inputs: tuple[
-            Annotated[
-                p.Cli.AtomicFileReceipt,
-                t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileReceipt),
-            ],
+            Annotated[FlextCliModelsBasePart02.AtomicFileReceipt,],
             ...,
         ] = m.Field(
             min_length=1,
             description="Captured source inputs for native qualification",
         )
-        native_build_outcome: Annotated[
-            p.Cli.ProcessOutcome,
-            t.schema_for_model(lambda: FlextCliModelsBasePart01.ProcessOutcome),
-        ] = m.Field(
-            description="Causal outcome of the native compiler build",
+        native_build_outcome: Annotated[FlextCliModelsBasePart01.ProcessOutcome,] = (
+            m.Field(
+                description="Causal outcome of the native compiler build",
+            )
         )
         native_abi_probe_outcome: Annotated[
-            p.Cli.ProcessOutcome,
-            t.schema_for_model(lambda: FlextCliModelsBasePart01.ProcessOutcome),
+            FlextCliModelsBasePart01.ProcessOutcome,
         ] = m.Field(
             description="Causal outcome of the native ABI qualification probe",
         )
         native_policy_probe_outcome: Annotated[
-            p.Cli.ProcessOutcome,
-            t.schema_for_model(lambda: FlextCliModelsBasePart01.ProcessOutcome),
+            FlextCliModelsBasePart01.ProcessOutcome,
         ] = m.Field(
             description="Original native socket and io_uring denial probe outcome",
         )
@@ -114,15 +101,11 @@ class FlextCliModelsProcess:
             description="Original attempted syscall observations, never inferred"
         )
         probe_compiler_receipt: Annotated[
-            p.Cli.AtomicFileReceipt,
-            t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileReceipt),
+            FlextCliModelsBasePart02.AtomicFileReceipt,
         ] = m.Field(
             description="Exact compiler whose filter supplied the native denial probes"
         )
-        abi_reference: Annotated[
-            p.Cli.AtomicFileReceipt,
-            t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileReceipt),
-        ] = m.Field(
+        abi_reference: Annotated[FlextCliModelsBasePart02.AtomicFileReceipt,] = m.Field(
             description="Captured independently elected native ABI reference",
         )
         architecture: str = m.Field(
@@ -133,16 +116,10 @@ class FlextCliModelsProcess:
     class ProcessNativeToolQualification(ProcessNativeToolEvidence):
         """Caller-bound projection over one current native bootstrap report row."""
 
-        issuer_receipt: Annotated[
-            p.Cli.AtomicFileState,
-            t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileState),
-        ] = m.Field(
+        issuer_receipt: Annotated[FlextCliModelsBasePart02.AtomicFileState,] = m.Field(
             description="Exact existing bootstrap report containing this evidence row"
         )
-        artifact: Annotated[
-            p.Cli.AtomicFileState,
-            t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileState),
-        ] = m.Field(
+        artifact: Annotated[FlextCliModelsBasePart02.AtomicFileState,] = m.Field(
             description="Captured exact compiler bytes matching the installed receipt"
         )
 
@@ -215,22 +192,17 @@ class FlextCliModelsProcess:
         launcher: FlextCliModelsProcess.ProcessNativeToolQualification = m.Field(
             description="Bootstrap-qualified static native Bubblewrap launcher"
         )
-        launcher_declaration: Annotated[
-            p.Cli.AtomicFileState,
-            t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileState),
-        ] = m.Field(description="Independently elected canonical launcher declaration")
+        launcher_declaration: Annotated[FlextCliModelsBasePart02.AtomicFileState,] = (
+            m.Field(description="Independently elected canonical launcher declaration")
+        )
         policy_compiler: FlextCliModelsProcess.ProcessNativeToolQualification = m.Field(
             description="Bootstrap-qualified static native libseccomp policy compiler"
         )
-        compiler_declaration: Annotated[
-            p.Cli.AtomicFileState,
-            t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileState),
-        ] = m.Field(description="Independently elected canonical compiler declaration")
+        compiler_declaration: Annotated[FlextCliModelsBasePart02.AtomicFileState,] = (
+            m.Field(description="Independently elected canonical compiler declaration")
+        )
         sources: tuple[
-            Annotated[
-                p.Cli.AtomicFileState,
-                t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileState),
-            ],
+            Annotated[FlextCliModelsBasePart02.AtomicFileState,],
             ...,
         ] = m.Field(
             min_length=1, description="Captured source, metadata and resource bytes"
@@ -239,10 +211,7 @@ class FlextCliModelsProcess:
             FlextCliModelsBasePart09.AtomicPhysicalTreeManifest, ...
         ] = m.Field(description="Authenticated read-only interpreter and system roots")
         runtime_files: tuple[
-            Annotated[
-                p.Cli.AtomicFileState,
-                t.schema_for_model(lambda: FlextCliModelsBasePart02.AtomicFileState),
-            ],
+            Annotated[FlextCliModelsBasePart02.AtomicFileState,],
             ...,
         ] = m.Field(
             description="Authenticated read-only runtime files outside those roots"

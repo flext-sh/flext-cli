@@ -32,16 +32,10 @@ class TestsFlextCliModelCommandJsonOptions:
     class NestedModel(m.BaseModel):
         """Request carrying a nested model and a sequence of nested models."""
 
-        prefs: Annotated[
-            p.Tests.UserPreferences,
-            t.schema_for_model(lambda: m.Tests.UserPreferences),
-        ]
-        others: list[
-            Annotated[
-                p.Tests.UserPreferences,
-                t.schema_for_model(lambda: m.Tests.UserPreferences),
-            ]
-        ] = m.Field(default_factory=list)
+        prefs: Annotated[m.Tests.UserPreferences,]
+        others: list[Annotated[m.Tests.UserPreferences,]] = m.Field(
+            default_factory=list
+        )
 
     class JsonDefaultsModel(m.BaseModel):
         """Request whose JSON options all carry defaults."""
@@ -50,10 +44,7 @@ class TestsFlextCliModelCommandJsonOptions:
             default_factory=lambda: {"seed": 1},
             description="Label weights.",
         )
-        prefs: Annotated[
-            p.Tests.UserPreferences,
-            t.schema_for_model(lambda: m.Tests.UserPreferences),
-        ] = m.Field(
+        prefs: Annotated[m.Tests.UserPreferences,] = m.Field(
             default_factory=lambda: m.Tests.UserPreferences(
                 theme="light",
                 notifications=False,

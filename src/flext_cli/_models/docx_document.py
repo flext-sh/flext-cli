@@ -10,7 +10,7 @@ from typing import Annotated
 
 from flext_core import m
 
-from flext_cli import c, p, t
+from flext_cli import c, t
 from flext_cli._models import FlextCliModelsDocxStyles
 from flext_cli._models._base.flextclimodelsbase_part_05 import FlextCliModelsBasePart05
 
@@ -120,10 +120,7 @@ class FlextCliModelsDocxDocument:
         )
 
     class DocxRenderRequest(FlextCliModelsBasePart05.OfficeRenderRequest):
-        plan: Annotated[
-            p.Cli.DocxDocumentPlan,
-            t.schema_for_model(lambda: FlextCliModelsDocxDocument.DocxDocumentPlan),
-        ] = m.Field(
+        plan: Annotated[FlextCliModelsDocxDocument.DocxDocumentPlan,] = m.Field(
             description="Validated document plan.",
         )
         source_date_epoch: (
@@ -141,10 +138,7 @@ class FlextCliModelsDocxDocument:
         )
 
     class DocxRenderResult(FlextCliModelsBasePart05.OfficeRenderResult):
-        plan: Annotated[
-            p.Cli.DocxDocumentPlan,
-            t.schema_for_model(lambda: FlextCliModelsDocxDocument.DocxDocumentPlan),
-        ] = m.Field(
+        plan: Annotated[FlextCliModelsDocxDocument.DocxDocumentPlan,] = m.Field(
             description="Exact source plan.",
         )
 
