@@ -111,7 +111,7 @@ class TestsFlextCliModelCommandJsonOptions:
 
     def test_nested_model_options_json_reach_model(self) -> None:
         """Nested models and their sequences validate from JSON options."""
-        others = [p.Tests.UserPreferences(theme="solar", notifications=False)]
+        others = [m.Tests.UserPreferences(theme="solar", notifications=False)]
         prefs = m.Tests.UserPreferences(theme="dark", notifications=True)
         expected = self.NestedModel(prefs=prefs, others=others)
         invocation, received = self._invoke(
