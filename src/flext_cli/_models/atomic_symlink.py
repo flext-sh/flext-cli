@@ -59,7 +59,7 @@ class FlextCliModelsAtomicSymlink:
             m.Field(description="Exact readlink text, or None when absent."),
         ]
         identity: Annotated[
-            Annotated[FlextCliModelsAtomicSymlink.AtomicSymlinkIdentity,] | None,
+            FlextCliModelsAtomicSymlink.AtomicSymlinkIdentity | None,
             m.Field(
                 description="Complete physical link identity, or None when absent.",
             ),

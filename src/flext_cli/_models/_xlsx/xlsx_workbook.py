@@ -62,12 +62,12 @@ class FlextCliModelsXlsxWorkbook:
         )
 
     class XlsxRenderRequest(FlextCliModelsBasePart05.OfficeRenderRequest):
-        plan: Annotated[FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan,] = m.Field(
+        plan: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan = m.Field(
             description="Validated workbook plan.",
         )
 
     class XlsxRenderResult(FlextCliModelsBasePart05.OfficeRenderResult):
-        plan: Annotated[FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan,] = m.Field(
+        plan: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan = m.Field(
             description="Exact source plan."
         )
 

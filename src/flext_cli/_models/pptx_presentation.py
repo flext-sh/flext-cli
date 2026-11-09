@@ -6,8 +6,6 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import Annotated
-
 from flext_core import m
 
 from flext_cli import c, t
@@ -35,12 +33,12 @@ class FlextCliModelsPptxPresentation:
         )
 
     class PptxRenderRequest(FlextCliModelsBasePart05.OfficeRenderRequest):
-        plan: Annotated[FlextCliModelsPptxPresentation.PptxPresentationPlan,] = m.Field(
+        plan: FlextCliModelsPptxPresentation.PptxPresentationPlan = m.Field(
             description="Validated presentation plan.",
         )
 
     class PptxRenderResult(FlextCliModelsBasePart05.OfficeRenderResult):
-        plan: Annotated[FlextCliModelsPptxPresentation.PptxPresentationPlan,] = m.Field(
+        plan: FlextCliModelsPptxPresentation.PptxPresentationPlan = m.Field(
             description="Exact source plan.",
         )
 

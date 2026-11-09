@@ -120,7 +120,7 @@ class FlextCliModelsDocxDocument:
         )
 
     class DocxRenderRequest(FlextCliModelsBasePart05.OfficeRenderRequest):
-        plan: Annotated[FlextCliModelsDocxDocument.DocxDocumentPlan,] = m.Field(
+        plan: FlextCliModelsDocxDocument.DocxDocumentPlan = m.Field(
             description="Validated document plan.",
         )
         source_date_epoch: (
@@ -138,7 +138,7 @@ class FlextCliModelsDocxDocument:
         )
 
     class DocxRenderResult(FlextCliModelsBasePart05.OfficeRenderResult):
-        plan: Annotated[FlextCliModelsDocxDocument.DocxDocumentPlan,] = m.Field(
+        plan: FlextCliModelsDocxDocument.DocxDocumentPlan = m.Field(
             description="Exact source plan.",
         )
 
