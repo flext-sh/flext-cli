@@ -129,16 +129,8 @@ class FlextCliProtocolsProcessRuntime:
     class RuntimePipeDrain(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def pump(self) -> threading.Thread:
-            """Thread owning the pipe until its end of stream."""
-            ...
-
-        @property
-        def stream(self) -> FlextCliProtocolsProcess.RuntimeClosableStream:
-            """Stream closed when the pump outlives its deadline."""
-            ...
-
+        pump: threading.Thread
+        stream: FlextCliProtocolsProcess.RuntimeClosableStream
         direction: Literal["input", "output"]
 
     @runtime_checkable

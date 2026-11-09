@@ -6,6 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import contextlib
+import threading
 from collections.abc import Callable, Mapping, MutableSequence, Sequence
 from pathlib import Path
 from types import FrameType
@@ -14,19 +16,19 @@ from typing import TYPE_CHECKING, Literal, Protocol, runtime_checkable
 from flext_core import FlextProtocols, c
 
 from flext_cli import t
+from flext_cli._protocols._base import (
+    FlextCliProtocolsBaseFlextclimodelsbasePart01,
+    FlextCliProtocolsBasePart02,
+)
 
 if TYPE_CHECKING:
-    import contextlib
-    import threading
     from collections.abc import Buffer
 
     from flext_core import p
 
     from flext_cli._protocols._base import (
-        FlextCliProtocolsBaseFlextclimodelsbasePart01,
         FlextCliProtocolsBaseFlextclimodelsbasePart02,
         FlextCliProtocolsBaseFlextclimodelsbasePart09,
-        FlextCliProtocolsBasePart02,
     )
 
 
@@ -251,14 +253,7 @@ class FlextCliProtocolsProcess:
         inherit_stdin: bool
         live: bool
         heartbeat_seconds: float | None
-
-        @property
-        def deadline(
-            self,
-        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart01.ProcessDeadline | None:
-            """Absolute deadline and termination grace policy."""
-            ...
-
+        deadline: FlextCliProtocolsBaseFlextclimodelsbasePart01.ProcessDeadline | None
         pass_fds: t.InstanceOfSequence[int]
         stderr_file: t.Cli.TextPath | None
 
@@ -267,10 +262,7 @@ class FlextCliProtocolsProcess:
             """Explicit native read-only confinement request."""
             ...
 
-        @property
-        def signal_wave(self) -> FlextCliProtocolsProcess.SignalWave | None:
-            """Signal wave a worker-thread lifecycle subscribes to."""
-            ...
+        signal_wave: FlextCliProtocolsProcess.SignalWave | None
 
     @runtime_checkable
     class PythonScriptExecution(FlextProtocols.BaseModel, Protocol):
@@ -513,13 +505,7 @@ class FlextCliProtocolsProcess:
         live: bool
         heartbeat_seconds: float | None
         timeout: int | None
-
-        @property
-        def deadline(
-            self,
-        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart01.ProcessDeadline | None:
-            """Absolute deadline and termination grace policy."""
-            ...
+        deadline: FlextCliProtocolsBaseFlextclimodelsbasePart01.ProcessDeadline | None
 
         @property
         def isolation(self) -> FlextCliProtocolsProcess.ProcessReadOnlyIsolation | None:
@@ -527,36 +513,16 @@ class FlextCliProtocolsProcess:
             ...
 
         pass_fds: tuple[int, ...]
-
-        @property
-        def signal_wave(self) -> FlextCliProtocolsProcess.SignalWave | None:
-            """Signal wave a worker-thread lifecycle subscribes to."""
-            ...
+        signal_wave: FlextCliProtocolsProcess.SignalWave | None
 
     @runtime_checkable
     class RuntimeProcessState(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def process(self) -> FlextCliProtocolsBasePart02.ProcessHandle | None:
-            """Owned root child process handle."""
-            ...
-
-        @property
-        def waiter(self) -> threading.Thread | None:
-            """Thread responsible for reaping the root child."""
-            ...
-
-        @property
-        def durable_log(self) -> FlextCliProtocolsProcess.RuntimeBinaryStream | None:
-            """Owned stream for durable stdout or combined child output."""
-            ...
-
-        @property
-        def durable_stderr(self) -> FlextCliProtocolsProcess.RuntimeBinaryStream | None:
-            """Owned stream for separate durable child stderr."""
-            ...
-
+        process: FlextCliProtocolsBasePart02.ProcessHandle | None
+        waiter: threading.Thread | None
+        durable_log: FlextCliProtocolsProcess.RuntimeBinaryStream | None
+        durable_stderr: FlextCliProtocolsProcess.RuntimeBinaryStream | None
         job_handle: int
         failures: MutableSequence[str]
         cleanup_errors: MutableSequence[str]
@@ -564,80 +530,31 @@ class FlextCliProtocolsProcess:
         forwarded_signals: MutableSequence[int]
         received_signals: MutableSequence[int]
         return_codes: MutableSequence[int]
-
-        @property
-        def stdout_output(self) -> bytearray:
-            """Mutable byte-exact captured stdout buffer."""
-            ...
-
-        @property
-        def stderr_output(self) -> bytearray:
-            """Mutable byte-exact captured stderr buffer."""
-            ...
-
-        @property
-        def pump_streams(
-            self,
-        ) -> Sequence[
+        stdout_output: bytearray
+        stderr_output: bytearray
+        pump_streams: MutableSequence[
             tuple[threading.Thread, FlextCliProtocolsProcess.RuntimeClosableStream]
-        ]:
-            """Owned output pump threads paired with their source streams."""
-            ...
-
-        @property
-        def input_pump(
-            self,
-        ) -> (
+        ]
+        input_pump: (
             tuple[threading.Thread, FlextCliProtocolsProcess.RuntimeClosableStream]
             | None
-        ):
-            """Owned stdin pump thread paired with its sink stream."""
-            ...
-
-        @property
-        def pump_stop(self) -> threading.Event:
-            """Request for output pumps to stop."""
-            ...
-
-        @property
-        def process_done(self) -> threading.Event:
-            """Notification that the root was reaped."""
-            ...
-
-        @property
-        def wake(self) -> threading.Event:
-            """Notification of new lifecycle evidence."""
-            ...
-
-        @property
-        def stack(self) -> contextlib.ExitStack:
-            """Owner of lifecycle resource cleanup."""
-            ...
-
+        )
+        pump_stop: threading.Event
+        process_done: threading.Event
+        wake: threading.Event
+        stack: contextlib.ExitStack
         return_code: int | None
         timed_out: bool
         final_deadline: float | None
         cleanup_complete: bool
-
-        @property
-        def primary_error(self) -> Exception | None:
-            """Primary exception retaining causal cleanup notes."""
-            ...
+        primary_error: Exception | None
 
     @runtime_checkable
     class RuntimeOutputTarget(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        @property
-        def durable_log(self) -> FlextCliProtocolsProcess.RuntimeBinaryStream | None:
-            """Durable sink receiving byte-exact child output."""
-            ...
-
-        @property
-        def captured_output(self) -> bytearray | None:
-            """Mutable buffer retaining captured child output."""
-            ...
-
+        durable_log: FlextCliProtocolsProcess.RuntimeBinaryStream | None
+        captured_output: bytearray | None
         live_fd: int | None
 
     @runtime_checkable
