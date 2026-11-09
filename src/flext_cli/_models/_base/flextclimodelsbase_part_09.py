@@ -14,7 +14,7 @@ from typing import Annotated, ClassVar, Literal, Self
 
 from flext_core import m
 
-from flext_cli import p, t
+from flext_cli import t
 from flext_cli._models import FlextCliModelsAtomicState
 from flext_cli._models._base.flextclimodelsbase_part_08 import FlextCliModelsBasePart08
 
@@ -175,19 +175,11 @@ class FlextCliModelsBasePart09:
             "atomic directory queries require ordered lexical child names"
         )
 
-        root: Annotated[
-            p.Cli.AtomicPhysicalTreeEntry,
-            t.schema_for_model(
-                lambda: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry
-            ),
-        ] = m.Field(description="Descriptor-authenticated physical directory identity")
+        root: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry = m.Field(
+            description="Descriptor-authenticated physical directory identity"
+        )
         entries: tuple[
-            Annotated[
-                p.Cli.AtomicDirectoryName,
-                t.schema_for_model(
-                    lambda: FlextCliModelsBasePart09.AtomicDirectoryName
-                ),
-            ],
+            FlextCliModelsBasePart09.AtomicDirectoryName,
             ...,
         ] = m.Field(
             default=(), description="Complete ordered immediate physical children"
@@ -207,20 +199,12 @@ class FlextCliModelsBasePart09:
         model_config: ClassVar[t.ConfigDict] = m.ConfigDict(frozen=True)
 
         root: Annotated[
-            p.Cli.AtomicPhysicalTreeEntry,
-            t.schema_for_model(
-                lambda: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry
-            ),
+            FlextCliModelsBasePart09.AtomicPhysicalTreeEntry,
             m.Field(description="Physical tree root"),
         ]
         entries: Annotated[
             tuple[
-                Annotated[
-                    p.Cli.AtomicPhysicalTreeEntry,
-                    t.schema_for_model(
-                        lambda: FlextCliModelsBasePart09.AtomicPhysicalTreeEntry
-                    ),
-                ],
+                FlextCliModelsBasePart09.AtomicPhysicalTreeEntry,
                 ...,
             ],
             m.Field(description="Lexically ordered descendants"),
