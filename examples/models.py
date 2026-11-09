@@ -17,11 +17,11 @@ from examples._models import (
     ExamplesFlextCliModelsExamplesDatabase,
     ExamplesFlextCliModelsPart01,
 )
-from flext_cli import m as flext_cli_m
+from flext_cli import FlextCliModels
 
 
 class ExamplesFlextCliModels(
-    flext_cli_m,
+    FlextCliModels,
     ExamplesFlextCliModelsExamplesAdvanced,
     ExamplesFlextCliModelsExamplesCommon,
     ExamplesFlextCliModelsExamplesDatabase,
