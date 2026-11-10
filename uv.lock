@@ -602,7 +602,7 @@ dependencies = [
 [[package]]
 name = "flext-infra"
 version = "0.12.0"
-source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#7195eb7122dd26a8e3f7bbec942490e423508010" }
+source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#1c4d41296ebd13cc566494ca600d953fa28308c8" }
 dependencies = [
     { name = "defusedxml" },
     { name = "flext-core" },
