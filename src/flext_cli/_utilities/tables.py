@@ -10,6 +10,7 @@ from collections.abc import Mapping, MutableSequence, Sequence
 from typing import ClassVar
 
 from flext_core import r, u
+from typing_extensions import TypeForm
 
 from flext_cli import c, m, p, t
 from flext_cli._utilities._tables import FlextCliUtilitiesTablesRenderer
@@ -19,7 +20,7 @@ class FlextCliUtilitiesTables:
     """Table helpers exposed through ``u.Cli.tables_*``."""
 
     TABLE_DATA_ADAPTER: ClassVar[t.ValueAdapter[t.Cli.TableDataSource]] = (
-        u.type_adapter(t.TypeForm(t.Cli.TableDataSource))
+        u.type_adapter(TypeForm(t.Cli.TableDataSource))
     )
 
     @staticmethod

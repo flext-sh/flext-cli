@@ -13,7 +13,6 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
-from typing import Annotated
 
 import pytest
 
@@ -32,16 +31,8 @@ class TestsFlextCliModelCommandJsonOptions:
     class NestedModel(m.BaseModel):
         """Request carrying a nested model and a sequence of nested models."""
 
-        prefs: Annotated[
-            p.Tests.UserPreferences,
-            t.schema_for_model(lambda: m.Tests.UserPreferences),
-        ]
-        others: list[
-            Annotated[
-                p.Tests.UserPreferences,
-                t.schema_for_model(lambda: m.Tests.UserPreferences),
-            ]
-        ] = m.Field(default_factory=list)
+        prefs: m.Tests.UserPreferences
+        others: list[m.Tests.UserPreferences] = m.Field(default_factory=list)
 
     class JsonDefaultsModel(m.BaseModel):
         """Request whose JSON options all carry defaults."""
@@ -50,10 +41,7 @@ class TestsFlextCliModelCommandJsonOptions:
             default_factory=lambda: {"seed": 1},
             description="Label weights.",
         )
-        prefs: Annotated[
-            p.Tests.UserPreferences,
-            t.schema_for_model(lambda: m.Tests.UserPreferences),
-        ] = m.Field(
+        prefs: m.Tests.UserPreferences = m.Field(
             default_factory=lambda: m.Tests.UserPreferences(
                 theme="light",
                 notifications=False,
@@ -123,7 +111,7 @@ class TestsFlextCliModelCommandJsonOptions:
 
     def test_nested_model_options_json_reach_model(self) -> None:
         """Nested models and their sequences validate from JSON options."""
-        others = [p.Tests.UserPreferences(theme="solar", notifications=False)]
+        others = [m.Tests.UserPreferences(theme="solar", notifications=False)]
         prefs = m.Tests.UserPreferences(theme="dark", notifications=True)
         expected = self.NestedModel(prefs=prefs, others=others)
         invocation, received = self._invoke(

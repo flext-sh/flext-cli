@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import u as flext_core_u
+from flext_core import FlextUtilities
 
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryChain,
@@ -47,7 +47,7 @@ from flext_cli._utilities import (
 )
 
 
-class FlextCliUtilities(flext_core_u):
+class FlextCliUtilities(FlextUtilities):
     """CLI utility facade composed from internal utility mixins."""
 
     class Cli(

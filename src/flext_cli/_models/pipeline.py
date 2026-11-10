@@ -112,14 +112,7 @@ class FlextCliModelsPipeline:
         model_config: ClassVar[t.ConfigDict] = m.ConfigDict(extra="forbid")
 
         stages: Annotated[
-            Sequence[
-                Annotated[
-                    p.Cli.PipelineStageResult,
-                    t.schema_for_model(
-                        lambda: FlextCliModelsPipeline.PipelineStageResult
-                    ),
-                ]
-            ],
+            Sequence[FlextCliModelsPipeline.PipelineStageResult],
             m.Field(
                 description="Results from all executed stages",
             ),
@@ -142,12 +135,7 @@ class FlextCliModelsPipeline:
         @property
         def failed_stages(
             self,
-        ) -> Sequence[
-            Annotated[
-                p.Cli.PipelineStageResult,
-                t.schema_for_model(lambda: FlextCliModelsPipeline.PipelineStageResult),
-            ]
-        ]:
+        ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Only the failed stage results."""
             return self.stages_with_status(c.Cli.PipelineStageStatus.FAILED)
 
@@ -155,12 +143,7 @@ class FlextCliModelsPipeline:
         @property
         def skipped_stages(
             self,
-        ) -> Sequence[
-            Annotated[
-                p.Cli.PipelineStageResult,
-                t.schema_for_model(lambda: FlextCliModelsPipeline.PipelineStageResult),
-            ]
-        ]:
+        ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Only the skipped stage results."""
             return self.stages_with_status(c.Cli.PipelineStageStatus.SKIPPED)
 

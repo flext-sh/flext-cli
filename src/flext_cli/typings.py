@@ -12,7 +12,7 @@ from collections.abc import Callable
 from pathlib import Path
 from typing import TypeVar
 
-from flext_core import t as flext_core_t
+from flext_core import FlextTypes
 
 from flext_cli._typings import (
     FlextCliTypesBase,
@@ -22,7 +22,7 @@ from flext_cli._typings import (
 )
 
 
-class FlextCliTypes(flext_core_t):
+class FlextCliTypes(FlextTypes):
     """CLI type definitions extending flext-core FlextTypes via inheritance."""
 
     class Cli(
