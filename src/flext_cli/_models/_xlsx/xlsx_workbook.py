@@ -10,7 +10,6 @@ from typing import Annotated
 
 from flext_core import m
 
-from flext_cli import p, t
 from flext_cli._models._base.flextclimodelsbase_part_05 import FlextCliModelsBasePart05
 from flext_cli._models._xlsx import (
     FlextCliModelsXlsxCells,
@@ -63,18 +62,14 @@ class FlextCliModelsXlsxWorkbook:
         )
 
     class XlsxRenderRequest(FlextCliModelsBasePart05.OfficeRenderRequest):
-        plan: Annotated[
-            p.Cli.XlsxWorkbookPlan,
-            t.schema_for_model(lambda: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan),
-        ] = m.Field(
+        plan: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan = m.Field(
             description="Validated workbook plan.",
         )
 
     class XlsxRenderResult(FlextCliModelsBasePart05.OfficeRenderResult):
-        plan: Annotated[
-            p.Cli.XlsxWorkbookPlan,
-            t.schema_for_model(lambda: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan),
-        ] = m.Field(description="Exact source plan.")
+        plan: FlextCliModelsXlsxWorkbook.XlsxWorkbookPlan = m.Field(
+            description="Exact source plan."
+        )
 
 
 __all__: tuple[str, ...] = ("FlextCliModelsXlsxWorkbook",)

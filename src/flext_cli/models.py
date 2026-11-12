@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import m as flext_core_m
+from flext_core import FlextModels
 
 from flext_cli._models import (
     FlextCliModelsAtomicQueries,
@@ -30,7 +30,7 @@ from flext_cli._models import (
 )
 
 
-class FlextCliModels(flext_core_m):
+class FlextCliModels(FlextModels):
     """FlextCli models extending FlextModels."""
 
     class Cli(

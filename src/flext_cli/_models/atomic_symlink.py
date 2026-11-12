@@ -11,7 +11,6 @@ from typing import Annotated, ClassVar, Self
 
 from flext_core import m, t
 
-from flext_cli import p
 from flext_cli._models import FlextCliModelsAtomicState
 
 
@@ -60,13 +59,7 @@ class FlextCliModelsAtomicSymlink:
             m.Field(description="Exact readlink text, or None when absent."),
         ]
         identity: Annotated[
-            Annotated[
-                p.Cli.AtomicSymlinkIdentity,
-                t.schema_for_model(
-                    lambda: FlextCliModelsAtomicSymlink.AtomicSymlinkIdentity
-                ),
-            ]
-            | None,
+            FlextCliModelsAtomicSymlink.AtomicSymlinkIdentity | None,
             m.Field(
                 description="Complete physical link identity, or None when absent.",
             ),

@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_core import c as flext_core_c
+from flext_core import FlextConstants
 
 from flext_cli._constants import (
     FlextCliConstantsBase,
@@ -26,7 +26,7 @@ from flext_cli._constants import (
 )
 
 
-class FlextCliConstants(flext_core_c):
+class FlextCliConstants(FlextConstants):
     """Constants for Flext CLI."""
 
     class Cli(

@@ -14,7 +14,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from examples import c as examples_c
+from examples import ExamplesFlextCliConstants
 
 from tests._constants import (
     TestsFlextCliConstantsCore,
@@ -25,7 +25,7 @@ from tests._constants import (
 
 
 class TestsFlextCliConstants(
-    examples_c,
+    ExamplesFlextCliConstants,
     TestsFlextCliConstantsCore,
     TestsFlextCliConstantsRulesOptions,
     TestsFlextCliConstantsYamlOutput,
