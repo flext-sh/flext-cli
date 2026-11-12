@@ -52,7 +52,10 @@ class FlextCliUtilitiesXlsxConditional(
         if visual.failure:
             return r[p.Cli.XlsxNamedStyleSpec].from_failure(visual)
         return r[p.Cli.XlsxNamedStyleSpec].ok(
-            m.Cli.XlsxNamedStyleSpec(name=name, visual=visual.value),
+            m.Cli.XlsxNamedStyleSpec.model_validate({
+                "name": name,
+                "visual": visual.value,
+            }),
         )
 
     @classmethod

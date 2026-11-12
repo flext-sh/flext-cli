@@ -108,7 +108,10 @@ class FlextCliUtilitiesXlsxRenderer(
         if content.failure:
             return r[p.Cli.XlsxRenderResult].from_failure(content)
         return r[p.Cli.XlsxRenderResult].ok(
-            m.Cli.XlsxRenderResult(content=content.value, plan=request.plan),
+            m.Cli.XlsxRenderResult.model_validate({
+                "content": content.value,
+                "plan": request.plan,
+            }),
         )
 
 

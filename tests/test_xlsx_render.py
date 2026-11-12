@@ -107,7 +107,10 @@ class TestsFlextCliXlsxRender:
         style_name = template.style_map[0].style_name
         plan = _typed_runtime_plan(style_name)
         result = u.Cli.xlsx_render(
-            m.Cli.XlsxRenderRequest(template=template.content, plan=plan),
+            m.Cli.XlsxRenderRequest.model_validate({
+                "template": template.content,
+                "plan": plan,
+            }),
         )
         tm.ok(result.success)
         tm.ok(result.value.plan is plan)

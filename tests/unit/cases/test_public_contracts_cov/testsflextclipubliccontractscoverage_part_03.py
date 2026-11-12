@@ -36,8 +36,8 @@ class TestsFlextCliPublicContractsCoveragePart03:
 
         fetch_spec = cli.stage("fetch", handler=stage_handler)
         spec = cli.stage("build", handler=stage_handler, depends_on=("fetch",))
-        pipeline = m.Cli.PipelineResult(
-            stages=[
+        pipeline = m.Cli.PipelineResult.model_validate({
+            "stages": [
                 cli.stage_result("ok", status=c.Cli.PipelineStageStatus.OK),
                 cli.stage_result(
                     "fail",
@@ -46,8 +46,8 @@ class TestsFlextCliPublicContractsCoveragePart03:
                 ),
                 cli.stage_result("skip", status=c.Cli.PipelineStageStatus.SKIPPED),
             ],
-            total_duration_ms=10.5,
-        )
+            "total_duration_ms": 10.5,
+        })
         stage_result = spec.handler(context)
         pipeline_run = cli.pipeline(
             (fetch_spec, spec),

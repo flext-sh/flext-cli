@@ -132,13 +132,13 @@ class FlextCliUtilitiesAtomicTreeQueryReceipts:
         cls._require_directory_witness_agreement(previous, originals, selection)
         if cls._selection_unchanged(previous, selection):
             return previous
-        return m.Cli.AtomicDirectoryInventory(
-            root=previous.root,
-            entries=previous.entries,
-            queries=selection.queries,
-            membership_queried=selection.membership_queried,
-            membership_queries=selection.membership_queries,
-        )
+        return m.Cli.AtomicDirectoryInventory.model_validate({
+            "root": previous.root,
+            "entries": previous.entries,
+            "queries": selection.queries,
+            "membership_queried": selection.membership_queried,
+            "membership_queries": selection.membership_queries,
+        })
 
     @classmethod
     def _merge_topology_witnesses(

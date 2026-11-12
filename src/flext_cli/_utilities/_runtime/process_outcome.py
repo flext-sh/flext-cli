@@ -104,12 +104,12 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
             timed_out=state.timed_out,
         ).flat_map(
             lambda outcome: r[p.Cli.CommandBytesOutput].ok(
-                m.Cli.CommandBytesOutput(
-                    stdout=bytes(state.stdout_output),
-                    stderr=bytes(state.stderr_output),
-                    outcome=outcome,
-                    duration=duration,
-                ),
+                m.Cli.CommandBytesOutput.model_validate({
+                    "stdout": bytes(state.stdout_output),
+                    "stderr": bytes(state.stderr_output),
+                    "outcome": outcome,
+                    "duration": duration,
+                }),
             ),
         )
 

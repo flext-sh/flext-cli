@@ -59,10 +59,10 @@ class FlextCliUtilitiesXlsxStyleCatalog(
                     visual_result,
                 )
             source_styles.append(
-                m.Cli.XlsxSourceVisualStyle(
-                    source_style_id=cell.style_id,
-                    visual=visual_result.value,
-                ),
+                m.Cli.XlsxSourceVisualStyle.model_validate({
+                    "source_style_id": cell.style_id,
+                    "visual": visual_result.value,
+                }),
             )
         ordered = tuple(sorted(source_styles, key=cls._source_style_id))
         return r[tuple[p.Cli.XlsxSourceVisualStyle, ...]].ok(ordered)
