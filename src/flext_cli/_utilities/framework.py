@@ -279,6 +279,67 @@ class FlextCliUtilitiesFramework:
             and source.name != c.Cli.PARAMETER_SOURCE_DEFAULT
         }
 
+    @staticmethod
+    def framework_option_spelling(parameter: Parameter) -> str | None:
+        """Return the option spelling a user types for one command parameter.
+
+        Returns:
+            The first declared option name, or ``None`` for a non-option.
+
+        """
+        declared = parameter.default
+        if isinstance(declared, OptionInfo) and declared.param_decls:
+            return declared.param_decls[0].split("/")[0]
+        return None
+
+    @classmethod
+    def framework_reject_input(
+        cls,
+        error: m.ValidationError,
+        spellings: Mapping[str, str],
+    ) -> Never:
+        """Reject an input model Pydantic refused as a native Click usage error.
+
+        Input validation of CLI arguments is a usage error: Click renders the
+        usage line and one message naming the option as the user types it, and
+        exits with its own usage code. Like Click itself, the first offending
+        parameter is reported.
+
+        Raises:
+            BadParameter: Always.
+
+        """
+        first = error.errors()[0]
+        field = str(first["loc"][0]) if first["loc"] else ""
+        hint = spellings.get(field)
+        raise typer.BadParameter(
+            "; ".join(
+                detail["msg"]
+                for detail in error.errors()
+                if detail["loc"] and str(detail["loc"][0]) == field
+            )
+            or first["msg"],
+            param_hint=f"'{hint}'" if hint else None,
+        ) from error
+
+    @staticmethod
+    def framework_report_usage_error[TResult](result: p.Result[TResult]) -> int | None:
+        """Render a Click usage failure natively and return its exit code.
+
+        Click's own ``show`` prints the usage line and the message with the
+        option spelling, without a traceback; its ``exit_code`` is the usage
+        code. A result carrying any other cause returns ``None``.
+
+        Returns:
+            Click's exit code when the failure is a Click exception, else ``None``.
+
+        """
+        exception = result.exception
+        if isinstance(exception, p.Cli.UsageFailure):
+            exception.show()
+            return exception.exit_code
+        return None
+
     @classmethod
     def framework_register_callback(
         cls,

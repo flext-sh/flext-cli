@@ -116,10 +116,10 @@ class TestsFlextCliServiceRoutes:
             u.Tests.param(False, id="unavailable-provider-never-constructed"),
         ],
     )
-    def test_invalid_input_exits_non_zero_with_validation_cause(
+    def test_invalid_input_exits_with_usage_code_naming_the_option(
         self, *, provider_available: bool
     ) -> None:
-        """Reject invalid input before constructing either provider."""
+        """Reject invalid input as a usage error before constructing a provider."""
         app = self._app(self.Greeter if provider_available else self._unconfigured)
 
         outcome = tm.ok(
@@ -137,7 +137,9 @@ class TestsFlextCliServiceRoutes:
 
         tm.fail(u.Cli.process_succeeded(outcome.outcome))
         tm.that(outcome.stdout, eq="")
-        tm.that(outcome.stderr, has=["ServiceGreeting", "greater than or equal to 1"])
+        tm.that(outcome.outcome.raw_return_code, eq=c.Cli.EXIT_CODE_USAGE)
+        tm.that(outcome.stderr, has=["--times", "greater than or equal to 1"])
+        tm.that(outcome.stderr, lacks="Traceback")
 
     def test_input_less_operation_renders_json(self) -> None:
         """An operation without a request model runs with no options."""

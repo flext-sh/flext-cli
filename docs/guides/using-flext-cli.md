@@ -160,6 +160,25 @@ def test_greet_command() -> None:
     assert greet_handler(GreetInput(name="Ada")) == "Hello, Ada!"
 ```
 
+## Exit-code contract
+
+A command registered with `cli.register_result_command` and run through
+`cli.execute_app` / `cli.finalize_result` exits with one of three codes, all declared
+in `c.Cli`:
+
+| Outcome                   | Exit code                 | Output                                      |
+| ------------------------- | ------------------------- | ------------------------------------------- |
+| Success                   | `c.Cli.EXIT_CODE_SUCCESS` | the formatted result                        |
+| Usage error               | `c.Cli.EXIT_CODE_USAGE`   | Click's usage line and one `Error:` message |
+| Domain failure (`r.fail`) | `c.Cli.EXIT_CODE_FAILURE` | the failure message                         |
+
+A usage error is a missing required option, an unknown option, a value of the wrong
+type, or input the request model rejects (for example a `Field(gt=0)` violated by
+`--block 0`). Click owns its rendering: the message names the option as the user
+types it (`Missing option '--folder'.`) and no traceback is printed. The request
+model's `ValidationError` is converted once, where the model is validated, into
+Click's own `BadParameter`.
+
 ## Managed process communication
 
 The existing `u.Cli.process_start` owner returns `p.Cli.ManagedProcess`; it remains

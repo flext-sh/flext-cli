@@ -11,7 +11,7 @@ from inspect import Parameter, Signature
 from types import GenericAlias
 from typing import Never, cast, get_origin
 
-from flext_cli import c, e, m, p, r, t, u
+from flext_cli import c, m, p, t, u
 
 
 class FlextCliCliPart01:
@@ -29,8 +29,8 @@ class FlextCliCliPart01:
         __signature__: Signature
         _handler: p.Cli.ModelCommandHandler[M, TResult]
         _model_cls: t.ModelClass[M]
-        _result_border: bool
         _settings: t.Cli.ModelLike | None
+        _spellings: Mapping[str, str]
 
         def __init__(
             self,
@@ -38,7 +38,6 @@ class FlextCliCliPart01:
             handler: p.Cli.ModelCommandHandler[M, TResult],
             model_cls: t.ModelClass[M],
             signature: Signature,
-            result_border: bool,
             settings: t.Cli.ModelLike | None = None,
         ) -> None:
             self.__name__ = getattr(handler, "__name__", model_cls.__name__)
@@ -65,8 +64,12 @@ class FlextCliCliPart01:
             }
             self._handler = handler
             self._model_cls = model_cls
-            self._result_border = result_border
             self._settings = settings
+            self._spellings = {
+                option.name: spelling
+                for option in options
+                if (spelling := u.Cli.framework_option_spelling(option)) is not None
+            }
 
         @staticmethod
         def _tuple_annotated(annotation: object) -> bool:
@@ -80,9 +83,8 @@ class FlextCliCliPart01:
 
         def __call__(self, **kwargs: t.Cli.CliValue) -> TResult:
             # Typer passes each option under its parameter (field) name, so an
-            # aliased field must validate by name as well as by alias. A result
-            # border turns rejected input into ``e.fail_validation`` carrying
-            # the ValidationError and exits non-zero; a plain command raises it.
+            # aliased field must validate by name as well as by alias. Input the
+            # model rejects is a native Click usage error (exit code 2).
             # Only given values reach the model: options the user supplied and
             # values the settings instance set explicitly. A value Typer filled
             # from the model's own default stays out of model_fields_set, so
@@ -107,15 +109,7 @@ class FlextCliCliPart01:
             try:
                 model = self._model_cls.model_validate(values, by_name=True)
             except m.ValidationError as exc:
-                if not self._result_border:
-                    raise
-                failure = e.fail_validation(
-                    self._model_cls.__name__,
-                    error=exc,
-                    result_type=r[bool],
-                )
-                u.Cli.commands_emit_failure_cause(failure)
-                FlextCliCliPart01._exit_failure(failure)
+                u.Cli.framework_reject_input(exc, self._spellings)
             return self._handler(model)
 
     @staticmethod
