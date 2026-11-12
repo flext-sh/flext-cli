@@ -155,16 +155,5 @@ class FlextCliModelsPipeline:
                 if stage.status == c.Cli.PipelineStageStatus.SKIPPED
             ]
 
-        def stages_with_status(
-            self, status: c.Cli.PipelineStageStatus
-        ) -> Sequence[p.Cli.PipelineStageResult]:
-            """Stage results whose status equals ``status``, in execution order.
-
-            Returns:
-                The resulting ``Sequence[p.Cli.PipelineStageResult]``.
-
-            """
-            return [stage for stage in self.stages if stage.status == status]
-
 
 __all__: MutableSequence[str] = ["FlextCliModelsPipeline"]
