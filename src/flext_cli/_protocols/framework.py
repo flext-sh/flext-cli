@@ -79,5 +79,15 @@ class FlextCliProtocolsFramework:
             """Return where the named parameter value came from, if parsed."""
             ...
 
+    @runtime_checkable
+    class UsageFailure(Protocol):
+        """Click exception that renders itself and carries its own exit code."""
+
+        exit_code: int
+
+        def show(self) -> None:
+            """Render the usage line and the message to stderr."""
+            ...
+
 
 __all__: list[str] = ["FlextCliProtocolsFramework"]

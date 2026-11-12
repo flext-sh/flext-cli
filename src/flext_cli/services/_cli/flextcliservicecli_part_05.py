@@ -80,7 +80,6 @@ class FlextCliCliPart05(FlextCliCliPart04):
                 handler=execute,
                 model_cls=route.model_cls,
                 signature=cls._model_signature(route.model_cls, settings),
-                result_border=True,
                 settings=settings,
             ),
         )
@@ -162,6 +161,8 @@ class FlextCliCliPart05(FlextCliCliPart04):
         """
         if result.success:
             return c.Cli.EXIT_CODE_SUCCESS
+        if (usage_code := u.Cli.framework_report_usage_error(result)) is not None:
+            return usage_code
         u.Cli.commands_emit_result_error(result)
         # NOTE (multi-agent): the outermost CLI owns its process contract while
         # FlextCliCliPart05 remains the single error-emission boundary.

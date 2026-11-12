@@ -27,8 +27,8 @@ class FlextCliCliPart03(FlextCliCliPart02):
 
         A field marked ``exclude=True`` gets no option, so it must carry a
         default: a required excluded field raises ``TypeError`` at build time.
-        Rejected input raises the ``ValidationError``; result routes register
-        through ``register_result_command`` to exit non-zero instead.
+        Input the model rejects is a usage error: Click reports it with the
+        option spelling and exits with its usage code.
 
         Args:
             model_cls: Request model whose fields declare the options.
@@ -43,7 +43,6 @@ class FlextCliCliPart03(FlextCliCliPart02):
             handler=handler,
             model_cls=model_cls,
             signature=cls._model_signature(model_cls, settings),
-            result_border=False,
             settings=settings,
         )
         return command
