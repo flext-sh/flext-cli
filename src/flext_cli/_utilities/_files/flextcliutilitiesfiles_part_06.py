@@ -78,6 +78,7 @@ class FlextCliUtilitiesFilesPart06:
     def atomic_verify_binary_file_states(
         expected_states: Sequence[p.Cli.AtomicFileState],
         *,
+        read_only_states: Sequence[p.Cli.AtomicFileState] = (),
         nonsecret_source_paths: Sequence[Path] = (),
     ) -> p.Result[Literal[True]]:
         """Verify one coherent set of physical file states without reread fallback.
@@ -85,15 +86,23 @@ class FlextCliUtilitiesFilesPart06:
         Callers may explicitly attest nonsecret Python source paths for byte
         type, length and SHA256 failure diagnostics. Other files never expose
         payloads or digests, even if included in that allowlist.
+        Destinations retain complete physical identity. Read-only observations
+        retain bytes, permissions, absence and parent identity while allowing
+        replacement of an otherwise identical regular file's inode.
 
         Returns:
             Exactly ``True`` on successful verification, otherwise a failed result.
 
         """
+        strict_paths = {state.path for state in expected_states}
         by_path: dict[t.Cli.TextPath, p.Cli.AtomicFileState] = {}
-        for expected in expected_states:
+        for expected in (*expected_states, *read_only_states):
             existing = by_path.get(expected.path)
-            if existing is not None and existing != expected:
+            if existing is not None and not (
+                FlextCliUtilitiesFilesPart06._same_file_observation(
+                    existing, expected, identity=expected.path in strict_paths
+                )
+            ):
                 return r[Literal[True]].fail(
                     f"atomic source has conflicting snapshots: {expected.path}",
                 )
@@ -104,7 +113,9 @@ class FlextCliUtilitiesFilesPart06:
             )
             if observed.failure:
                 return r[Literal[True]].from_failure(observed)
-            if observed.value != expected:
+            if not FlextCliUtilitiesFilesPart06._same_file_observation(
+                expected, observed.value, identity=expected.path in strict_paths
+            ):
                 source_path = Path(expected.path)
                 diagnostics = (
                     FlextCliUtilitiesFilesPart06._content_diagnostic(
@@ -130,6 +141,25 @@ class FlextCliUtilitiesFilesPart06:
                     )
                 )
         return r[Literal[True]].ok(value=True)
+
+    @staticmethod
+    def _same_file_observation(
+        expected: p.Cli.AtomicFileState,
+        observed: p.Cli.AtomicFileState,
+        *,
+        identity: bool,
+    ) -> bool:
+        """Compare native witnesses with only read-only leaf inode independence.
+
+        Returns:
+            Whether the observations agree for their declared publication role.
+
+        """
+        if identity:
+            return expected == observed
+        return expected.model_dump(exclude={"inode"}) == observed.model_dump(
+            exclude={"inode"}
+        )
 
     @staticmethod
     def _content_diagnostic(label: str, content: bytes | None) -> str:

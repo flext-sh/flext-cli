@@ -18,6 +18,14 @@ report the same overlay device. Each file retains its own captured identity,
 bytes, mode and ownership checks; those facts are not compared with a directory's
 device. The native rename still refuses an actual cross-filesystem operation.
 
+`u.Cli.atomic_verify_binary_file_states` verifies destinations through complete
+physical identity. Its `read_only_states` observations retain exact bytes,
+permissions, absence, device and parent identity, while allowing an identical
+regular file to be replaced with a new leaf inode. Symlinks, replaced parents,
+content or permission changes still fail. A path that is also a destination
+retains the strict destination contract; conflicting observations fail before
+publication.
+
 An authenticated read can fail before its final pathname or parent validation.
 That read failure remains the primary exception with its original traceback and
 errno even if final validation also fails. Retain later validation failures as
