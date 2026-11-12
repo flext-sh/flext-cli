@@ -137,7 +137,11 @@ class FlextCliModelsPipeline:
             self,
         ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Only the failed stage results."""
-            return self.stages_with_status(c.Cli.PipelineStageStatus.FAILED)
+            return [
+                stage
+                for stage in self.stages
+                if stage.status == c.Cli.PipelineStageStatus.FAILED
+            ]
 
         @m.computed_field
         @property
@@ -145,7 +149,11 @@ class FlextCliModelsPipeline:
             self,
         ) -> Sequence[FlextCliModelsPipeline.PipelineStageResult]:
             """Only the skipped stage results."""
-            return self.stages_with_status(c.Cli.PipelineStageStatus.SKIPPED)
+            return [
+                stage
+                for stage in self.stages
+                if stage.status == c.Cli.PipelineStageStatus.SKIPPED
+            ]
 
         def stages_with_status(
             self, status: c.Cli.PipelineStageStatus

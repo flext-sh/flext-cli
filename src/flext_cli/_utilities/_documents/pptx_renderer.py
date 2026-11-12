@@ -53,7 +53,10 @@ class FlextCliUtilitiesPptxRenderer:
         if content.failure:
             return r[p.Cli.PptxRenderResult].from_failure(content)
         return r[p.Cli.PptxRenderResult].ok(
-            m.Cli.PptxRenderResult(content=content.value, plan=request.plan),
+            m.Cli.PptxRenderResult.model_validate({
+                "content": content.value,
+                "plan": request.plan,
+            }),
         )
 
     @classmethod

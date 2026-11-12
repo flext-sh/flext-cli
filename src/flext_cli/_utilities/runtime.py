@@ -166,12 +166,12 @@ class FlextCliUtilitiesRuntime(
                     exception=exc,
                 )
             return r[p.Cli.CommandOutput].ok(
-                m.Cli.CommandOutput(
-                    stdout=stdout,
-                    stderr=stderr,
-                    outcome=output.outcome,
-                    duration=output.duration,
-                ),
+                m.Cli.CommandOutput.model_validate({
+                    "stdout": stdout,
+                    "stderr": stderr,
+                    "outcome": output.outcome,
+                    "duration": output.duration,
+                }),
             )
 
         launch = (

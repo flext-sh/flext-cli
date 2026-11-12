@@ -46,38 +46,38 @@ class FlextCliUtilitiesXlsxStyleReaders:
         # ``p.Cli.XlsxFontStyleSurface`` view carries the real runtime value
         # types (``t.Cli.XlsxUnderlineStyle`` for underline) consumed by the model.
         font_surface = cast("p.Cli.XlsxFontStyleSurface", font)
-        return m.Cli.XlsxFontSpec(
-            name=font.name,
-            size=font_surface.size,
-            bold=font_surface.bold,
-            italic=font_surface.italic,
-            strike=font.strike,
-            outline=font.outline,
-            shadow=font.shadow,
-            condense=font.condense,
-            extend=font.extend,
-            underline=font_surface.underline,
-            vertical_align=font.vertAlign,
-            color=cls._color_spec(font.color),
-            charset=font.charset,
-            family=font.family,
-            scheme=font.scheme,
-        )
+        return m.Cli.XlsxFontSpec.model_validate({
+            "name": font.name,
+            "size": font_surface.size,
+            "bold": font_surface.bold,
+            "italic": font_surface.italic,
+            "strike": font.strike,
+            "outline": font.outline,
+            "shadow": font.shadow,
+            "condense": font.condense,
+            "extend": font.extend,
+            "underline": font_surface.underline,
+            "vertical_align": font.vertAlign,
+            "color": cls._color_spec(font.color),
+            "charset": font.charset,
+            "family": font.family,
+            "scheme": font.scheme,
+        })
 
     @classmethod
     def _fill_spec(cls, fill: Fill) -> p.Cli.XlsxFillSpec:
         if isinstance(fill, PatternFill):
-            return m.Cli.XlsxPatternFillSpec(
-                pattern=fill.patternType,
-                foreground=cls._color_spec(fill.fgColor),
-                background=cls._color_spec(fill.bgColor),
-            )
+            return m.Cli.XlsxPatternFillSpec.model_validate({
+                "pattern": fill.patternType,
+                "foreground": cls._color_spec(fill.fgColor),
+                "background": cls._color_spec(fill.bgColor),
+            })
         if isinstance(fill, GradientFill):
             stops = tuple(
-                m.Cli.XlsxGradientStop(
-                    color=cls._color_spec(item.color) or m.Cli.XlsxAutomaticColor(),
-                    position=item.position,
-                )
+                m.Cli.XlsxGradientStop.model_validate({
+                    "color": cls._color_spec(item.color) or m.Cli.XlsxAutomaticColor(),
+                    "position": item.position,
+                })
                 for item in fill.stop
                 if isinstance(item, Stop)
             )
@@ -97,27 +97,27 @@ class FlextCliUtilitiesXlsxStyleReaders:
     def _side_spec(cls, side: Side | None) -> p.Cli.XlsxBorderSideSpec | None:
         if side is None:
             return None
-        return m.Cli.XlsxBorderSideSpec(
-            style=side.style,
-            color=cls._color_spec(side.color),
-        )
+        return m.Cli.XlsxBorderSideSpec.model_validate({
+            "style": side.style,
+            "color": cls._color_spec(side.color),
+        })
 
     @classmethod
     def _border_spec(cls, border: Border) -> p.Cli.XlsxBorderSpec:
-        return m.Cli.XlsxBorderSpec(
-            left=cls._side_spec(border.left),
-            right=cls._side_spec(border.right),
-            top=cls._side_spec(border.top),
-            bottom=cls._side_spec(border.bottom),
-            start=cls._side_spec(border.start),
-            end=cls._side_spec(border.end),
-            diagonal=cls._side_spec(border.diagonal),
-            vertical=cls._side_spec(border.vertical),
-            horizontal=cls._side_spec(border.horizontal),
-            diagonal_up=border.diagonalUp,
-            diagonal_down=border.diagonalDown,
-            outline=border.outline,
-        )
+        return m.Cli.XlsxBorderSpec.model_validate({
+            "left": cls._side_spec(border.left),
+            "right": cls._side_spec(border.right),
+            "top": cls._side_spec(border.top),
+            "bottom": cls._side_spec(border.bottom),
+            "start": cls._side_spec(border.start),
+            "end": cls._side_spec(border.end),
+            "diagonal": cls._side_spec(border.diagonal),
+            "vertical": cls._side_spec(border.vertical),
+            "horizontal": cls._side_spec(border.horizontal),
+            "diagonal_up": border.diagonalUp,
+            "diagonal_down": border.diagonalDown,
+            "outline": border.outline,
+        })
 
     @staticmethod
     def _alignment_spec(alignment: Alignment) -> p.Cli.XlsxAlignmentSpec:
@@ -166,13 +166,13 @@ class FlextCliUtilitiesXlsxStyleReaders:
         if not isinstance(alignment, Alignment):
             msg = "openpyxl alignment proxy copy is not Alignment"
             raise TypeError(msg)
-        return m.Cli.XlsxVisualStyleSpec(
-            font=cls._font_spec(font),
-            fill=cls._fill_spec(fill),
-            border=cls._border_spec(border),
-            alignment=cls._alignment_spec(alignment),
-            number_format=value.number_format,
-        )
+        return m.Cli.XlsxVisualStyleSpec.model_validate({
+            "font": cls._font_spec(font),
+            "fill": cls._fill_spec(fill),
+            "border": cls._border_spec(border),
+            "alignment": cls._alignment_spec(alignment),
+            "number_format": value.number_format,
+        })
 
 
 __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxStyleReaders",)

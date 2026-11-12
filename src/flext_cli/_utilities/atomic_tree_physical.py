@@ -106,7 +106,10 @@ class FlextCliUtilitiesAtomicTreePhysical:
                 parent.descriptor
             ):
                 FlextCliUtilitiesAtomicTreePhysical._raise_inventory_changed(root.path)
-        return m.Cli.AtomicDirectoryInventory(root=root, entries=tuple(entries))
+        return m.Cli.AtomicDirectoryInventory.model_validate({
+            "root": root,
+            "entries": tuple(entries),
+        })
 
     @staticmethod
     def inventory_physical_tree(root_path: Path) -> p.Cli.AtomicPhysicalTreeManifest:

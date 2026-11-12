@@ -156,33 +156,33 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                 f"{c.Cli.XlsxError.CELL_VALUE_UNSUPPORTED}: "
                 f"{selected_value.__class__.__name__} at {formula_cell.coordinate}",
             )
-        value: m.Cli.XlsxCellValue = cls._require_success(
+        value: p.Cli.XlsxCellValue = cls._require_success(
             cls._snapshot_value(
                 selected_value,
                 formula_view=formula is not None and not data_only,
             ),
         )
         return r[p.Cli.XlsxCellSnapshot].ok(
-            m.Cli.XlsxCellSnapshot(
-                coordinate=formula_cell.coordinate,
-                position=m.Cli.XlsxCellAddress(
+            m.Cli.XlsxCellSnapshot.model_validate({
+                "coordinate": formula_cell.coordinate,
+                "position": m.Cli.XlsxCellAddress(
                     row=formula_cell.row,
                     column=formula_cell.column,
                 ),
-                value=value,
-                formula=formula,
-                style_name=cls._snapshot_style_name(formula_cell),
-                style_id=formula_cell.style_id,
-                number_format=formula_cell.number_format,
-                locked=cast(
+                "value": value,
+                "formula": formula,
+                "style_name": cls._snapshot_style_name(formula_cell),
+                "style_id": formula_cell.style_id,
+                "number_format": formula_cell.number_format,
+                "locked": cast(
                     "p.Cli.XlsxProtectionSurface",
                     formula_cell.protection,
                 ).locked,
-                hidden=cast(
+                "hidden": cast(
                     "p.Cli.XlsxProtectionSurface",
                     formula_cell.protection,
                 ).hidden,
-            ),
+            }),
         )
 
     @classmethod
@@ -218,7 +218,7 @@ class FlextCliUtilitiesXlsxSnapshotValues:
                     continue
                 if not cls._has_snapshot_content(formula_cell):
                     continue
-                cell: m.Cli.XlsxCellSnapshot = cls._require_success(
+                cell: p.Cli.XlsxCellSnapshot = cls._require_success(
                     cls._snapshot_cell(formula_cell, value_sheet, data_only=data_only),
                 )
                 cells = (*cells, cell)

@@ -42,7 +42,10 @@ class FlextCliUtilitiesPipeline:
 
         if not stages:
             return r[p.Cli.PipelineResult].ok(
-                m.Cli.PipelineResult(stages=[], total_duration_ms=0.0),
+                m.Cli.PipelineResult.model_validate({
+                    "stages": [],
+                    "total_duration_ms": 0.0,
+                }),
             )
 
         stage_map: Mapping[str, p.Cli.PipelineStageSpec] = {
@@ -84,10 +87,10 @@ class FlextCliUtilitiesPipeline:
         )
 
         total_ms = (time.monotonic() - pipeline_start) * 1000
-        pipeline_result = m.Cli.PipelineResult(
-            stages=results,
-            total_duration_ms=total_ms,
-        )
+        pipeline_result = m.Cli.PipelineResult.model_validate({
+            "stages": results,
+            "total_duration_ms": total_ms,
+        })
 
         logger.info(
             "pipeline_complete",
