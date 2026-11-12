@@ -40,11 +40,11 @@ class TestsFlextCliAtomicDirectoryQueries:
             (root / names[1]).write_text("fixture", encoding=c.DEFAULT_ENCODING)
             inventory = tm.ok(u.Cli.atomic_inventory_physical_directory(root))
             fragments.extend(
-                m.Cli.AtomicDirectoryInventory(
-                    root=inventory.root,
-                    entries=inventory.entries,
-                    queries=((name, predicate),),
-                )
+                m.Cli.AtomicDirectoryInventory.model_validate({
+                    "root": inventory.root,
+                    "entries": inventory.entries,
+                    "queries": ((name, predicate),),
+                })
                 for name in names
                 for predicate in predicates
             )
@@ -256,14 +256,18 @@ class TestsFlextCliAtomicDirectoryQueries:
         """An agreeing first receipt cannot excuse a later negative election."""
         name = "candidate"
         absent = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
-        negative = m.Cli.AtomicDirectoryInventory(
-            root=absent.root, entries=absent.entries, queries=((name, "isdir"),)
-        )
+        negative = m.Cli.AtomicDirectoryInventory.model_validate({
+            "root": absent.root,
+            "entries": absent.entries,
+            "queries": ((name, "isdir"),),
+        })
         (tmp_path / name).mkdir()
         present = tm.ok(u.Cli.atomic_inventory_physical_directory(tmp_path))
-        positive = m.Cli.AtomicDirectoryInventory(
-            root=present.root, entries=present.entries, queries=((name, "isdir"),)
-        )
+        positive = m.Cli.AtomicDirectoryInventory.model_validate({
+            "root": present.root,
+            "entries": present.entries,
+            "queries": ((name, "isdir"),),
+        })
 
         with u.Tests.raises(ValueError, match="source directory query changed"):
             u.Cli.atomic_verify_directory_queries((positive, positive, negative), ())
@@ -327,13 +331,13 @@ class TestsFlextCliAtomicDirectoryQueries:
             (f"candidate-{index:03}", "exists") for index in range(128)
         )
         fragments = tuple(
-            m.Cli.AtomicDirectoryInventory(
-                root=original.root,
-                entries=original.entries,
-                queries=(query,),
-                membership_queried=original.membership_queried,
-                membership_queries=original.membership_queries,
-            )
+            m.Cli.AtomicDirectoryInventory.model_validate({
+                "root": original.root,
+                "entries": original.entries,
+                "queries": (query,),
+                "membership_queried": original.membership_queried,
+                "membership_queries": original.membership_queries,
+            })
             for query in reversed(queries)
         )
         directories, topology = u.Cli.atomic_merge_directory_query_receipts(
@@ -479,7 +483,9 @@ class TestsFlextCliAtomicDirectoryPhysicalBoundaries:
         root = m.Cli.AtomicPhysicalTreeEntry.model_validate(
             inventory.root.model_dump() | transition
         )
-        tm.that(m.Cli.AtomicDirectoryInventory(root=root).root, eq=root)
+        tm.that(
+            m.Cli.AtomicDirectoryInventory.model_validate({"root": root}).root, eq=root
+        )
         with u.Tests.raises(ValueError, match=f"parent {boundary}"):
             m.Cli.AtomicPhysicalTreeManifest(root=root)
 

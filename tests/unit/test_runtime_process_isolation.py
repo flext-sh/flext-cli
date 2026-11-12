@@ -53,37 +53,37 @@ class TestsFlextCliRuntimeProcessIsolation:
         # A real interpreter outcome cannot attest a policy compiler: the
         # original bootstrap report has no corresponding native tool row.
         outcome = tm.ok(u.Cli.run_bytes((sys.executable, "--version"))).outcome
-        compiler = m.Cli.ProcessNativeToolQualification(
-            role="policy-compiler",
-            issuer_receipt=tm.ok(
+        compiler = m.Cli.ProcessNativeToolQualification.model_validate({
+            "role": "policy-compiler",
+            "issuer_receipt": tm.ok(
                 u.Cli.atomic_read_binary_file_state(issuer, required=True)
             ),
-            artifact=artifact,
-            artifact_receipt=artifact_receipt,
-            declaration_inputs=(source_receipt,),
-            installation_inputs=(source_receipt,),
-            source_inputs=(source_receipt,),
-            native_build_outcome=outcome,
-            native_abi_probe_outcome=outcome,
-            native_policy_probe_outcome=outcome,
-            native_policy_probes=(),
-            probe_compiler_receipt=artifact_receipt,
-            policy_sha256=u.Cli.native_process_policy_identity(),
-            abi_reference=artifact_receipt,
-            architecture=platform.machine(),
-        )
-        return m.Cli.ProcessReadOnlyIsolation(
-            platform="linux",
-            architecture=platform.machine(),
-            launcher=compiler,
-            launcher_declaration=source_state,
-            policy_compiler=compiler,
-            compiler_declaration=source_state,
-            sources=(source_state,),
-            runtime_trees=(),
-            runtime_files=(artifact,),
-            environment=(),
-        )
+            "artifact": artifact,
+            "artifact_receipt": artifact_receipt,
+            "declaration_inputs": (source_receipt,),
+            "installation_inputs": (source_receipt,),
+            "source_inputs": (source_receipt,),
+            "native_build_outcome": outcome,
+            "native_abi_probe_outcome": outcome,
+            "native_policy_probe_outcome": outcome,
+            "native_policy_probes": (),
+            "probe_compiler_receipt": artifact_receipt,
+            "policy_sha256": u.Cli.native_process_policy_identity(),
+            "abi_reference": artifact_receipt,
+            "architecture": platform.machine(),
+        })
+        return m.Cli.ProcessReadOnlyIsolation.model_validate({
+            "platform": "linux",
+            "architecture": platform.machine(),
+            "launcher": compiler,
+            "launcher_declaration": source_state,
+            "policy_compiler": compiler,
+            "compiler_declaration": source_state,
+            "sources": (source_state,),
+            "runtime_trees": (),
+            "runtime_files": (artifact,),
+            "environment": (),
+        })
 
     @staticmethod
     def test_unsupported_native_identity_fails_before_command(

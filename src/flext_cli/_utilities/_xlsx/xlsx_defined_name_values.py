@@ -100,11 +100,11 @@ class FlextCliUtilitiesXlsxDefinedNameValues(
             )
             cells = (
                 *cells,
-                m.Cli.XlsxDefinedNameCell(
-                    sheet=worksheet.title,
-                    coordinate=cell.coordinate,
-                    value=value,
-                ),
+                m.Cli.XlsxDefinedNameCell.model_validate({
+                    "sheet": worksheet.title,
+                    "coordinate": cell.coordinate,
+                    "value": value,
+                }),
             )
         return r[tuple[p.Cli.XlsxDefinedNameCell, ...]].ok(cells)
 

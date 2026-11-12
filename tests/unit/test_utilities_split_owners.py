@@ -113,11 +113,11 @@ class TestsFlextCliUtilitiesSplitOwners:
             tuple((entry.name, entry.kind) for entry in inventory.entries),
             eq=(("leaf", "file"), ("nested", "directory")),
         )
-        queried = m.Cli.AtomicDirectoryInventory(
-            root=inventory.root,
-            entries=inventory.entries,
-            queries=(("absent", "exists"), ("leaf", "isfile"), ("nested", "isdir")),
-        )
+        queried = m.Cli.AtomicDirectoryInventory.model_validate({
+            "root": inventory.root,
+            "entries": inventory.entries,
+            "queries": (("absent", "exists"), ("leaf", "isfile"), ("nested", "isdir")),
+        })
         tm.that(
             tm.ok(u.Cli.atomic_verify_directory_queries((queried,), ())),
             eq=True,
