@@ -38,6 +38,47 @@ class TestsFlextCliAtomicPhysicalTree:
         tm.that(entry.sha256, eq=u.Cli.sha256_bytes(payload))
         tm.that((entry.device, entry.inode), eq=(snapshot.device, snapshot.inode))
 
+    @staticmethod
+    def test_reference_inventory_equals_a_full_inventory_of_an_unchanged_tree(
+        tmp_path: Path,
+    ) -> None:
+        """A proven manifest yields the exact manifest a full read produces."""
+        root = tmp_path / "tree"
+        (root / "nested").mkdir(parents=True)
+        (root / "a.bin").write_bytes(b"alpha")
+        (root / "nested" / "b.bin").write_bytes(b"beta")
+        proven = tm.ok(u.Cli.atomic_inventory_physical_tree(root))
+
+        reused = tm.ok(u.Cli.atomic_inventory_physical_tree(root, proven))
+
+        tm.that(reused, eq=tm.ok(u.Cli.atomic_inventory_physical_tree(root)))
+
+    @staticmethod
+    def test_reference_inventory_rereads_a_file_whose_version_identity_differs(
+        tmp_path: Path,
+    ) -> None:
+        """Equal size and mtime never prove content; a version change is read."""
+        root = tmp_path / "tree"
+        root.mkdir()
+        payload = root / "payload.bin"
+        payload.write_bytes(b"before")
+        proven = tm.ok(u.Cli.atomic_inventory_physical_tree(root))
+        prior = proven.entries[0]
+        payload.write_bytes(b"after!")
+        os.utime(payload, ns=(prior.mtime_ns, prior.mtime_ns))
+        # The reference records an older version (ctime) of the same inode.
+        reference = proven.model_copy(
+            update={
+                "entries": (prior.model_copy(update={"ctime_ns": prior.ctime_ns - 1}),),
+            },
+        )
+
+        observed = tm.ok(u.Cli.atomic_inventory_physical_tree(root, reference))
+
+        entry = observed.entries[0]
+        tm.that((entry.size, entry.mtime_ns), eq=(prior.size, prior.mtime_ns))
+        tm.that(entry.sha256, eq=u.Cli.sha256_bytes(b"after!"))
+
     def test_inventory_preserves_mount_identity_across_entries_and_reads(
         self,
         tmp_path: Path,
