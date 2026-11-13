@@ -33,6 +33,8 @@ class FlextCliConstantsSettings:
 
     CLI_PROCESS_HEARTBEAT_MESSAGE: ClassVar[str] = "flext-cli: process still running"
     CLI_PROCESS_HEARTBEAT_MAX_SECONDS: ClassVar[float] = 60.0
+    # Smallest positive one-shot interval: setitimer treats zero as disarm.
+    PROCESS_DEADLINE_EXPIRE_NOW_SECONDS: ClassVar[float] = 1e-6
     ENV_DEFAULT_CI: ClassVar[bool] = False
     ENV_VAR_HOME: ClassVar[str] = "HOME"
     ENV_VAR_CI: ClassVar[str] = "CI"

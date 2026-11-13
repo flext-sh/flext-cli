@@ -25,7 +25,7 @@ from types import FrameType
 
 from flext_core import r
 
-from flext_cli import m, p, t
+from flext_cli import c, m, p, t
 from flext_cli._utilities._runtime import (
     FlextCliUtilitiesRuntimeProcessMonitor,
     FlextCliUtilitiesRuntimeProcessThreads,
@@ -149,6 +149,61 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
                 pool.submit(copy_context().run, task, wave) for task in tasks
             )
             return tuple(future.result() for future in futures)
+
+    @staticmethod
+    @contextmanager
+    def process_deadline_scope(
+        deadline: p.Cli.ProcessDeadline | None,
+    ) -> Generator[None]:
+        """Bound the calling process by one absolute deadline.
+
+        The kernel one-shot timer fires on the main thread
+        ``termination_grace_seconds`` before the deadline. Its handler delivers
+        SIGTERM to the installed supervisor forwarding, so every owned
+        lifecycle stops its process group, then raises ``SystemExit`` with
+        ``PROCESS_TIMEOUT_EXIT_CODE``: the interrupted lifecycles reap their
+        children on the way out, as ``timeout(1)`` would leave them. Without
+        a deadline nothing is armed, and only ``process_deadline_expire`` ends
+        the scope the same way.
+
+        Yields:
+            Nothing; the deadline holds until the block exits.
+
+        Raises:
+            RuntimeError: If entered off the main interpreter thread.
+
+        """
+        if threading.current_thread() is not threading.main_thread():
+            msg = "a process deadline must be owned by the main interpreter thread"
+            raise RuntimeError(msg)
+
+        def expire(_signal_number: int, frame: FrameType | None) -> None:
+            forward = signal.getsignal(signal.SIGTERM)
+            if callable(forward):
+                forward(signal.SIGTERM, frame)
+            raise SystemExit(c.Cli.PROCESS_TIMEOUT_EXIT_CODE)
+
+        previous = signal.signal(signal.SIGALRM, expire)
+        if deadline is not None:
+            signal.setitimer(
+                signal.ITIMER_REAL,
+                max(
+                    deadline.expires_at_monotonic
+                    - deadline.termination_grace_seconds
+                    - time.monotonic(),
+                    c.Cli.PROCESS_DEADLINE_EXPIRE_NOW_SECONDS,
+                ),
+            )
+        try:
+            yield
+        finally:
+            signal.setitimer(signal.ITIMER_REAL, 0)
+            signal.signal(signal.SIGALRM, previous)
+
+    @staticmethod
+    def process_deadline_expire() -> None:
+        """End the active process deadline scope now, through the same handler."""
+        signal.setitimer(signal.ITIMER_REAL, c.Cli.PROCESS_DEADLINE_EXPIRE_NOW_SECONDS)
 
     @staticmethod
     def process_forwarded_signals() -> tuple[signal.Signals, ...]:
