@@ -59,6 +59,8 @@ class FlextCliConstantsBase:
     STDERR_DESCRIPTOR: ClassVar[int] = 2
     PROCESS_TIMEOUT_EXIT_CODE: ClassVar[int] = 124
     GIT_NOT_A_REPOSITORY_EXIT_CODE: ClassVar[int] = 128
+    # POSIX shell convention: a process ended by signal N exits with 128 + N.
+    SIGNAL_EXIT_OFFSET: ClassVar[int] = 128
     # ``error_data`` keys of a failed ``u.Cli.run``: the typed process outcome
     # travels with the failure, so callers never parse the message text.
     PROCESS_EXIT_CODE_KEY: ClassVar[str] = "exit_code"
