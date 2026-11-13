@@ -53,7 +53,7 @@ class ExamplesFlextCliSingleResultCommand:
         return cli.run_result_command(
             m.Examples.GreetingRequest,
             ExamplesFlextCliSingleResultCommand.greet,
-            prog_name=c.EXAMPLE_GREET_PROG_NAME,
+            m.Cli.CommandMetadata(name=c.EXAMPLE_GREET_PROG_NAME),
             args=argv,
             success_formatter=str,
         )

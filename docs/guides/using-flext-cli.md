@@ -123,7 +123,7 @@ cli.register_command(app, name="greet", help_text="Build a greeting", command=co
 
 When a module or console script exposes exactly one operation,
 `cli.run_result_command` is the whole CLI: it builds the application, registers
-one result command named after `prog_name`, runs it and returns the exit code.
+one result command named after `metadata.name`, runs it and returns the exit code.
 The application holds only that command, so Typer builds it as a single command
 and the options follow the program name directly (`python -m pkg.mod --name Ada`),
 with no subcommand token.
@@ -148,14 +148,15 @@ def greet(request: GreetingRequest) -> p.Result[str]:
 code = cli.run_result_command(
     GreetingRequest,
     greet,
-    prog_name="greet",
+    m.Cli.CommandMetadata(name="greet"),
     args=["--name", "Ada"],
     success_formatter=str,
 )
 assert code == c.Cli.EXIT_CODE_SUCCESS
 ```
 
-- The request model's docstring is the command help.
+- `metadata.name` is the program and command name; `metadata.help_text` is the help,
+  and when it is empty the request model's docstring is the help.
 - Without `success_formatter` a successful run prints nothing; pass `str`,
   `lambda value: value.model_dump_json(indent=2)` or any other formatter to print.
 - `args=None` reads `sys.argv[1:]`.

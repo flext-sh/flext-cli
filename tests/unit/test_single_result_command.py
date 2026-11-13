@@ -1,7 +1,7 @@
 """Behavioral tests for ``cli.run_result_command``.
 
 One request model and one handler run as the whole CLI: options follow the
-program name with no subcommand token, help is the model docstring,
+program name with no subcommand token, help defaults to the model docstring,
 success output comes only from the formatter, and the exit code is returned
 (success, domain failure once on stderr, Click usage error).
 
@@ -42,11 +42,12 @@ class TestsFlextCliSingleResultCommand:
             TestsFlextCliSingleResultCommand.Request
         ]
         | None = None,
+        help_text: str = "",
     ) -> int:
         return cli.run_result_command(
             cls.Request,
             cls._handler,
-            prog_name="copy-fontes",
+            m.Cli.CommandMetadata(name="copy-fontes", help_text=help_text),
             args=args,
             success_formatter=success_formatter,
         )
@@ -132,10 +133,23 @@ class TestsFlextCliSingleResultCommand:
         tm.that(stderr.count("Error:"), eq=1)
         tm.that(stderr, lacks="Traceback")
 
-    def test_help_is_the_model_docstring(
+    def test_help_defaults_to_the_model_docstring(
         self,
         capsys: t.Tests.CaptureFixture[str],
     ) -> None:
-        """The request model docstring is the command help."""
+        """Without help text the model docstring is the command help."""
         tm.that(self._run(["--help"]), eq=c.Cli.EXIT_CODE_SUCCESS)
         tm.that(capsys.readouterr().out, has=self.Request.__doc__)
+
+    def test_explicit_help_text_replaces_the_docstring(
+        self,
+        capsys: t.Tests.CaptureFixture[str],
+    ) -> None:
+        """Metadata help text is the command help."""
+        tm.that(
+            self._run(["--help"], help_text="Explicit copy help"),
+            eq=c.Cli.EXIT_CODE_SUCCESS,
+        )
+        out = capsys.readouterr().out
+        tm.that(out, has="Explicit copy help")
+        tm.that(out, lacks=self.Request.__doc__)

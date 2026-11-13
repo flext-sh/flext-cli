@@ -144,13 +144,11 @@ class FlextCliCliPart05(FlextCliCliPart04):
         for route in routes:
             cls.register_result_route(app, route=route)
 
-    @classmethod
+    @staticmethod
     def run_result_command[M: t.Cli.ModelLike, TResult](
-        cls,
         model_cls: t.ModelClass[M],
         handler: p.Cli.ResultCommandHandler[M, TResult],
-        *,
-        prog_name: str,
+        metadata: p.Cli.CommandMetadata,
         args: Sequence[str] | None = None,
         success_formatter: t.Cli.SuccessMessageFormatter[TResult] | None = None,
     ) -> int:
@@ -158,13 +156,13 @@ class FlextCliCliPart05(FlextCliCliPart04):
 
         The application holds exactly this command and no callback, so the
         framework builds it as a single command: options follow the program
-        name directly, with no subcommand token. The command is named after
-        ``prog_name``; its help is the model's docstring. Without a
-        ``success_formatter`` a successful run prints nothing. ``args=None``
-        reads ``sys.argv[1:]``. A domain failure prints its message once on
-        stderr and returns ``c.Cli.EXIT_CODE_FAILURE``; a usage error keeps
-        Click's message and ``c.Cli.EXIT_CODE_USAGE``. No ``SystemExit``
-        leaves this call.
+        name directly, with no subcommand token. ``metadata.name`` is the
+        program and command name; an empty ``metadata.help_text`` makes the
+        model's docstring the help. Without a ``success_formatter`` a
+        successful run prints nothing. ``args=None`` reads ``sys.argv[1:]``.
+        A domain failure prints its message once on stderr and returns
+        ``c.Cli.EXIT_CODE_FAILURE``; a usage error keeps Click's message and
+        ``c.Cli.EXIT_CODE_USAGE``. No ``SystemExit`` leaves this call.
 
         Example:
             >>> from flext_cli import c, cli, m, r
@@ -175,7 +173,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
             >>> cli.run_result_command(
             ...     Greeting,
             ...     lambda request: r[str].ok(f"Hello, {request.name}!"),
-            ...     prog_name="greet",
+            ...     m.Cli.CommandMetadata(name="greet"),
             ...     args=["--name", "Ada"],
             ...     success_formatter=str,
             ... ) == c.Cli.EXIT_CODE_SUCCESS
@@ -185,7 +183,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
         Args:
             model_cls: Request model whose fields become the command options.
             handler: Operation receiving the validated request.
-            prog_name: Program and command name shown in help and errors.
+            metadata: Program and command name, and the optional help.
             args: Command-line tokens; ``sys.argv[1:]`` when omitted.
             success_formatter: Renders a successful value; silent when omitted.
 
@@ -193,13 +191,16 @@ class FlextCliCliPart05(FlextCliCliPart04):
             The process exit code of the run.
 
         """
-        # The request model documents the command; its docstring is the help.
-        description = cleandoc(model_cls.__doc__ or "")
-        app = cls.create_group(help_text=description, name=prog_name)
-        cls.register_result_command(
+        owner = FlextCliCliPart05
+        command = m.Cli.CommandMetadata(
+            name=metadata.name,
+            help_text=metadata.help_text or cleandoc(model_cls.__doc__ or ""),
+        )
+        app = owner.create_group(help_text=command.help_text, name=command.name)
+        owner.register_result_command(
             app,
-            route=cls.result_route(
-                metadata=m.Cli.CommandMetadata(name=prog_name, help_text=description),
+            route=owner.result_route(
+                metadata=command,
                 model_cls=model_cls,
                 handler=handler,
                 success_formatter=(
@@ -209,7 +210,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
                 ),
             ),
         )
-        outcome = cls.execute_app(app, prog_name=prog_name, args=args)
+        outcome = owner.execute_app(app, prog_name=command.name, args=args)
         if outcome.success:
             return c.Cli.EXIT_CODE_SUCCESS
         # The command already rendered its domain failure when it exited;
