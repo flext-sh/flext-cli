@@ -114,7 +114,7 @@ class FlextCliCliPart01:
 
     @staticmethod
     def _exit_failure[TResult](result: p.Result[TResult]) -> Never:
-        """Expose a failed Result once at the CLI border and exit non-zero."""
+        """Exit non-zero, rendering the failure only for a direct invocation."""
         u.Cli.framework_exit_result(result)
         u.Cli.commands_emit_result_error(result)
         u.Cli.framework_exit(c.Cli.EXIT_CODE_FAILURE)

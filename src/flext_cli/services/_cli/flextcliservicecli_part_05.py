@@ -210,13 +210,9 @@ class FlextCliCliPart05(FlextCliCliPart04):
                 ),
             ),
         )
-        outcome = owner.execute_app(app, prog_name=command.name, args=args)
-        if outcome.success:
-            return c.Cli.EXIT_CODE_SUCCESS
-        # The command already rendered its domain failure when it exited;
-        # finalize_result would render it a second time.
-        usage_code = u.Cli.framework_report_usage_error(outcome)
-        return c.Cli.EXIT_CODE_FAILURE if usage_code is None else usage_code
+        return owner.finalize_result(
+            owner.execute_app(app, prog_name=command.name, args=args),
+        )
 
     @staticmethod
     def finalize_result[TResult](
@@ -224,7 +220,11 @@ class FlextCliCliPart05(FlextCliCliPart04):
         *,
         failure_exit_code: int = c.Cli.EXIT_CODE_FAILURE,
     ) -> int:
-        """Finalize one public CLI Result into output/logging and an exit code.
+        """Finalize one public CLI Result into its output and exit code.
+
+        The single rendering owner of a failure: a Click usage failure renders
+        natively; any other failure, including one ``execute_app`` returned,
+        renders once on stderr.
 
         Args:
             result: Result whose failure renders through the error boundary.
@@ -239,8 +239,6 @@ class FlextCliCliPart05(FlextCliCliPart04):
         if (usage_code := u.Cli.framework_report_usage_error(result)) is not None:
             return usage_code
         u.Cli.commands_emit_result_error(result)
-        # NOTE (multi-agent): the outermost CLI owns its process contract while
-        # FlextCliCliPart05 remains the single error-emission boundary.
         return failure_exit_code
 
 

@@ -230,6 +230,10 @@ Click's own `BadParameter`.
 A domain failure renders through the CLI output boundary only: the styled
 failure message, then the cause's traceback, notes and error code. The border
 emits no structured log event for the same failure, so stderr carries it once.
+`cli.execute_app` returns a failure unrendered, with its error, code, data and
+original exception; `cli.finalize_result` is the one owner that renders it. A
+caller that uses `execute_app` without `finalize_result` renders the failure
+itself.
 `cli.run_result_command` returns the same three codes.
 
 ## Managed process communication

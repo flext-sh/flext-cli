@@ -300,6 +300,8 @@ class TestsFlextCliServiceSettingsContract:
             [record for record in records if record.message == "cli-original-failure"],
             eq=[],
         )
+        tm.that(capsys.readouterr().err, lacks="cli-original-failure")
+        tm.that(service.finalize_result(outcome), eq=c.Cli.EXIT_CODE_FAILURE)
         captured = capsys.readouterr()
         tm.that(captured.out, eq="")
         tm.that(captured.err.count("cli-original-failure"), eq=1)
@@ -338,6 +340,8 @@ class TestsFlextCliServiceSettingsContract:
         tm.ok(service.container is container)
         tm.ok(u.logging_settings() is provider)
         tm.ok(u.logging_options() is options)
+        tm.that(capsys.readouterr().err, lacks="INVALID")
+        tm.that(service.finalize_result(result), eq=c.Cli.EXIT_CODE_FAILURE)
         captured = capsys.readouterr()
         tm.that(captured.out, eq="")
         tm.that(captured.err, has="INVALID")

@@ -2,8 +2,8 @@
 
 A usage error (missing or unknown option, input the request model rejects)
 keeps Click's native usage exit code and one clean message naming the option as
-typed; a domain failure keeps the failure exit code. Each case runs a real app
-through ``cli.execute_app`` and ``cli.finalize_result``.
+typed; a domain failure keeps the failure exit code and renders once. Each case
+runs a real app through ``cli.execute_app`` and ``cli.finalize_result``.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -76,12 +76,18 @@ class TestsFlextCliUsageErrorExitContract:
         tm.that(stderr, lacks="Traceback")
         tm.that(stderr.count("Error:"), eq=1)
 
-    def test_domain_failure_exits_with_failure_code(self) -> None:
-        """A domain failure keeps the failure exit code."""
+    def test_domain_failure_exits_with_failure_code(
+        self,
+        capsys: t.Tests.CaptureFixture[str],
+    ) -> None:
+        """A domain failure keeps the failure exit code and renders once."""
         tm.that(
             self._run(["--folder", "x", "--explode"]),
             eq=c.Cli.EXIT_CODE_FAILURE,
         )
+        captured = capsys.readouterr()
+        tm.that(captured.out, eq="")
+        tm.that(captured.err.count("domain failure"), eq=1)
 
     def test_success_exits_with_success_code(self) -> None:
         """A valid invocation exits zero."""

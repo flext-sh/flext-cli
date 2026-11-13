@@ -21,7 +21,7 @@ from typer.models import OptionInfo
 from typer.testing import CliRunner
 
 from flext_cli import c, m, p, t
-from flext_cli._utilities import FlextCliUtilitiesCommands, FlextCliUtilitiesConversion
+from flext_cli._utilities import FlextCliUtilitiesConversion
 
 
 class FlextCliUtilitiesFramework:
@@ -141,19 +141,18 @@ class FlextCliUtilitiesFramework:
         cls,
         result: p.Result[TResult],
     ) -> bool:
-        """Exit with a captured Result, or report a direct framework invocation.
+        """Capture a failed Result and exit, or report a direct invocation.
+
+        Inside an adapter-owned execution the failure is captured for
+        ``framework_execute`` to return.
 
         Returns:
             The resulting ``bool``.
 
         """
-        # NOTE (multi-agent): this outer framework boundary is the single point
-        # that exposes a failed Result to the user before the process exits;
-        # every service layer keeps the canonical Result intact up to here.
         if not cls._active_execution.get():
             return False
 
-        FlextCliUtilitiesCommands.commands_emit_result_error(result)
         cls._active_failure.set(r[t.Cli.ResultValue].from_failure(result))
         return cls.framework_exit(code=c.Cli.EXIT_CODE_FAILURE)
 

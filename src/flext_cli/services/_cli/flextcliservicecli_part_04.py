@@ -24,6 +24,10 @@ class FlextCliCliPart04(FlextCliCliPart03):
     ) -> p.Result[bool]:
         """Execute an application through the private framework boundary.
 
+        A failure returns unrendered, with its error, code, data and original
+        exception; ``finalize_result`` renders it once and selects the exit
+        code.
+
         Args:
             app: Application to execute.
             prog_name: Program name shown in help and errors.
