@@ -78,7 +78,7 @@ class TestsFlextCliUsageErrorExitContract:
 
     def test_domain_failure_exits_with_failure_code(
         self,
-        capsys: pytest.CaptureFixture[str],
+        capsys: t.Tests.CaptureFixture[str],
     ) -> None:
         """A domain failure keeps the failure exit code and renders once."""
         tm.that(

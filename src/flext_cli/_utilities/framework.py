@@ -143,9 +143,8 @@ class FlextCliUtilitiesFramework:
     ) -> bool:
         """Capture a failed Result and exit, or report a direct invocation.
 
-        Inside an adapter-owned execution the failure is captured unrendered:
-        ``framework_execute`` returns it, and the caller's ``finalize_result``
-        renders it once.
+        Inside an adapter-owned execution the failure is captured for
+        ``framework_execute`` to return.
 
         Returns:
             The resulting ``bool``.
