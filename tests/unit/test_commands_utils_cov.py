@@ -7,8 +7,8 @@ Public contract under test (``flext_cli._utilities.commands`` via ``u.Cli``):
   key > provided fallback.
 - ``commands_emit_success_message`` writes JSON/array payloads verbatim and
   styles plain text with a success glyph, always terminated by a newline.
-- ``commands_emit_result_error`` finalizes the complete failed Result state
-  and a trailing newline.
+- ``commands_emit_result_error`` renders the complete failed Result state once
+  on stderr, with a trailing newline and no log event.
 
 Assertions target returned values, stdout results, and stderr diagnostics.
 
@@ -196,18 +196,15 @@ class TestsFlextCliCommands:
         tm.that(captured.out, eq="")
 
     @staticmethod
-    @pytest.mark.parametrize("trace", [False, True])
     @pytest.mark.parametrize(
         "exception",
         [FileNotFoundError("missing source.py"), KeyboardInterrupt("cancelled")],
     )
-    def test_error_message_uses_core_detail_and_original_cause(
+    def test_error_message_is_the_single_failure_emission(
         capsys: t.Tests.CaptureFixture[str],
         exception: BaseException,
-        *,
-        trace: bool,
     ) -> None:
-        """Core renders detail once and observers receive the original cause."""
+        """The border renders the failure once on stderr and logs no event."""
         with u.Tests.raises(type(exception)) as caught:
             raise exception
         original_exception = caught.value
@@ -225,7 +222,7 @@ class TestsFlextCliCommands:
             runtime_settings=u.logging_settings().clone(
                 log_level=c.LogLevel.ERROR,
                 debug=False,
-                trace=trace,
+                trace=False,
                 async_logging=False,
             ),
         )
@@ -238,14 +235,8 @@ class TestsFlextCliCommands:
 
         captured = capsys.readouterr()
         tm.that(captured.out, eq="")
+        tm.that(captured.err.count("source read failed"), eq=1)
         tm.that(captured.err, has="missing_config")
-        tm.that(len(records), eq=1)
-        tm.ok(records[0].exception is original_exception)
-        tm.that("stack_trace" in records[0].context, eq=trace)
-        native_event = m.ConfigMap.model_validate_json(native_stream.getvalue()).root
-        tm.that(native_event[c.HandlerType.EVENT], eq=result.error)
-        tm.that(native_event["exception_type"], eq=type(original_exception).__name__)
-        tm.that("stack_trace" in native_event, eq=trace)
-        serialized = m.LoggingRecord.model_validate(records[0], from_attributes=True)
-        tm.fail("exception" in serialized.model_dump())
+        tm.that(len(records), eq=0)
+        tm.that(native_stream.getvalue(), eq="")
         tm.ok(result.exception is original_exception)
