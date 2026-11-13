@@ -300,6 +300,8 @@ class TestsFlextCliServiceSettingsContract:
             [record for record in records if record.message == "cli-original-failure"],
             eq=[],
         )
+        tm.that(capsys.readouterr().err, lacks="cli-original-failure")
+        tm.that(service.finalize_result(outcome), eq=c.Cli.EXIT_CODE_FAILURE)
         captured = capsys.readouterr()
         tm.that(captured.out, eq="")
         tm.that(captured.err.count("cli-original-failure"), eq=1)
