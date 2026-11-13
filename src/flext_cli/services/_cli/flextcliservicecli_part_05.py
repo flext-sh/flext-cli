@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Sequence
+from inspect import cleandoc
 
 from flext_cli import c, m, p, r, t, u
 from flext_cli.services._cli import FlextCliCliPart04
@@ -142,6 +143,79 @@ class FlextCliCliPart05(FlextCliCliPart04):
         """
         for route in routes:
             cls.register_result_route(app, route=route)
+
+    @classmethod
+    def run_result_command[M: t.Cli.ModelLike, TResult](
+        cls,
+        model_cls: t.ModelClass[M],
+        handler: p.Cli.ResultCommandHandler[M, TResult],
+        *,
+        prog_name: str,
+        args: Sequence[str] | None = None,
+        success_formatter: t.Cli.SuccessMessageFormatter[TResult] | None = None,
+    ) -> int:
+        """Run one model-backed command as the whole CLI and return its exit code.
+
+        The application holds exactly this command and no callback, so the
+        framework builds it as a single command: options follow the program
+        name directly, with no subcommand token. The command is named after
+        ``prog_name``; its help is the model's docstring. Without a
+        ``success_formatter`` a successful run prints nothing. ``args=None``
+        reads ``sys.argv[1:]``. A domain failure prints its message once on
+        stderr and returns ``c.Cli.EXIT_CODE_FAILURE``; a usage error keeps
+        Click's message and ``c.Cli.EXIT_CODE_USAGE``. No ``SystemExit``
+        leaves this call.
+
+        Example:
+            >>> from flext_cli import c, cli, m, r
+            >>> class Greeting(m.BaseModel):
+            ...     \"\"\"Greet one person.\"\"\"
+            ...
+            ...     name: str
+            >>> cli.run_result_command(
+            ...     Greeting,
+            ...     lambda request: r[str].ok(f"Hello, {request.name}!"),
+            ...     prog_name="greet",
+            ...     args=["--name", "Ada"],
+            ...     success_formatter=str,
+            ... ) == c.Cli.EXIT_CODE_SUCCESS
+            ✅ Hello, Ada!
+            True
+
+        Args:
+            model_cls: Request model whose fields become the command options.
+            handler: Operation receiving the validated request.
+            prog_name: Program and command name shown in help and errors.
+            args: Command-line tokens; ``sys.argv[1:]`` when omitted.
+            success_formatter: Renders a successful value; silent when omitted.
+
+        Returns:
+            The process exit code of the run.
+
+        """
+        # The request model documents the command; its docstring is the help.
+        description = cleandoc(model_cls.__doc__ or "")
+        app = cls.create_group(help_text=description, name=prog_name)
+        cls.register_result_command(
+            app,
+            route=cls.result_route(
+                metadata=m.Cli.CommandMetadata(name=prog_name, help_text=description),
+                model_cls=model_cls,
+                handler=handler,
+                success_formatter=(
+                    (lambda _value: "")
+                    if success_formatter is None
+                    else success_formatter
+                ),
+            ),
+        )
+        outcome = cls.execute_app(app, prog_name=prog_name, args=args)
+        if outcome.success:
+            return c.Cli.EXIT_CODE_SUCCESS
+        # The command already rendered its domain failure when it exited;
+        # finalize_result would render it a second time.
+        usage_code = u.Cli.framework_report_usage_error(outcome)
+        return c.Cli.EXIT_CODE_FAILURE if usage_code is None else usage_code
 
     @staticmethod
     def finalize_result[TResult](

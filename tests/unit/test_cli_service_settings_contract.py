@@ -234,7 +234,7 @@ class TestsFlextCliServiceSettingsContract:
         expected_level: t.LogLevel,
         capsys: t.Tests.CaptureFixture[str],
     ) -> None:
-        """Explicit severity wins shorthand while trace controls failure detail."""
+        """Explicit severity wins shorthand; the failure renders once."""
         trace = "--trace" in flags
         service = FlextCli.with_settings(
             settings.clone(
@@ -296,15 +296,14 @@ class TestsFlextCliServiceSettingsContract:
             record for record in records if record.message == "cli-debug-event"
         ]
         tm.that(bool(debug_events), eq=expected_level == c.LogLevel.DEBUG)
-        failure_events = [
-            record for record in records if record.message == "cli-original-failure"
-        ]
-        tm.that(len(failure_events), eq=1)
-        tm.ok(failure_events[0].exception is caught.value)
-        tm.that("stack_trace" in failure_events[0].context, eq=trace)
+        tm.that(
+            [record for record in records if record.message == "cli-original-failure"],
+            eq=[],
+        )
         captured = capsys.readouterr()
         tm.that(captured.out, eq="")
-        tm.that(captured.err, has="cli-original-failure")
+        tm.that(captured.err.count("cli-original-failure"), eq=1)
+        tm.that(captured.err, has="original CLI cause")
 
     @staticmethod
     def test_invalid_level_leaves_settings_and_business_effects_unchanged(

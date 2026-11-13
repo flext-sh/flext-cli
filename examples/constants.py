@@ -132,6 +132,9 @@ class ExamplesFlextCliConstants(FlextCliConstants):
     EXAMPLE_DB_URL_PREFIXES: Final[tuple[str, str]] = ("postgresql://", "mysql://")
     EXAMPLE_REDIS_URL_PREFIX: Final[str] = "redis://"
     EXAMPLE_ERR_INVALID_HOST: Final[str] = "Host must be a valid hostname or IP"
+    EXAMPLE_ERR_BLANK_NAME: Final[str] = "Name must not be blank"
+    EXAMPLE_GREETING_FMT: Final[str] = "Hello, {name}!"
+    EXAMPLE_GREET_PROG_NAME: Final[str] = "greet"
     EXAMPLE_ERR_INVALID_DB_URL: Final[str] = "DATABASE_URL must be a valid database URL"
     EXAMPLE_ERR_INVALID_REDIS_URL: Final[str] = "REDIS_URL must be a valid Redis URL"
     EXAMPLE_ERR_INVALID_EMAIL_FORMAT: Final[str] = "Invalid email format"

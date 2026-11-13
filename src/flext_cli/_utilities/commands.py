@@ -99,21 +99,20 @@ class FlextCliUtilitiesCommands:
     def commands_emit_result_error[TResult](
         result: p.Result[TResult],
     ) -> None:
-        """Finalize one failed Result through structured logging and CLI output.
+        """Render one failed Result once on stderr as the CLI failure message.
+
+        The styled message is the CLI's failure output (the exit-code
+        contract's "failure message"); the cause's traceback, notes and code
+        follow it. The border emits no log event as well: a second rendering
+        of the same failure would reach the same stderr.
 
         Args:
-            result: Failed result whose error is logged and rendered.
+            result: Failed result whose error is rendered.
 
         """
         # NOTE (multi-agent): keep the canonical Result intact through every
         # service layer; only this outer CLI boundary exposes its failure state.
         error = r.require_error(result)
-        u.failure(
-            error,
-            exception=result.exception,
-            error_code=result.error_code,
-            error_data=result.error_data,
-        )
         FlextCliUtilitiesOutput.emit_raw(
             "{}\n".format(
                 FlextCliUtilitiesOutput.output_message_payload(

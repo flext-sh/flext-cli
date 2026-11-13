@@ -11,7 +11,9 @@
 - [Purpose](#purpose)
 - [Settings](#settings)
 - [Model-driven command](#model-driven-command)
+- [Single-command CLI](#single-command-cli)
 - [Testing a command](#testing-a-command)
+- [Exit-code contract](#exit-code-contract)
 - [Managed process communication](#managed-process-communication)
 - [Guarded directory materialization](#guarded-directory-materialization)
 - [Good practices](#good-practices)
@@ -117,6 +119,51 @@ cli.register_command(app, name="greet", help_text="Build a greeting", command=co
   `FlextCliCli.model_command(...)`.
 - `m.CliInput` / `m.CliOutput` do not exist; use plain `m.BaseModel` subclasses.
 
+## Single-command CLI
+
+When a module or console script exposes exactly one operation,
+`cli.run_result_command` is the whole CLI: it builds the application, registers
+one result command named after `prog_name`, runs it and returns the exit code.
+The application holds only that command, so Typer builds it as a single command
+and the options follow the program name directly (`python -m pkg.mod --name Ada`),
+with no subcommand token.
+
+```python
+from __future__ import annotations
+
+from flext_cli import c, cli, m, p, r
+
+
+class GreetingRequest(m.BaseModel):
+    """Greet one person by name."""
+
+    name: str
+
+
+def greet(request: GreetingRequest) -> p.Result[str]:
+    """Return the greeting for one request."""
+    return r[str].ok(f"Hello, {request.name}!")
+
+
+code = cli.run_result_command(
+    GreetingRequest,
+    greet,
+    prog_name="greet",
+    args=["--name", "Ada"],
+    success_formatter=str,
+)
+assert code == c.Cli.EXIT_CODE_SUCCESS
+```
+
+- The request model's docstring is the command help.
+- Without `success_formatter` a successful run prints nothing; pass `str`,
+  `lambda value: value.model_dump_json(indent=2)` or any other formatter to print.
+- `args=None` reads `sys.argv[1:]`.
+- The call returns the exit code of the contract below and raises no `SystemExit`;
+  a domain failure prints its message once on stderr.
+
+`examples/ex_13_single_result_command.py` runs this pattern as a module.
+
 ## Testing a command
 
 Use `FlextCliCli.invoke_app` with the adapter-owned application, not Typer's `CliRunner`
@@ -170,7 +217,7 @@ in `c.Cli`:
 | ------------------------- | ------------------------- | ------------------------------------------- |
 | Success                   | `c.Cli.EXIT_CODE_SUCCESS` | the formatted result                        |
 | Usage error               | `c.Cli.EXIT_CODE_USAGE`   | Click's usage line and one `Error:` message |
-| Domain failure (`r.fail`) | `c.Cli.EXIT_CODE_FAILURE` | the failure message                         |
+| Domain failure (`r.fail`) | `c.Cli.EXIT_CODE_FAILURE` | the failure message, once on stderr         |
 
 A usage error is a missing required option, an unknown option, a value of the wrong
 type, or input the request model rejects (for example a `Field(gt=0)` violated by
@@ -178,6 +225,11 @@ type, or input the request model rejects (for example a `Field(gt=0)` violated b
 types it (`Missing option '--folder'.`) and no traceback is printed. The request
 model's `ValidationError` is converted once, where the model is validated, into
 Click's own `BadParameter`.
+
+A domain failure renders through the CLI output boundary only: the styled
+failure message, then the cause's traceback, notes and error code. The border
+emits no structured log event for the same failure, so stderr carries it once.
+`cli.run_result_command` returns the same three codes.
 
 ## Managed process communication
 

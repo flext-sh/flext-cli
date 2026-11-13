@@ -16,6 +16,16 @@ class ExamplesFlextCliModelsExamplesCommon:
     """Split example model common namespace."""
 
     # -------------------------------------------------------------------
+    # Example 13 - Single result command
+    # -------------------------------------------------------------------
+
+    class GreetingRequest(m.Value):
+        """Greet one person by name."""
+
+        name: Annotated[str, m.Field(description="Person to greet")]
+        shout: Annotated[bool, m.Field(description="Greet in upper case")] = False
+
+    # -------------------------------------------------------------------
     # Example 06 - Configuration
     # -------------------------------------------------------------------
 
