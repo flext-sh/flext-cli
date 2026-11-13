@@ -72,6 +72,7 @@ if TYPE_CHECKING:
     )
     from tests.base import TestsFlextCliServiceBase, s
     from tests.constants import TestsFlextCliConstants, c
+    from tests.fixtures import TestsFlextCliProcessDeadlineHolder
     from tests.models import TestsFlextCliModels, m
     from tests.protocols import TestsFlextCliProtocols, p
     from tests.settings import TestsFlextCliSettings
@@ -118,6 +119,7 @@ __all__: tuple[str, ...] = (
     "TestsFlextCliModelsCli",
     "TestsFlextCliModelsPart01",
     "TestsFlextCliModelsRuntime",
+    "TestsFlextCliProcessDeadlineHolder",
     "TestsFlextCliProtocols",
     "TestsFlextCliProtocolsTestsCli",
     "TestsFlextCliProtocolsTestsRuntime",
@@ -193,6 +195,7 @@ install_lazy_exports(
         "TestsFlextCliModelsCli": "._models",
         "TestsFlextCliModelsPart01": "._models",
         "TestsFlextCliModelsRuntime": "._models",
+        "TestsFlextCliProcessDeadlineHolder": ".fixtures",
         "TestsFlextCliProtocols": ".protocols",
         "TestsFlextCliProtocolsTestsCli": "._protocols",
         "TestsFlextCliProtocolsTestsRuntime": "._protocols",
