@@ -7,11 +7,12 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 import gc
+import signal
 import sys
 from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from contextvars import ContextVar
 from inspect import Parameter
-from types import EllipsisType, GenericAlias
+from types import EllipsisType, FrameType, GenericAlias
 from typing import ClassVar, Never
 
 import click
@@ -22,6 +23,7 @@ from typer.testing import CliRunner
 
 from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesConversion
+from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessCleanup
 
 
 class FlextCliUtilitiesFramework:
@@ -611,11 +613,23 @@ class FlextCliUtilitiesFramework:
         """Run one CLI entry as the whole process and exit with its code.
 
         The single process-only owner: in-process callers (tests, embedding
-        applications) call the entry itself, never this. After the entry
-        returns, its heap moves to the permanent generation, which
-        interpreter finalization does not traverse; ``framework_exit`` then
-        ends the process with the entry's exit code.
+        applications) call the entry itself, never this. An operator signal
+        (the supervisor's forwarded set: ``SIGINT``, ``SIGTERM``, ``SIGHUP``)
+        raises ``SystemExit(128 + signal)``, so every
+        context manager and ``finally`` of the entry runs and its temporary
+        files are removed; Python's default handlers would end the process
+        without them. After the entry returns, its heap moves to the permanent
+        generation, which interpreter finalization does not traverse;
+        ``framework_exit`` then ends the process with the entry's exit code.
         """
+
+        def stop(signum: int, _frame: FrameType | None) -> Never:
+            raise SystemExit(c.Cli.SIGNAL_EXIT_OFFSET + signum)
+
+        for (
+            stopped
+        ) in FlextCliUtilitiesRuntimeProcessCleanup.process_forwarded_signals():
+            signal.signal(stopped, stop)
         code = entry()
         gc.freeze()
         cls.framework_exit(code)

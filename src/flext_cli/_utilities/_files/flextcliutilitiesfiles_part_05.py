@@ -256,6 +256,7 @@ class FlextCliUtilitiesFilesPart05:
     @staticmethod
     def atomic_inventory_physical_tree(
         root_path: t.Cli.TextPath,
+        reference: p.Cli.AtomicPhysicalTreeManifest | None = None,
     ) -> p.Result[p.Cli.AtomicPhysicalTreeManifest]:
         """Return an exact descriptor-authenticated tree manifest.
 
@@ -263,7 +264,9 @@ class FlextCliUtilitiesFilesPart05:
         identity are recorded. Linux mount IDs reject bind aliases before their
         contents are read; unsupported hosts fail closed. Hardlinks, special nodes,
         and device or mount transitions also fail. The caller retains one exclusive
-        cooperative lock through inventory and cleanup.
+        cooperative lock through inventory and cleanup. A ``reference`` manifest
+        of the same tree lets every file with an unchanged kernel identity keep
+        its proven digest instead of being read again.
 
         Returns:
             An exact descriptor-authenticated tree manifest.
@@ -272,7 +275,7 @@ class FlextCliUtilitiesFilesPart05:
         return FlextCliUtilitiesFilesNativeResults.native_result(
             FlextCliUtilitiesAtomicTreeInventory.inventory_physical_tree,
             c.Cli.ERR_ATOMIC_PHYSICAL_TREE_INVENTORY_FAILED,
-        )(Path(root_path))
+        )(Path(root_path), reference)
 
     @staticmethod
     def atomic_cleanup_physical_tree_guarded(
