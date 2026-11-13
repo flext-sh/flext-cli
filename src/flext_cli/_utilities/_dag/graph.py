@@ -1,4 +1,7 @@
-"""Dependency graph queries backed by NetworkX — ``u.Cli.dag_*``.
+"""NetworkX-backed dependency graph queries — closure and components.
+
+The engine loads only for these queries and to explain a cycle the
+standard-library waves (``waves.py``) detected.
 
 Copyright (c) 2026 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -12,14 +15,14 @@ import networkx as nx
 from flext_core import r
 
 from flext_cli import p, t
+from flext_cli._utilities import _dag
 
 
 class FlextCliUtilitiesDagGraph:
-    """Dependency graphs: waves, order, closure and strongly connected components.
+    """Dependency graphs: closure, strongly connected components, cycle paths.
 
-    ``edges`` maps every node to the nodes it depends on. Waves, order and
-    closure require a closed graph: a dependency that is not itself a key is
-    a typed failure.
+    ``edges`` maps every node to the nodes it depends on. Closure requires a
+    closed graph: a dependency that is not itself a key is a typed failure.
     """
 
     @staticmethod
@@ -47,12 +50,7 @@ class FlextCliUtilitiesDagGraph:
             The graph, or the failure naming every reference outside it.
 
         """
-        unknown = sorted({
-            dependency
-            for dependencies in edges.values()
-            for dependency in dependencies
-            if dependency not in edges
-        })
+        unknown = _dag.FlextCliUtilitiesDagWaves.dag_unknown(edges)
         if unknown:
             return r[t.Cli.DagGraph].fail(
                 "dependency graph references names outside the graph: "
@@ -61,21 +59,20 @@ class FlextCliUtilitiesDagGraph:
         return r[t.Cli.DagGraph].ok(FlextCliUtilitiesDagGraph._dag_graph(edges))
 
     @staticmethod
-    def dag_waves(edges: t.Cli.DagEdges) -> p.Result[Sequence[Sequence[str]]]:
-        """Split a closed dependency graph into dependency-first waves.
+    def dag_cycle(edges: t.Cli.DagEdges) -> str:
+        """Explain the first cycle of a closed graph as a deterministic path.
 
-        Wave ``n`` holds only nodes whose dependencies all live in earlier
-        waves; each wave is sorted.
+        The cyclic component with the smallest sorted members is chosen; the
+        path starts and ends at its smallest node and follows dependency edges.
 
         Returns:
-            The waves, or the failure naming the unknown references or the
-            cycle path.
+            The ``cyclic dependency graph: a -> ... -> a`` message.
+
+        Raises:
+            ValueError: If the graph is open or holds no cycle.
 
         """
-        built = FlextCliUtilitiesDagGraph._dag_closed_graph(edges)
-        if built.failure:
-            return r[Sequence[Sequence[str]]].from_failure(built)
-        graph = built.value
+        graph = FlextCliUtilitiesDagGraph._dag_closed_graph(edges).unwrap()
         for component in FlextCliUtilitiesDagGraph._dag_components(graph):
             start = min(component)
             if len(component) > 1 or graph.has_edge(start, start):
@@ -89,27 +86,11 @@ class FlextCliUtilitiesDagGraph:
                 path = [start]
                 while path[-1] != successor:
                     path.append(parents[path[-1]])
-                return r[Sequence[Sequence[str]]].fail(
-                    "cyclic dependency graph: " + " -> ".join((start, *reversed(path))),
+                return "cyclic dependency graph: " + " -> ".join(
+                    (start, *reversed(path)),
                 )
-        return r[Sequence[Sequence[str]]].ok(
-            tuple(
-                tuple(sorted(wave))
-                for wave in nx.topological_generations(graph.reverse(copy=False))
-            ),
-        )
-
-    @staticmethod
-    def dag_order(edges: t.Cli.DagEdges) -> p.Result[Sequence[str]]:
-        """Return the closed graph's nodes dependencies-first, wave by wave.
-
-        Returns:
-            The flattened waves, or the first graph failure.
-
-        """
-        return FlextCliUtilitiesDagGraph.dag_waves(edges).map(
-            lambda waves: tuple(node for wave in waves for node in wave),
-        )
+        msg = "dependency graph holds no cycle to explain"
+        raise ValueError(msg)
 
     @staticmethod
     def dag_closure(

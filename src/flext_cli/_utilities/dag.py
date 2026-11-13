@@ -13,27 +13,31 @@ from flext_cli._utilities import _dag
 
 
 class FlextCliUtilitiesDag:
-    """Load the NetworkX graph engine only when a graph query executes."""
+    """Route waves/order to the standard library and the rest to NetworkX.
+
+    Waves and order run on every configuration validation, so they never load
+    the NetworkX engine; closure and components load it on first use.
+    """
 
     @staticmethod
     def dag_waves(edges: t.Cli.DagEdges) -> p.Result[Sequence[Sequence[str]]]:
-        """Group nodes into dependency waves through the graph engine.
+        """Group nodes into dependency waves on the standard library.
 
         Returns:
-            The engine's ``dag_waves`` result.
+            The ``dag_waves`` result.
 
         """
-        return _dag.FlextCliUtilitiesDagGraph.dag_waves(edges)
+        return _dag.FlextCliUtilitiesDagWaves.dag_waves(edges)
 
     @staticmethod
     def dag_order(edges: t.Cli.DagEdges) -> p.Result[Sequence[str]]:
-        """Order nodes dependencies-first through the graph engine.
+        """Order nodes dependencies-first on the standard library.
 
         Returns:
-            The engine's ``dag_order`` result.
+            The ``dag_order`` result.
 
         """
-        return _dag.FlextCliUtilitiesDagGraph.dag_order(edges)
+        return _dag.FlextCliUtilitiesDagWaves.dag_order(edges)
 
     @staticmethod
     def dag_closure(
