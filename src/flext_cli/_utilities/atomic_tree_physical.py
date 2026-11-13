@@ -9,7 +9,7 @@ from __future__ import annotations
 import errno
 import os
 import stat
-from collections.abc import Generator, MutableMapping
+from collections.abc import Generator, Mapping, MutableMapping
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Literal, Never
@@ -112,11 +112,22 @@ class FlextCliUtilitiesAtomicTreePhysical:
         })
 
     @staticmethod
-    def inventory_physical_tree(root_path: Path) -> p.Cli.AtomicPhysicalTreeManifest:
+    def inventory_physical_tree(
+        root_path: Path,
+        reference: p.Cli.AtomicPhysicalTreeManifest | None = None,
+    ) -> p.Cli.AtomicPhysicalTreeManifest:
         """Inventory one exact tree through non-aliased directory descriptors.
 
         The shared root acquisition rejects a missing physical-tree root with
         ``FileNotFoundError`` before any descendant is read.
+
+        A ``reference`` manifest is a previously proven inventory of the same
+        tree. A regular file whose authenticated version identity (device,
+        inode, size, mode, owner, link count, mtime and ctime, the same fields
+        ``state_key`` treats as one file version) is unchanged keeps the digest
+        the reference proved instead of being read again. Every other file, and
+        every file absent from the reference, is hashed; the walk and all
+        descriptor guards are unchanged.
 
         Returns:
             The resulting ``m.Cli.AtomicPhysicalTreeManifest``.
@@ -124,6 +135,15 @@ class FlextCliUtilitiesAtomicTreePhysical:
         """
         root_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(root_path)
         entries: list[p.Cli.AtomicPhysicalTreeEntry] = []
+        proven = (
+            {
+                root_path / entry.path.relative_to(reference.root.path): entry
+                for entry in reference.entries
+                if entry.kind == "file"
+            }
+            if reference is not None
+            else {}
+        )
         with FlextCliUtilitiesAtomicTreePhysical._opened_root(root_path) as (
             root,
             parent,
@@ -135,7 +155,7 @@ class FlextCliUtilitiesAtomicTreePhysical:
                 root.path, root.parent_mount_id, root.mount_id
             )
             FlextCliUtilitiesAtomicTreePhysical._inventory_directory(
-                parent, root.mount_id, entries, {(root.device, root.inode)}
+                parent, root.mount_id, entries, {(root.device, root.inode)}, proven
             )
         return m.Cli.AtomicPhysicalTreeManifest(
             root=root,
@@ -221,6 +241,7 @@ class FlextCliUtilitiesAtomicTreePhysical:
         parent_mount_id: int,
         entries: list[p.Cli.AtomicPhysicalTreeEntry],
         directory_identities: set[tuple[int, int]],
+        proven: Mapping[Path, p.Cli.AtomicPhysicalTreeEntry],
     ) -> None:
         FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
             parent.descriptor,
@@ -291,6 +312,7 @@ class FlextCliUtilitiesAtomicTreePhysical:
                         mount_id,
                         entries,
                         directory_identities,
+                        proven,
                     )
                     FlextCliUtilitiesAtomicTreeDescriptor.require_directory_state(
                         descriptor,
@@ -314,13 +336,12 @@ class FlextCliUtilitiesAtomicTreePhysical:
                     parent.state,
                     authenticated,
                 )
-                size, digest = (
-                    FlextCliUtilitiesAtomicTreeDescriptor.measure_authenticated_file(
-                        parent,
-                        path,
-                        authenticated,
-                        required_mount_id=parent_mount_id,
-                    )
+                size, digest = FlextCliUtilitiesAtomicTreePhysical._file_digest(
+                    parent,
+                    path,
+                    authenticated,
+                    parent_mount_id,
+                    proven.get(path),
                 )
                 entries.append(
                     FlextCliUtilitiesAtomicTreePhysical._entry(
@@ -377,6 +398,55 @@ class FlextCliUtilitiesAtomicTreePhysical:
             parent.descriptor,
             parent.path,
             parent.state,
+        )
+
+    @staticmethod
+    def _file_digest(
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+        path: Path,
+        authenticated: os.stat_result,
+        mount_id: int,
+        prior: p.Cli.AtomicPhysicalTreeEntry | None,
+    ) -> tuple[int, str]:
+        """Reuse a proven digest for an unchanged inode, or hash the file.
+
+        Returns:
+            The file size and SHA-256 digest.
+
+        """
+        if (
+            prior is not None
+            and prior.size is not None
+            and prior.sha256 is not None
+            and (
+                prior.device,
+                prior.inode,
+                prior.size,
+                prior.mode,
+                prior.uid,
+                prior.gid,
+                prior.link_count,
+                prior.mtime_ns,
+                prior.ctime_ns,
+            )
+            == (
+                authenticated.st_dev,
+                authenticated.st_ino,
+                authenticated.st_size,
+                stat.S_IMODE(authenticated.st_mode),
+                authenticated.st_uid,
+                authenticated.st_gid,
+                authenticated.st_nlink,
+                authenticated.st_mtime_ns,
+                authenticated.st_ctime_ns,
+            )
+        ):
+            return prior.size, prior.sha256
+        return FlextCliUtilitiesAtomicTreeDescriptor.measure_authenticated_file(
+            parent,
+            path,
+            authenticated,
+            required_mount_id=mount_id,
         )
 
     @staticmethod
