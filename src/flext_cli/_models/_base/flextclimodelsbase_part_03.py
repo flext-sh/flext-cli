@@ -68,7 +68,7 @@ class FlextCliModelsBasePart03:
             frozen=True,
         )
         name: Annotated[t.NonEmptyStr, m.Field(..., description="Command name")]
-        help_text: Annotated[str, m.Field(..., description="User-facing help text")]
+        help_text: Annotated[str, m.Field(description="User-facing help text")] = ""
 
     class ResultCommandRoute(CommandMetadata):
         """Type-erased route contract with inherited, flat command metadata."""

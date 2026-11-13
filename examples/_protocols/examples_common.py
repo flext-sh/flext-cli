@@ -20,6 +20,20 @@ class ExamplesFlextCliProtocolsExamplesCommon:
     """Own the structural contracts declared by its model source."""
 
     @runtime_checkable
+    class GreetingRequest(FlextCliProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def name(self) -> str:
+            """Person to greet."""
+            ...
+
+        @property
+        def shout(self) -> bool:
+            """Greet in upper case."""
+            ...
+
+    @runtime_checkable
     class MyAppSettings(FlextCliProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 

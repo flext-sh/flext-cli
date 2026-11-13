@@ -22,6 +22,9 @@ local examples runtime aliases.
    persistence.
 5. `ex_12_pydantic_driven_cli.py` Railway-style Pydantic validation for a typed CLI
    payload.
+6. `ex_13_single_result_command.py` One model-backed command as the whole CLI through
+   `cli.run_result_command`; run it with
+   `python -m examples.ex_13_single_result_command --name Ada`.
 
 ## Quick Start
 

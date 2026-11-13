@@ -63,7 +63,8 @@ class TestsFlextCliDocumentFacadesAreLazy:
     @staticmethod
     def test_dag_operation_still_resolves_through_the_utility_facade() -> None:
         loaded = _loaded_heavy_modules(
-            "from flext_cli import u\nu.Cli.dag_order({'a': frozenset()})",
+            "from flext_cli import u\nu.Cli.dag_closure({'a': frozenset()}, "
+            "frozenset({'a'}))",
         )
         tm.ok("networkx" in loaded)
 

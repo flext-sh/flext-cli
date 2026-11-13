@@ -22,6 +22,7 @@ if TYPE_CHECKING:
     from examples.ex_06_settings import ExamplesFlextCliSettings
     from examples.ex_11_complete_integration import ExamplesFlextCliDataManager
     from examples.ex_12_pydantic_driven_cli import ExamplesFlextCliPydanticDrivenCli
+    from examples.ex_13_single_result_command import ExamplesFlextCliSingleResultCommand
     from examples.models import ExamplesFlextCliModels, m
     from examples.protocols import ExamplesFlextCliProtocols, p
     from examples.typings import ExamplesFlextCliTypes, t
@@ -40,6 +41,7 @@ __all__: tuple[str, ...] = (
     "ExamplesFlextCliProtocols",
     "ExamplesFlextCliPydanticDrivenCli",
     "ExamplesFlextCliSettings",
+    "ExamplesFlextCliSingleResultCommand",
     "ExamplesFlextCliTypes",
     "ExamplesFlextCliUtilities",
     "c",
@@ -73,6 +75,7 @@ install_lazy_exports(
         "ExamplesFlextCliProtocols": ".protocols",
         "ExamplesFlextCliPydanticDrivenCli": ".ex_12_pydantic_driven_cli",
         "ExamplesFlextCliSettings": ".ex_06_settings",
+        "ExamplesFlextCliSingleResultCommand": ".ex_13_single_result_command",
         "ExamplesFlextCliTypes": ".typings",
         "ExamplesFlextCliUtilities": ".utilities",
         "c": ".constants",
