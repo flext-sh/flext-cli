@@ -29,4 +29,24 @@ install_lazy_exports(
         "TestsFlextCliProtocolsTestsRuntime": ".tests_runtime",
     },
     public_exports=__all__,
+    deferred_members={
+        "TestsFlextCliProtocolsTestsCli": (
+            "SampleInput",
+            "SampleOutput",
+            "RepeatableInput",
+            "ReportRow",
+            "UserPreferences",
+            "DeploymentConfig",
+            "ImportRecord",
+            "SummaryStats",
+            "ProjectFailureInfo",
+        ),
+        "TestsFlextCliProtocolsTestsRuntime": (
+            "ApiResponse",
+            "ModelCommandSample",
+            "ModelCommandNullable",
+            "ModelCommandRequired",
+            "RuntimeCommandCase",
+        ),
+    },
 )

@@ -7,7 +7,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TypeAlias
+from typing import TYPE_CHECKING, TypeAlias
 
 from flext_core import FlextModels
 
@@ -56,13 +56,16 @@ class FlextCliModels(FlextModels):
     ):
         """CLI project namespace."""
 
-        ProcessNativeQualificationReceipt: TypeAlias = (
-            FlextCliModelsProcess.ProcessNativeQualificationReceipt
-        )
-        ProcessNativeQualificationReport: TypeAlias = (
-            FlextCliModelsProcess.ProcessNativeQualificationReport
-        )
-        LocalDefinitionsOptions: TypeAlias = FlextCliModelsRules.LocalDefinitionsOptions
+        if TYPE_CHECKING:
+            ProcessNativeQualificationReceipt: TypeAlias = (
+                FlextCliModelsProcess.ProcessNativeQualificationReceipt
+            )
+            ProcessNativeQualificationReport: TypeAlias = (
+                FlextCliModelsProcess.ProcessNativeQualificationReport
+            )
+            LocalDefinitionsOptions: TypeAlias = (
+                FlextCliModelsRules.LocalDefinitionsOptions
+            )
 
 
 m = FlextCliModels
