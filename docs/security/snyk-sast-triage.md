@@ -7,7 +7,7 @@
 
 <!-- TOC END -->
 
-Gerado do scan Snyk da org Datacosmos (dump 2026-08-06).
+Gerado do scan Snyk da organização (dump 2026-08-06).
 
 **4 achados** — critical 0, high 0, medium 0, low 4
 
