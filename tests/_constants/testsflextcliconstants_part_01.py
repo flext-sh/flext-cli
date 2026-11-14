@@ -15,7 +15,7 @@ from tests._constants import (
 )
 
 
-class TestsFlextCliConstantsPart01(c):
+class TestsFlextCliConstantsPart01:
     """Implementation part for TestsFlextCliConstantsPart01."""
 
     class Tests(
