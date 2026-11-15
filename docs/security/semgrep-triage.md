@@ -149,7 +149,7 @@ com justificativa) / `risco-aceito`. Priorizar high com confidence=high.
        63                  protection.set_password(plan.credential.value, already_hashed=True)
        64              else:
 >>>    65                  protection.set_password(plan.credential.value)
-       66          return r[bool].ok(True)
+       66          return r[bool].ok(value=True)
        67
        68
        69  __all__: tuple[str, ...] = ("FlextCliUtilitiesXlsxProtection",)
