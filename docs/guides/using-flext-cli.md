@@ -265,6 +265,9 @@ Result boundary also exposes the created receipts in structured failure data.
 Neither path restores a prior image or compensates published directories. Consumers
 use the retained state to diagnose and plan forward, rather than copying the chain
 algorithm into their own application.
+Verification compares the complete original ancestry and created receipts in one
+physical descriptor traversal. A matching final inode cannot authorize a replaced
+ancestor.
 
 ## Good practices
 

@@ -62,21 +62,19 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         if tuple(state.path for state in created) != plan.directories:
             message = "directory-chain receipts differ from the original plan"
             raise OSError(errno.EINVAL, message, plan.target)
-        owner.require_anchor(plan)
         parent = (plan.anchor_device, plan.anchor_inode)
         identities: list[tuple[int, int]] = []
         for state in created:
             owner.require_planned_parent(state.path, state, parent)
             parent = owner.require_created_identity(state)
             identities.append(parent)
-        observed = owner.plan_directory_chain(plan.target)
-        if (
-            observed.anchor_path != plan.target
-            or observed.directories
-            or observed.anchor_ancestry != (*plan.anchor_ancestry, *identities)
-        ):
-            message = "provisioned directory-chain ancestry changed"
-            raise OSError(errno.ESTALE, message, plan.target)
+        descriptor = FlextCliUtilitiesAtomicParentDescriptor
+        expected = (*plan.anchor_ancestry, *identities)
+        with descriptor.physical_directory(plan.target) as observed:
+            if observed.ancestry != expected:
+                message = "provisioned directory-chain ancestry changed"
+                raise OSError(errno.ESTALE, message, plan.target)
+            descriptor.verify_lineage(plan.target, observed.lineage, expected)
 
     @staticmethod
     def create_guarded_directory_chain(
