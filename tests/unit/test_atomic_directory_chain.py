@@ -114,3 +114,23 @@ class TestsFlextCliAtomicDirectoryChain:
 
         tm.fail(result)
         tm.that(tuple(physical.iterdir()), eq=())
+
+    @staticmethod
+    def test_verifier_rejects_transplanted_target(tmp_path: Path) -> None:
+        """The same target inode cannot authorize a new ancestor."""
+        anchor = tmp_path / "anchor"
+        anchor.mkdir()
+        target = anchor / "target"
+        plan = tm.ok(u.Cli.atomic_plan_directory_chain(target))
+        created = tm.ok(
+            u.Cli.atomic_create_directory_chain_guarded(plan, permission_mode=0o700)
+        )
+        u.Cli.verify_guarded_directory_chain(plan, created)
+
+        original = tmp_path / "original"
+        anchor.rename(original)
+        anchor.mkdir()
+        (original / target.name).rename(target)
+
+        with u.Tests.raises(OSError, match="ancestry changed"):
+            u.Cli.verify_guarded_directory_chain(plan, created)
