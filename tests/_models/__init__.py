@@ -32,4 +32,7 @@ install_lazy_exports(
         "TestsFlextCliModelsRuntime": ".tests_runtime",
     },
     public_exports=__all__,
+    deferred_members={
+        "TestsFlextCliModelsPart01": ("Tests",),
+    },
 )

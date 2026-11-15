@@ -41,4 +41,13 @@ install_lazy_exports(
         "ExamplesFlextCliModelsPart01": ".examplesflextclimodels_part_01",
     },
     public_exports=__all__,
+    deferred_members={
+        "ExamplesFlextCliModelsExamplesAdvanced": ("AppSettingsAdvanced",),
+        "ExamplesFlextCliModelsExamplesCommon": (
+            "GreetingRequest",
+            "MyAppSettings",
+        ),
+        "ExamplesFlextCliModelsExamplesDatabase": ("AdvancedDatabaseConfig",),
+        "ExamplesFlextCliModelsPart01": ("Examples",),
+    },
 )

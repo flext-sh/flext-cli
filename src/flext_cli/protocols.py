@@ -7,6 +7,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING, TypeAlias
+
 from flext_core import FlextProtocols
 
 from flext_cli._protocols import (
@@ -65,6 +67,22 @@ class FlextCliProtocols(FlextProtocols):
         FlextCliProtocolsXlsx,
     ):
         """Unified CLI protocol namespace."""
+
+        if TYPE_CHECKING:
+            ModelCommandHandler: TypeAlias = FlextCliProtocolsDomain.ModelCommandHandler
+            DeclarativeRuleType: TypeAlias = FlextCliProtocolsDomain.DeclarativeRuleType
+            DeclarativeFileRuleType: TypeAlias = (
+                FlextCliProtocolsDomain.DeclarativeFileRuleType
+            )
+            ProcessNativeQualificationReceipt: TypeAlias = (
+                FlextCliProtocolsProcess.ProcessNativeQualificationReceipt
+            )
+            ProcessNativeQualificationReport: TypeAlias = (
+                FlextCliProtocolsProcess.ProcessNativeQualificationReport
+            )
+            LocalDefinitionsOptions: TypeAlias = (
+                FlextCliProtocolsRules.LocalDefinitionsOptions
+            )
 
 
 p = FlextCliProtocols
