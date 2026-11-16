@@ -17,6 +17,17 @@ class FlextCliFormatters(s[p.Cli.RuntimeStatus]):
     """Plain-text formatters facade for the CLI command surface."""
 
     @classmethod
+    def display_text(cls, text: str, *, style: str | None = None) -> None:
+        """Display one text line with the optional style.
+
+        Args:
+            text: Text to display.
+            style: Optional style name applied to the text.
+
+        """
+        cls.print(text, style=style)
+
+    @classmethod
     def display_message(
         cls,
         message: str,

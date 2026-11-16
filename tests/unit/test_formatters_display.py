@@ -22,6 +22,30 @@ from tests import c, t, tm
 class TestsFlextCliFormattersDisplay:
     """Observable-behavior tests for the formatter display contract."""
 
+    # ── display_text ──────────────────────────────────────────────────
+
+    @staticmethod
+    @pytest.mark.parametrize("style", ["bold red", "dim", None])
+    def test_display_text_emits_text_regardless_of_style(
+        capsys: t.Tests.CaptureFixture[str],
+        style: str | None,
+    ) -> None:
+        """Verify that display text emits text regardless of style."""
+        if style is not None:
+            cli.display_text("visible words", style=style)
+        else:
+            cli.display_text("visible words")
+
+        tm.that(capsys.readouterr().out, has="visible words")
+
+    @staticmethod
+    def test_display_text_is_repeatable(capsys: t.Tests.CaptureFixture[str]) -> None:
+        """Verify that display text is repeatable."""
+        cli.display_text("echo")
+        cli.display_text("echo")
+
+        tm.that(capsys.readouterr().out.count("echo"), eq=2)
+
     # ── display_message ───────────────────────────────────────────────
 
     @staticmethod
