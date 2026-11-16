@@ -47,7 +47,23 @@ class FlextCliModelsAtomicQueries:
             description="Sorted membership exclusions consumed by the caller.",
         )
 
-    class AtomicDirectoryQueryProof(m.ArbitraryTypesModel):
+    class AtomicDirectoryObservationRefs(m.ArbitraryTypesModel):
+        """Observations one verification shares by reference."""
+
+        directory_observations: t.Port[
+            MutableMapping[Path, p.Cli.AtomicDirectoryInventory]
+        ] = m.Field(
+            exclude=True,
+            description="Directory observations shared by reference in the boundary.",
+        )
+        topology_observations: t.Port[
+            MutableMapping[Path, p.Cli.AtomicDirectoryChainPlan]
+        ] = m.Field(
+            exclude=True,
+            description="Ancestry observations shared by reference in the boundary.",
+        )
+
+    class AtomicDirectoryQueryProof(AtomicDirectoryObservationRefs):
         """Caller-elected authority and own effects one verification may allow."""
 
         files: tuple[
@@ -64,20 +80,8 @@ class FlextCliModelsAtomicQueries:
             default=(),
             description="Own directory creations published in the boundary.",
         )
-        directory_observations: t.Port[
-            MutableMapping[Path, p.Cli.AtomicDirectoryInventory]
-        ] = m.Field(
-            exclude=True,
-            description="Directory observations shared by reference in the boundary.",
-        )
-        topology_observations: t.Port[
-            MutableMapping[Path, p.Cli.AtomicDirectoryChainPlan]
-        ] = m.Field(
-            exclude=True,
-            description="Ancestry observations shared by reference in the boundary.",
-        )
 
-    class AtomicDirectoryQueryBoundary(m.ArbitraryTypesModel):
+    class AtomicDirectoryQueryBoundary(AtomicDirectoryObservationRefs):
         """Own publication effects and observations of one verification boundary."""
 
         published: Mapping[
@@ -91,18 +95,6 @@ class FlextCliModelsAtomicQueries:
         )
         ancestors: Mapping[Path, None] = m.Field(
             description="Every ancestor already held by a published file.",
-        )
-        directory_observations: t.Port[
-            MutableMapping[Path, p.Cli.AtomicDirectoryInventory]
-        ] = m.Field(
-            exclude=True,
-            description="Directory observations shared by reference in the boundary.",
-        )
-        topology_observations: t.Port[
-            MutableMapping[Path, p.Cli.AtomicDirectoryChainPlan]
-        ] = m.Field(
-            exclude=True,
-            description="Ancestry observations shared by reference in the boundary.",
         )
 
 

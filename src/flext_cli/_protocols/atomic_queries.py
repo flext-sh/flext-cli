@@ -56,7 +56,18 @@ class FlextCliProtocolsAtomicQueries:
             ...
 
     @runtime_checkable
-    class AtomicDirectoryQueryProof(FlextProtocols.BaseModel, Protocol):
+    class AtomicDirectoryObservationRefs(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        directory_observations: MutableMapping[
+            Path, FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicDirectoryInventory
+        ]
+        topology_observations: MutableMapping[
+            Path, FlextCliProtocolsBaseFlextclimodelsbasePart08.AtomicDirectoryChainPlan
+        ]
+
+    @runtime_checkable
+    class AtomicDirectoryQueryProof(AtomicDirectoryObservationRefs, Protocol):
         """Structural data contract projected from the owning model."""
 
         files: tuple[
@@ -70,15 +81,9 @@ class FlextCliProtocolsAtomicQueries:
         directories: tuple[
             FlextCliProtocolsBaseFlextclimodelsbasePart03.AtomicDirectoryState, ...
         ]
-        directory_observations: MutableMapping[
-            Path, FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicDirectoryInventory
-        ]
-        topology_observations: MutableMapping[
-            Path, FlextCliProtocolsBaseFlextclimodelsbasePart08.AtomicDirectoryChainPlan
-        ]
 
     @runtime_checkable
-    class AtomicDirectoryQueryBoundary(FlextProtocols.BaseModel, Protocol):
+    class AtomicDirectoryQueryBoundary(AtomicDirectoryObservationRefs, Protocol):
         """Structural data contract projected from the owning model."""
 
         published: Mapping[
@@ -92,12 +97,6 @@ class FlextCliProtocolsAtomicQueries:
             Path, FlextCliProtocolsBaseFlextclimodelsbasePart03.AtomicDirectoryState
         ]
         ancestors: Mapping[Path, None]
-        directory_observations: MutableMapping[
-            Path, FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicDirectoryInventory
-        ]
-        topology_observations: MutableMapping[
-            Path, FlextCliProtocolsBaseFlextclimodelsbasePart08.AtomicDirectoryChainPlan
-        ]
 
 
 __all__: list[str] = [
