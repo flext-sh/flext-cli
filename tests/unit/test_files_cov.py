@@ -17,7 +17,7 @@ from typing import TYPE_CHECKING
 import pytest
 
 from flext_cli import cli
-from tests import m, t, tm, u
+from tests import c, m, t, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -150,6 +150,8 @@ class TestsFlextCliFilesCov:
         # worktree; ceiling the discovery at the case root so the plain case
         # exercises the documented outside-a-worktree path.
         monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(tmp_path.parent))
+        for name in c.Cli.GIT_REPOSITORY_ENV_KEYS:
+            monkeypatch.delenv(name, raising=False)
         if inside_git:
             tm.ok(u.Cli.run_bytes(["git", "init", "--quiet"], cwd=tmp_path))
         for relative in ("pkg/mod.py", "pkg/notes.txt", "build/gen.py", "tests/t.py"):
@@ -164,6 +166,31 @@ class TestsFlextCliFilesCov:
         tm.that(
             [path.relative_to(tmp_path.resolve()).as_posix() for path in result.value],
             eq=visible,
+        )
+
+    @staticmethod
+    def test_files_matching_root_ignores_a_foreign_repository(
+        tmp_path: Path,
+        monkeypatch: t.Tests.MonkeyPatch,
+    ) -> None:
+        """A foreign GIT_DIR cannot redirect a root-scoped selection."""
+        foreign = tmp_path / "foreign"
+        tm.ok(u.Cli.ensure_dir(foreign))
+        tm.ok(u.Cli.run_bytes(["git", "init", "--quiet"], cwd=foreign))
+        tm.ok(u.Cli.files_write_text(foreign / "only.py", ""))
+        root = tmp_path / "root"
+        tm.ok(u.Cli.ensure_dir(root / "pkg"))
+        tm.ok(u.Cli.files_write_text(root / "pkg" / "mod.py", ""))
+        monkeypatch.setenv("GIT_DIR", str(foreign / ".git"))
+        monkeypatch.setenv("GIT_WORK_TREE", str(foreign))
+        monkeypatch.setenv("GIT_CEILING_DIRECTORIES", str(root.parent))
+
+        result = u.Cli.files_matching(root, includes=["*.py"])
+
+        tm.ok(result)
+        tm.that(
+            [path.relative_to(root.resolve()).as_posix() for path in result.value],
+            eq=["pkg/mod.py"],
         )
 
     @staticmethod

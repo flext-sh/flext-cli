@@ -227,16 +227,18 @@ class FlextCliUtilitiesFilesPart06:
             one, or the probe failure.
 
         """
-        # Extend, never replace: the caller's git controls (ceiling
-        # directories, global config, credential helpers) must survive the
-        # probe — replacing the environment silently re-scopes worktree
-        # discovery into whatever directory tree hosts the process.
+        # The probe is scoped to ``scope``. Ambient repository selectors
+        # (GIT_DIR and peers) point Git at another worktree and make the
+        # listing describe paths that do not exist under the root, so they are
+        # removed; ceiling directories, global config and credential helpers
+        # remain the caller's controls.
         probe = FlextCliUtilitiesRuntime.run_bytes(
             ["git", "rev-parse", "--is-inside-work-tree"],
             cwd=scope,
             timeout=c.DEFAULT_TIMEOUT_SECONDS,
             options=m.Cli.ProcessOptions(
                 env={**os.environ, "LC_ALL": "C"},
+                remove_env_keys=c.Cli.GIT_REPOSITORY_ENV_KEYS,
             ),
         )
         if probe.failure:
@@ -290,6 +292,9 @@ class FlextCliUtilitiesFilesPart06:
             ["git", "ls-files", "--cached", "--others", "--exclude-standard", "-z"],
             cwd=scope,
             timeout=c.DEFAULT_TIMEOUT_SECONDS,
+            options=m.Cli.ProcessOptions(
+                remove_env_keys=c.Cli.GIT_REPOSITORY_ENV_KEYS,
+            ),
         )
         if listed.failure:
             return result.from_failure(listed)
