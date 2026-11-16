@@ -608,7 +608,7 @@ dev = [
 [[package]]
 name = "flext-core"
 version = "0.12.1"
-source = { git = "https://github.com/flext-sh/flext-core.git?rev=0.12.0-dev#ecc72ab26e135e09dd13a6bc8a24624ad6f4eec1" }
+source = { git = "https://github.com/flext-sh/flext-core.git?rev=0.12.0-dev#a3de3de625f9efd575bd70e32aca7484ce60dbc8" }
 dependencies = [
     { name = "annotated-types" },
     { name = "packaging" },
@@ -623,7 +623,7 @@ dependencies = [
 [[package]]
 name = "flext-infra"
 version = "0.12.1"
-source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#d1ccf9a08ed33a92e57de1957f4240a70306364d" }
+source = { git = "https://github.com/flext-sh/flext-infra.git?rev=0.12.0-dev#7464cfd528949f5518d494064aa2598aa3ae02dc" }
 dependencies = [
     { name = "defusedxml" },
     { name = "flext-core" },
@@ -646,7 +646,7 @@ dependencies = [
 [[package]]
 name = "flext-tests"
 version = "0.12.0"
-source = { git = "https://github.com/flext-sh/flext-tests.git?rev=0.12.0-dev#c450f41d9ed8dc48ce03e088a233886e6dab843e" }
+source = { git = "https://github.com/flext-sh/flext-tests.git?rev=0.12.0-dev#ae5ea8711a08c060f9a3df539c788fddcb437564" }
 dependencies = [
     { name = "docker" },
     { name = "flext-core" },
