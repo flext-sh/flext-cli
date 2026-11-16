@@ -80,6 +80,7 @@ install_lazy_exports(
             "STDERR_DESCRIPTOR",
             "PROCESS_TIMEOUT_EXIT_CODE",
             "GIT_NOT_A_REPOSITORY_EXIT_CODE",
+            "GIT_REPOSITORY_ENV_KEYS",
             "SIGNAL_EXIT_OFFSET",
             "PROCESS_EXIT_CODE_KEY",
             "PROCESS_TIMED_OUT_KEY",

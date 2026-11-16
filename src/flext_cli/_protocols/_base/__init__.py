@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import install_lazy_exports
+from flext_core.lazy import defer_lazy_bases, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._protocols._base.flextclimodelsbase_part_01 import (
@@ -167,34 +167,24 @@ install_lazy_exports(
         "FlextCliProtocolsBasePart02": (
             "Settings",
             "ProcessHandle",
-            "CliSettings",
         ),
-        "FlextCliProtocolsBasePart03": (
-            "CommandRunner",
-            "Settings",
-            "ProcessHandle",
-            "CliSettings",
-        ),
+        "FlextCliProtocolsBasePart03": ("CommandRunner",),
         "FlextCliProtocolsBasePart04": (
             "CliOptionSpec",
             "CliCommandWrapper",
             "ResultCommandHandler",
             "ErasedCommandResult",
-            "CommandRunner",
-            "Settings",
-            "ProcessHandle",
-            "CliSettings",
         ),
-        "FlextCliProtocolsBasePart05": (
-            "YamlModule",
-            "CliOptionSpec",
-            "CliCommandWrapper",
-            "ResultCommandHandler",
-            "ErasedCommandResult",
-            "CommandRunner",
-            "Settings",
-            "ProcessHandle",
-            "CliSettings",
-        ),
+        "FlextCliProtocolsBasePart05": ("YamlModule",),
+    },
+)
+
+defer_lazy_bases(
+    __name__,
+    {
+        "FlextCliProtocolsBasePart02": ((".", "FlextCliProtocolsBasePart01"),),
+        "FlextCliProtocolsBasePart03": ((".", "FlextCliProtocolsBasePart02"),),
+        "FlextCliProtocolsBasePart04": ((".", "FlextCliProtocolsBasePart03"),),
+        "FlextCliProtocolsBasePart05": ((".", "FlextCliProtocolsBasePart04"),),
     },
 )
