@@ -302,7 +302,9 @@ class FlextCliUtilitiesJsonCore:
         )
 
     @staticmethod
-    def json_as_mapping(value: t.Cli.JsonWriteData) -> t.JsonMapping:
+    def json_as_mapping(
+        value: t.Cli.JsonWriteData | t.JsonValue,
+    ) -> t.JsonMapping:
         """Normalize any JSON-compatible value into a mapping.
 
         Returns:
@@ -320,7 +322,7 @@ class FlextCliUtilitiesJsonCore:
 
     @staticmethod
     def json_as_sequence(
-        value: t.JsonValue | t.JsonPayload | None,
+        value: t.Cli.JsonWriteData | t.JsonValue | None,
     ) -> Sequence[t.JsonValue]:
         """Normalize any JSON-compatible value into a JSON sequence.
 
