@@ -17,9 +17,9 @@ source.
 
 ## Principles
 
-- **One facade**: `FlextCli` (exposed as `cli`, in `api.py`) composes 13 services
+- **One facade**: `FlextCli` (exposed as `cli`, in `api.py`) composes 12 services
   through MRO — `Auth`, `Cli`, `CommonParams`, `Docx`, `FileTools`, `Formatters`,
-  `Output`, `Pipeline`, `Prompts`, `Pptx`, `Runtime`, `Tables`, `Xlsx` — plus the
+  `Pipeline`, `Prompts`, `Pptx`, `Runtime`, `Tables`, `Xlsx` — plus the
   utilities facade (`FlextCliUtilities`).
 - **Framework boundary**: Typer and Click are imported only by
   `_utilities/framework.py`. Consumers never import them. Several public surfaces still
@@ -68,14 +68,13 @@ src/flext_cli/
 ├── api.py                # FlextCli facade (MRO composition) + `cli` singleton
 ├── base.py               # FlextCliServiceBase (service base)
 ├── cli.py                # console entry point
-├── services/             # 13 services composed into the facade via MRO
+├── services/             # 12 services composed into the facade via MRO
 │   ├── auth.py           # FlextCliAuth
 │   ├── cli.py            # FlextCliCli — command registration and execution
 │   ├── cli_params.py     # FlextCliCommonParams — reusable parameters
 │   ├── docx.py           # FlextCliDocx — Word documents
 │   ├── file_tools.py     # FlextCliFileTools — file I/O (text, JSON, YAML, CSV, zip)
-│   ├── formatters.py     # FlextCliFormatters — Rich output, print, render_table
-│   ├── output.py         # FlextCliOutput — JSON/YAML/CSV output without exposing Rich
+│   ├── formatters.py     # FlextCliFormatters — print, render_table, display_message/progress
 │   ├── pipeline.py       # FlextCliPipeline — workflow orchestration
 │   ├── prompts.py        # FlextCliPrompts — user interaction (prompt/confirm/select)
 │   ├── pptx.py           # FlextCliPptx — PowerPoint presentations
@@ -98,14 +97,14 @@ src/flext_cli/
 ## Runtime flow
 
 1. **Bootstrap**: `cli` (the `FlextCli` singleton) is loaded through `fetch_global()`;
-   all 13 services are available through MRO.
+   all 12 services are available through MRO.
 1. **User input**: `services/cli.py` (`FlextCliCli`) registers commands and dispatches
    them over the framework adapter in `_utilities/framework.py`.
 1. **Execution**: `FlextCli.execute()` reports runtime status through
    `u.Cli.cmd_status()`.
-1. **Input/output**: `services/prompts.py` collects input; `services/output.py`,
-   `services/formatters.py` and `services/tables.py` render Rich/ASCII/JSON/YAML/CSV
-   output without exposing Rich directly.
+1. **Input/output**: `services/prompts.py` collects input; `services/formatters.py`
+   and `services/tables.py` render Rich/ASCII output without exposing Rich directly;
+   `u.Cli` owns the JSON/YAML/CSV payload builders.
 1. **Configuration**: `_settings.py` holds immutable settings; `_config.py` validates
    them against their schemas.
 

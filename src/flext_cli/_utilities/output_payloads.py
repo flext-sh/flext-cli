@@ -29,16 +29,6 @@ class FlextCliUtilitiesOutputPayloads:
         )
 
     @staticmethod
-    def output_resolve_style(style: str | None) -> str:
-        """Resolve print style with canonical empty-style fallback.
-
-        Returns:
-            The resulting ``str``.
-
-        """
-        return style if style is not None else c.Cli.OUTPUT_EMPTY_STYLE
-
-    @staticmethod
     def output_message_payload(
         message: str,
         message_type: c.Cli.MessageTypes | None,

@@ -13,7 +13,7 @@ import pytest
 from tests import c, m, t, tm, u
 
 
-class TestsFlextCliOutputCov:
+class TestsFlextCliOutputPayloads:
     """Contract of the pure builders and stdout emitters exposed via ``u.Cli``."""
 
     # ---- pure resolvers -------------------------------------------------
@@ -42,16 +42,6 @@ class TestsFlextCliOutputCov:
     ) -> None:
         """Verify that resolve message type preserves explicit value."""
         tm.that(u.Cli.output_resolve_message_type(msg_type), eq=msg_type)
-
-    @staticmethod
-    def test_resolve_style_none_yields_empty_style() -> None:
-        """Verify that resolve style none yields empty style."""
-        tm.that(u.Cli.output_resolve_style(None), eq=c.Cli.OUTPUT_EMPTY_STYLE)
-
-    @staticmethod
-    def test_resolve_style_preserves_explicit_value() -> None:
-        """Verify that resolve style preserves explicit value."""
-        tm.that(u.Cli.output_resolve_style("bold red"), eq="bold red")
 
     # ---- message payload ------------------------------------------------
 

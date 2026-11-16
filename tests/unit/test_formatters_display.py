@@ -1,11 +1,11 @@
-"""Behavioral tests for services/output.py (FlextCliOutput public API).
+"""Behavioral tests for the FlextCliFormatters display contract.
 
 These tests assert the OBSERVABLE terminal output produced by the public
-``FlextCliOutput`` display API (exposed via the ``cli`` facade). The captured
-stdout is the real user-facing contract: the emoji/symbol, the formatted line
-layout, the zero-padded progress counter, the panel content and the
-no-op/idempotence invariants. No private attributes, collaborators or Rich
-internals are inspected -- only what a user of the CLI actually sees.
+``FlextCliFormatters`` display API (exposed via the ``cli`` facade). The
+captured stdout is the real user-facing contract: the emoji/symbol, the
+formatted line layout and the zero-padded progress counter. No private
+attributes, collaborators or Rich internals are inspected -- only what a user
+of the CLI actually sees.
 
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
@@ -19,8 +19,8 @@ from flext_cli import cli
 from tests import c, t, tm
 
 
-class TestsFlextCliServicesOutputCov:
-    """Observable-behavior tests for the FlextCliOutput display contract."""
+class TestsFlextCliFormattersDisplay:
+    """Observable-behavior tests for the formatter display contract."""
 
     # ── display_message ───────────────────────────────────────────────
 
@@ -52,43 +52,6 @@ class TestsFlextCliServicesOutputCov:
             captured.out if message_type == c.Cli.MessageTypes.ERROR else captured.err,
             eq="",
         )
-
-    # ── display_text ──────────────────────────────────────────────────
-
-    @staticmethod
-    @pytest.mark.parametrize("style", ["bold red", "dim", None])
-    def test_display_text_emits_text_regardless_of_style(
-        capsys: t.Tests.CaptureFixture[str],
-        style: str | None,
-    ) -> None:
-        """Verify that display text emits text regardless of style."""
-        if style is not None:
-            cli.display_text("visible words", style=style)
-        else:
-            cli.display_text("visible words")
-
-        tm.that(capsys.readouterr().out, has="visible words")
-
-    @staticmethod
-    def test_display_text_is_repeatable(capsys: t.Tests.CaptureFixture[str]) -> None:
-        """Verify that display text is repeatable."""
-        cli.display_text("echo")
-        cli.display_text("echo")
-
-        tm.that(capsys.readouterr().out.count("echo"), eq=2)
-
-    # ── print_message ─────────────────────────────────────────────────
-
-    @staticmethod
-    @pytest.mark.parametrize("style", ["bold red", None])
-    def test_print_message_emits_message_with_or_without_style(
-        capsys: t.Tests.CaptureFixture[str],
-        style: str | None,
-    ) -> None:
-        """Verify that print message emits message with or without style."""
-        cli.print_message("raw message", style)
-
-        tm.that(capsys.readouterr().out, has="raw message")
 
     # ── display_progress ──────────────────────────────────────────────
 

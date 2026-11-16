@@ -52,7 +52,6 @@ class FlextCliConstantsOutput:
         c.ParserBooleanToken.NO,
     })
 
-    OUTPUT_EMPTY_STYLE: ClassVar[str] = ""
     OUTPUT_DEFAULT_MESSAGE_TYPE: ClassVar[FlextCliConstantsEnums.MessageTypes] = (
         FlextCliConstantsEnums.MessageTypes.INFO
     )

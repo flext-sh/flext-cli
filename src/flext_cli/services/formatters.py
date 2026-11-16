@@ -10,11 +10,52 @@ from __future__ import annotations
 
 from collections.abc import MutableSequence, Sequence
 
-from flext_cli import m, p, s, u
+from flext_cli import c, m, p, s, u
 
 
 class FlextCliFormatters(s[p.Cli.RuntimeStatus]):
     """Plain-text formatters facade for the CLI command surface."""
+
+    @classmethod
+    def display_message(
+        cls,
+        message: str,
+        message_type: c.Cli.MessageTypes | None = None,
+    ) -> None:
+        """Display one message with the marker and style of its type.
+
+        Args:
+            message: Message to display.
+            message_type: Message type (info, success, error, warning); the
+                default type applies when omitted.
+
+        """
+        payload, style = u.Cli.output_message_payload(message, message_type)
+        cls.print(
+            payload,
+            style=style,
+            error=message_type == c.Cli.MessageTypes.ERROR,
+        )
+
+    @classmethod
+    def display_progress(
+        cls,
+        current: int,
+        total: int,
+        label: str,
+        *,
+        detail: str = "",
+    ) -> None:
+        """Display one progress line with a zero-padded counter.
+
+        Args:
+            current: Completed step count.
+            total: Total step count.
+            label: Short label describing the work in progress.
+            detail: Optional trailing detail appended to the line.
+
+        """
+        cls.print(u.Cli.output_progress_line(current, total, label, detail=detail))
 
     @classmethod
     def print(
