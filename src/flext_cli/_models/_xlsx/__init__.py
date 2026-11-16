@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import install_lazy_exports
+from flext_core.lazy import defer_lazy_bases, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._models._xlsx.xlsx_archive import FlextCliModelsXlsxArchive
@@ -165,16 +165,6 @@ install_lazy_exports(
             "XlsxAlignmentSpec",
             "XlsxVisualStyleSpec",
             "XlsxNamedStyleSpec",
-            "XlsxRgbColor",
-            "XlsxIndexedColor",
-            "XlsxThemeColor",
-            "XlsxAutomaticColor",
-            "XlsxColor",
-            "XlsxFontSpec",
-            "XlsxPatternFillSpec",
-            "XlsxGradientStop",
-            "XlsxGradientFillSpec",
-            "XlsxFillSpec",
         ),
         "FlextCliModelsXlsxTables": (
             "XlsxTablePlan",
@@ -200,6 +190,16 @@ install_lazy_exports(
             "XlsxWorkbookPlan",
             "XlsxRenderRequest",
             "XlsxRenderResult",
+        ),
+    },
+)
+
+defer_lazy_bases(
+    __name__,
+    {
+        "FlextCliModelsXlsxStyles": (
+            (".", "FlextCliModelsXlsxStylePrimitives"),
+            (".", "FlextCliModelsXlsxStyleFills"),
         ),
     },
 )

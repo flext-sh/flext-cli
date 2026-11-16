@@ -19,6 +19,8 @@ import pytest
 
 from tests import c, tm, u
 
+pytestmark = [c.Tests.MARK.slow]
+
 
 class TestsFlextCliRuntimeProcessCompletion:
     """A completed child must not wait for its execution deadline."""
