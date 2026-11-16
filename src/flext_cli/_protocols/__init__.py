@@ -193,7 +193,11 @@ install_lazy_exports(
             "ProcessHandle",
             "CliSettings",
         ),
-        "FlextCliProtocolsColor": ("RgbColor",),
+        "FlextCliProtocolsColor": (
+            "RgbColor",
+            "ThemeColor",
+            "AutomaticColor",
+        ),
         "FlextCliProtocolsConfig": (
             "Cli",
             "ProcessIsolation",

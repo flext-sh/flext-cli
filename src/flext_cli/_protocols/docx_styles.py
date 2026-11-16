@@ -23,37 +23,12 @@ class FlextCliProtocolsDocxStyles:
         """Structural data contract projected from the owning model."""
 
     @runtime_checkable
-    class DocxThemeColor(FlextProtocols.BaseModel, Protocol):
+    class DocxThemeColor(FlextCliProtocolsColor.ThemeColor, Protocol):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def kind(self) -> Literal["theme"]:
-            """Color kind."""
-            ...
-
-        @property
-        def value(self) -> int:
-            """Theme color value."""
-            ...
-
-        @property
-        def tint(self) -> float:
-            """Color tint."""
-            ...
 
     @runtime_checkable
-    class DocxAutomaticColor(FlextProtocols.BaseModel, Protocol):
+    class DocxAutomaticColor(FlextCliProtocolsColor.AutomaticColor, Protocol):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def kind(self) -> Literal["auto"]:
-            """Color kind."""
-            ...
-
-        @property
-        def tint(self) -> float:
-            """Color tint."""
-            ...
 
     @runtime_checkable
     class DocxFontSpec(FlextProtocols.BaseModel, Protocol):

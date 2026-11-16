@@ -26,14 +26,11 @@ class FlextCliModelsXlsxStylePrimitives:
         value: Annotated[int, m.Field(ge=0, description="Indexed color value.")]
         tint: Annotated[float, m.Field(ge=-1, le=1, description="Color tint.")] = 0
 
-    class XlsxThemeColor(m.FrozenModel):
-        kind: Literal["theme"] = m.Field(default="theme", description="Color kind.")
-        value: Annotated[int, m.Field(ge=0, description="Theme color value.")]
-        tint: Annotated[float, m.Field(ge=-1, le=1, description="Color tint.")] = 0
+    class XlsxThemeColor(FlextCliModelsColor.ThemeColor):
+        """Theme color in a spreadsheet color union."""
 
-    class XlsxAutomaticColor(m.FrozenModel):
-        kind: Literal["auto"] = m.Field(default="auto", description="Color kind.")
-        tint: Annotated[float, m.Field(ge=-1, le=1, description="Color tint.")] = 0
+    class XlsxAutomaticColor(FlextCliModelsColor.AutomaticColor):
+        """Automatic color in a spreadsheet color union."""
 
     type XlsxColor = Annotated[
         XlsxRgbColor | XlsxIndexedColor | XlsxThemeColor | XlsxAutomaticColor,

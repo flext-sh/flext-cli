@@ -166,7 +166,11 @@ install_lazy_exports(
             "AtomicDirectoryQueryEffects",
             "AtomicFilePublication",
         ),
-        "FlextCliModelsColor": ("RgbColor",),
+        "FlextCliModelsColor": (
+            "RgbColor",
+            "ThemeColor",
+            "AutomaticColor",
+        ),
         "FlextCliModelsConfig": (
             "Cli",
             "ProcessIsolation",
