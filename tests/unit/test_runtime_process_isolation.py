@@ -13,7 +13,9 @@ from pathlib import Path
 import pytest
 
 from flext_cli import config
-from tests import m, p, tm, u
+from tests import c, m, p, tm, u
+
+pytestmark = [c.Tests.MARK.slow]
 
 
 class TestsFlextCliRuntimeProcessIsolation:

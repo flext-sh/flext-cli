@@ -17,10 +17,13 @@ from typing import TYPE_CHECKING, override
 
 import pytest
 
-from tests import m, p, tm, u
+from tests import c, m, p, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+
+pytestmark = [c.Tests.MARK.slow]
 
 
 def _deadline(*, seconds: float, grace: float) -> p.Cli.ProcessDeadline:

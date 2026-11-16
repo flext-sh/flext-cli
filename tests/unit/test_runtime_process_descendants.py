@@ -12,10 +12,13 @@ import time
 from typing import TYPE_CHECKING, ClassVar, override
 
 from flext_cli import FlextCliUtilitiesCli
-from tests import m, p, tm, u
+from tests import c, m, p, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
+
+
+pytestmark = [c.Tests.MARK.slow]
 
 
 class TestsFlextCliObservedWindowsCli(FlextCliUtilitiesCli):

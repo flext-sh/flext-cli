@@ -13,6 +13,8 @@ from typing import ClassVar
 
 from tests import c, tm, u
 
+pytestmark = [c.Tests.MARK.slow]
+
 
 class TestsFlextCliRuntimeProcessDeadlineScope:
     """An expired deadline stops the owned child and exits with the timeout status."""
