@@ -285,7 +285,6 @@ install_lazy_exports(
             "PROMPT_SPACE",
             "PROMPT_YES_VALUES",
             "PROMPT_NO_VALUES",
-            "OUTPUT_EMPTY_STYLE",
             "OUTPUT_DEFAULT_MESSAGE_TYPE",
             "OUTPUT_DEFAULT_FORMAT_TYPE",
             "OUTPUT_HEADER_RULE_WIDTH",

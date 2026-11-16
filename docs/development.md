@@ -236,12 +236,11 @@ Follow the v0.12.0-dev module organization:
 src/flext_cli/
 ├── api.py                # FlextCli facade (MRO composition) + singleton `cli`
 ├── base.py               # FlextCliServiceBase
-├── services/             # 13 services composed via MRO
+├── services/             # 12 services composed via MRO
 │   ├── cli.py            # FlextCliCli — Typer/Click boundary
 │   ├── auth.py           # FlextCliAuth — keyring auth
 │   ├── file_tools.py     # FlextCliFileTools — file I/O
-│   ├── formatters.py     # FlextCliFormatters — Rich/text rendering
-│   ├── output.py         # FlextCliOutput — JSON/YAML/CSV output
+│   ├── formatters.py     # FlextCliFormatters — Rich/text rendering and display
 │   ├── prompts.py        # FlextCliPrompts — user interaction
 │   ├── tables.py         # FlextCliTables — ASCII table generation
 │   ├── pipeline.py       # FlextCliPipeline — workflow orchestration
@@ -381,7 +380,7 @@ tests/
 │   ├── formatting/        # Output formatting tests
 │   │   ├── test_rich_formatters.py
 │   │   ├── test_tables.py
-│   │   └── test_output.py
+│   │   └── test_output_payloads.py
 │   └── cli/               # CLI framework tests
 │       ├── test_click_wrapper.py
 │       ├── test_commands.py
@@ -538,7 +537,7 @@ class ProjectCliService:
 
 # ❌ Avoid - Direct framework imports
 # import click  # Use flext-cli abstractions instead
-# import rich   # Use FlextCliOutput instead
+# import rich   # Use FlextCliFormatters instead
 ```
 
 ---
@@ -676,10 +675,10 @@ def test_data_export_command():
 ### Custom Formatters
 
 ```text
-from flext_cli import FlextCliOutput
+from flext_cli import FlextCliFormatters
 
 
-class ProjectFormatters(FlextCliOutput):
+class ProjectFormatters(FlextCliFormatters):
     """Project-specific output formatters."""
 
     def format_project_data(self, data: dict) -> p.Result[str]:

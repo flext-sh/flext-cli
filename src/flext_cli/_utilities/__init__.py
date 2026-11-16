@@ -950,7 +950,6 @@ install_lazy_exports(
             "string_sequence",
             "normalize_cli_atom",
             "output_resolve_message_type",
-            "output_resolve_style",
             "output_message_payload",
             "output_progress_line",
             "output_summary_content",
@@ -1442,7 +1441,6 @@ install_lazy_exports(
             "resolve_report_dir",
             "resolve_report_path",
             "output_resolve_message_type",
-            "output_resolve_style",
             "output_message_payload",
             "output_progress_line",
             "output_summary_content",
@@ -1453,7 +1451,6 @@ install_lazy_exports(
         ),
         "FlextCliUtilitiesOutputPayloads": (
             "output_resolve_message_type",
-            "output_resolve_style",
             "output_message_payload",
             "output_progress_line",
             "output_summary_content",
