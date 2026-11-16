@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import install_lazy_exports
+from flext_core.lazy import defer_lazy_bases, install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._utilities._yaml.convert import FlextCliUtilitiesYamlConvert
@@ -57,23 +57,6 @@ install_lazy_exports(
             "yaml_force_block_style",
             "yaml_update_value_inplace",
             "yaml_overlay_preserving_order",
-            "_roundtrip_yaml",
-            "yaml_roundtrip_load",
-            "_load_node",
-            "yaml_roundtrip_load_text",
-            "yaml_roundtrip_load_all_text",
-            "yaml_roundtrip_load_map_text",
-            "yaml_roundtrip_dump",
-            "yaml_roundtrip_dump_text",
-            "_YAML_1_1_IMPLICIT_STRING_VALUES",
-            "yaml_to_plain",
-            "yaml_deep_to_commented",
-            "yaml_is_sequence",
-            "yaml_plain_str",
-            "yaml_plain_bool",
-            "yaml_plain_int",
-            "yaml_plain_float",
-            "_yaml_coerce_node",
         ),
         "FlextCliUtilitiesYamlEngine": (
             "_roundtrip_yaml",
@@ -84,15 +67,14 @@ install_lazy_exports(
             "yaml_roundtrip_load_map_text",
             "yaml_roundtrip_dump",
             "yaml_roundtrip_dump_text",
-            "_YAML_1_1_IMPLICIT_STRING_VALUES",
-            "yaml_to_plain",
-            "yaml_deep_to_commented",
-            "yaml_is_sequence",
-            "yaml_plain_str",
-            "yaml_plain_bool",
-            "yaml_plain_int",
-            "yaml_plain_float",
-            "_yaml_coerce_node",
         ),
+    },
+)
+
+defer_lazy_bases(
+    __name__,
+    {
+        "FlextCliUtilitiesYamlEditing": ((".", "FlextCliUtilitiesYamlEngine"),),
+        "FlextCliUtilitiesYamlEngine": ((".", "FlextCliUtilitiesYamlConvert"),),
     },
 )
