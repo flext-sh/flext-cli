@@ -99,6 +99,7 @@ install_lazy_exports(
         "FlextCliModelsAtomicQueries": (
             "AtomicDirectoryWorkingSelectors",
             "AtomicDirectorySelection",
+            "AtomicDirectoryObservationRefs",
             "AtomicDirectoryQueryProof",
             "AtomicDirectoryQueryBoundary",
         ),
