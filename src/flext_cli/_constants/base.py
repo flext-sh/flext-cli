@@ -59,6 +59,17 @@ class FlextCliConstantsBase:
     STDERR_DESCRIPTOR: ClassVar[int] = 2
     PROCESS_TIMEOUT_EXIT_CODE: ClassVar[int] = 124
     GIT_NOT_A_REPOSITORY_EXIT_CODE: ClassVar[int] = 128
+    # Repository selectors that redirect Git away from the directory under
+    # inspection. A root-scoped selection removes them; ceiling, global config
+    # and credential helpers remain the caller's controls.
+    GIT_REPOSITORY_ENV_KEYS: ClassVar[Sequence[str]] = (
+        "GIT_DIR",
+        "GIT_WORK_TREE",
+        "GIT_COMMON_DIR",
+        "GIT_INDEX_FILE",
+        "GIT_OBJECT_DIRECTORY",
+        "GIT_ALTERNATE_OBJECT_DIRECTORIES",
+    )
     # POSIX shell convention: a process ended by signal N exits with 128 + N.
     SIGNAL_EXIT_OFFSET: ClassVar[int] = 128
     # ``error_data`` keys of a failed ``u.Cli.run``: the typed process outcome
