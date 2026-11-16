@@ -22,14 +22,11 @@ class FlextCliModelsDocxStyles:
     class DocxRgbColor(FlextCliModelsColor.RgbColor):
         """RGB value in a Word document color union."""
 
-    class DocxThemeColor(m.FrozenModel):
-        kind: Literal["theme"] = m.Field(default="theme", description="Color kind.")
-        value: Annotated[int, m.Field(ge=0, description="Theme color value.")]
-        tint: Annotated[float, m.Field(ge=-1, le=1, description="Color tint.")] = 0
+    class DocxThemeColor(FlextCliModelsColor.ThemeColor):
+        """Theme color in a Word document color union."""
 
-    class DocxAutomaticColor(m.FrozenModel):
-        kind: Literal["auto"] = m.Field(default="auto", description="Color kind.")
-        tint: Annotated[float, m.Field(ge=-1, le=1, description="Color tint.")] = 0
+    class DocxAutomaticColor(FlextCliModelsColor.AutomaticColor):
+        """Automatic color in a Word document color union."""
 
     type DocxColor = Annotated[
         DocxRgbColor | DocxThemeColor | DocxAutomaticColor,

@@ -42,37 +42,12 @@ class FlextCliProtocolsXlsxXlsxStylePrimitives:
             ...
 
     @runtime_checkable
-    class XlsxThemeColor(FlextProtocols.BaseModel, Protocol):
+    class XlsxThemeColor(FlextCliProtocolsColor.ThemeColor, Protocol):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def kind(self) -> Literal["theme"]:
-            """Color kind."""
-            ...
-
-        @property
-        def value(self) -> int:
-            """Theme color value."""
-            ...
-
-        @property
-        def tint(self) -> float:
-            """Color tint."""
-            ...
 
     @runtime_checkable
-    class XlsxAutomaticColor(FlextProtocols.BaseModel, Protocol):
+    class XlsxAutomaticColor(FlextCliProtocolsColor.AutomaticColor, Protocol):
         """Structural data contract projected from the owning model."""
-
-        @property
-        def kind(self) -> Literal["auto"]:
-            """Color kind."""
-            ...
-
-        @property
-        def tint(self) -> float:
-            """Color tint."""
-            ...
 
     @runtime_checkable
     class XlsxFontSpec(FlextProtocols.BaseModel, Protocol):

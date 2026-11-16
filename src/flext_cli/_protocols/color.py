@@ -35,6 +35,39 @@ class FlextCliProtocolsColor:
             """Color tint."""
             ...
 
+    @runtime_checkable
+    class ThemeColor(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def kind(self) -> Literal["theme"]:
+            """Color kind."""
+            ...
+
+        @property
+        def value(self) -> int:
+            """Theme color value."""
+            ...
+
+        @property
+        def tint(self) -> float:
+            """Color tint."""
+            ...
+
+    @runtime_checkable
+    class AutomaticColor(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def kind(self) -> Literal["auto"]:
+            """Color kind."""
+            ...
+
+        @property
+        def tint(self) -> float:
+            """Color tint."""
+            ...
+
 
 __all__: list[str] = [
     "FlextCliProtocolsColor",

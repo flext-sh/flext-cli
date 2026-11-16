@@ -27,5 +27,18 @@ class FlextCliModelsColor:
         ]
         tint: Annotated[float, m.Field(ge=-1, le=1, description="Color tint.")] = 0
 
+    class ThemeColor(m.FrozenModel):
+        """Theme color index with its optional tint."""
+
+        kind: Literal["theme"] = m.Field(default="theme", description="Color kind.")
+        value: Annotated[int, m.Field(ge=0, description="Theme color value.")]
+        tint: Annotated[float, m.Field(ge=-1, le=1, description="Color tint.")] = 0
+
+    class AutomaticColor(m.FrozenModel):
+        """Automatic color with its optional tint."""
+
+        kind: Literal["auto"] = m.Field(default="auto", description="Color kind.")
+        tint: Annotated[float, m.Field(ge=-1, le=1, description="Color tint.")] = 0
+
 
 __all__: list[str] = ["FlextCliModelsColor"]
