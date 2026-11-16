@@ -18,7 +18,6 @@ if TYPE_CHECKING:
     from flext_cli.services.docx import FlextCliDocx
     from flext_cli.services.file_tools import FlextCliFileTools
     from flext_cli.services.formatters import FlextCliFormatters
-    from flext_cli.services.output import FlextCliOutput
     from flext_cli.services.pipeline import FlextCliPipeline
     from flext_cli.services.pptx import FlextCliPptx
     from flext_cli.services.prompts import FlextCliPrompts
@@ -34,7 +33,6 @@ __all__: tuple[str, ...] = (
     "FlextCliDocx",
     "FlextCliFileTools",
     "FlextCliFormatters",
-    "FlextCliOutput",
     "FlextCliPipeline",
     "FlextCliPptx",
     "FlextCliPrompts",
@@ -53,7 +51,6 @@ install_lazy_exports(
         "FlextCliDocx": ".docx",
         "FlextCliFileTools": ".file_tools",
         "FlextCliFormatters": ".formatters",
-        "FlextCliOutput": ".output",
         "FlextCliPipeline": ".pipeline",
         "FlextCliPptx": ".pptx",
         "FlextCliPrompts": ".prompts",
