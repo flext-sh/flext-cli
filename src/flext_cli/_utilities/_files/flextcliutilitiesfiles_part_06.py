@@ -156,6 +156,17 @@ class FlextCliUtilitiesFilesPart06:
 
         """
         if identity:
+            if (
+                expected.path == observed.path
+                and expected.content == observed.content
+            ):
+                # A cooperating writer may publish the same bytes atomically;
+                # the new inode is not source drift while content, path, mode,
+                # link and attribute witnesses agree.
+                physical = {"inode", "device", "parent_device", "parent_inode"}
+                return expected.model_dump(
+                    exclude=physical
+                ) == observed.model_dump(exclude=physical)
             return expected == observed
         return expected.model_dump(exclude={"inode"}) == observed.model_dump(
             exclude={"inode"}
