@@ -193,13 +193,13 @@ class TestsFlextCliJsonCov:
     @staticmethod
     def test_json_parse_valid_text_succeeds() -> None:
         """Verify that json parse valid text succeeds."""
-        result = u.Cli.json_parse('{"x": 1}')
+        result = u.Cli.json_loads('{"x": 1}')
         tm.ok(result)
 
     @staticmethod
     def test_json_parse_invalid_text_fails() -> None:
         """Verify that json parse invalid text fails."""
-        result = u.Cli.json_parse("not json")
+        result = u.Cli.json_loads("not json")
         tm.fail(result)
         tm.that(result.error, none=False)
 
@@ -243,9 +243,8 @@ class TestsFlextCliJsonCov:
     @staticmethod
     def test_json_parse_rejects_duplicate_key_when_enabled() -> None:
         """Verify that json parse rejects a repeated key with key and path."""
-        result = u.Cli.json_parse(
-            '{"dup": {"k": 1, "k": 2}}',
-            reject_duplicate_keys=True,
+        result = u.Cli.json_loads(
+            '{"dup": {"k": 1, "k": 2}}', reject_duplicate_keys=True
         )
         tm.fail(result)
         tm.that(result.error, has="duplicate JSON key 'k'")
@@ -254,7 +253,7 @@ class TestsFlextCliJsonCov:
     @staticmethod
     def test_json_parse_accepts_unique_keys_when_enabled() -> None:
         """Verify that json parse keeps parsing unique-key payloads enabled."""
-        result = u.Cli.json_parse('{"x": 1}', reject_duplicate_keys=True)
+        result = u.Cli.json_loads('{"x": 1}', reject_duplicate_keys=True)
         tm.ok(result)
         expected: t.JsonValue = {"x": 1}
         tm.that(result.value, eq=expected)
