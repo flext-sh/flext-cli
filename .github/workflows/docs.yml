@@ -141,14 +141,6 @@ jobs:
         with:
           path: flext-cli/.reports/docs/site
 
-      # The site artifact exists only to feed deploy on main; an integration
-      # push proves the build and uploads nothing.
-      - name: Upload site artifact
-        if: github.ref == 'refs/heads/main'
-        uses: actions/upload-pages-artifact@v5
-        with:
-          path: .reports/docs/site
-
       # Failure diagnostics execute only after the original Make step has
       # already propagated its exact status to Actions.
       - name: Dump docs reports on failure
