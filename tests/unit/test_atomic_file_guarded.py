@@ -11,13 +11,14 @@ from pathlib import Path
 
 import pytest
 
-from tests import p, tm, u
+from tests import c, p, tm, u
 
 
 class TestsFlextCliAtomicFileGuarded:
     """Observable guarded-write behavior through public Flext CLI surfaces."""
 
     @staticmethod
+    @c.Tests.MARK.slow
     @pytest.mark.parametrize("scenario", ["unlink-failure", "competing-creation"])
     def test_audit_boundary_preserves_publication_contract(
         tmp_path: Path, scenario: str
