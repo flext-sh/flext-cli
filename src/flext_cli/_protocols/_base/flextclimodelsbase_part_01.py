@@ -173,7 +173,10 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart01:
     class CliNormalizedJson(FlextProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
-        root: t.JsonValue
+        @property
+        def root(self) -> t.JsonValue:
+            """Structural member projected from the owning model."""
+            ...
 
     @runtime_checkable
     class NormalizedJsonList(FlextProtocols.BaseModel, Protocol):
