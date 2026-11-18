@@ -12,7 +12,7 @@ from types import MappingProxyType
 from typing import ClassVar
 
 from flext_cli import settings
-from tests import m, t, tm, u
+from tests import c, m, t, tm, u
 from tests.fixtures import dag_report
 
 
@@ -101,6 +101,7 @@ class TestsFlextCliDag:
         )
 
     @staticmethod
+    @c.Tests.MARK.slow
     def test_results_do_not_depend_on_hash_seed() -> None:
         """Fresh interpreters with different hash seeds report identical results."""
         project = Path(__file__).resolve().parents[2]
