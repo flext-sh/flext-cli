@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
-from flext_core.lazy import defer_lazy_bases, install_lazy_exports
+from flext_core.lazy import install_lazy_exports
 
 if TYPE_CHECKING:
     from flext_cli._protocols._base.flextclimodelsbase_part_01 import (
@@ -98,93 +98,21 @@ install_lazy_exports(
         "FlextCliProtocolsBasePart05": ".flextcliprotocolsbase_part_05",
     },
     public_exports=__all__,
-    deferred_members={
-        "FlextCliProtocolsBaseFlextclimodelsbasePart01": (
-            "ProcessOutcome",
-            "CommandOutputEnvelope",
-            "CommandOutput",
-            "CommandBytesOutput",
-            "ProcessDeadline",
-            "RuntimeComponents",
-            "RuntimeStatus",
-            "DisplayData",
-            "LoadedConfig",
-            "CliNormalizedJson",
-            "NormalizedJsonList",
-            "SuccessSummaryDetails",
-        ),
-        "FlextCliProtocolsBaseFlextclimodelsbasePart02": (
-            "AtomicPhysicalIdentity",
-            "AtomicFileIdentity",
-            "AtomicFileState",
-            "AtomicFileReceipt",
-            "PromptRuntimeState",
-            "AuthCredentialsPayload",
-            "ProcessEnvironmentSpec",
-        ),
-        "FlextCliProtocolsBaseFlextclimodelsbasePart03": (
-            "AtomicDirectoryState",
-            "CommandEntryModel",
-            "EmptyRequest",
-            "CommandMetadata",
-            "ResultCommandRoute",
-        ),
-        "FlextCliProtocolsBaseFlextclimodelsbasePart04": ("TableConfig",),
-        "FlextCliProtocolsBaseFlextclimodelsbasePart05": (
-            "SettingsSnapshot",
-            "OfficeRenderRequest",
-            "OfficeRenderResult",
-        ),
-        "FlextCliProtocolsBaseFlextclimodelsbasePart06": (
-            "CliParamsConfig",
-            "OptionMetadata",
-            "OptionSpec",
-            "InvocationResult",
-        ),
-        "FlextCliProtocolsBaseFlextclimodelsbasePart07": (
-            "ServiceOptions",
-            "TypedExtract",
-            "JsonWriteOptions",
-            "TableRenderRequest",
-            "DataReportRequest",
-        ),
-        "FlextCliProtocolsBaseFlextclimodelsbasePart08": (
-            "AtomicNativeSelections",
-            "AtomicDirectoryChainPlan",
-        ),
-        "FlextCliProtocolsBaseFlextclimodelsbasePart09": (
-            "AtomicPhysicalTreeEntry",
-            "AtomicDirectoryName",
-            "AtomicDirectoryInventory",
-            "AtomicPhysicalTreeManifest",
-        ),
-        "FlextCliProtocolsBaseFlextclimodelsbasePart10": (
-            "AtomicDirectoryObservations",
-            "AtomicDirectoryQueryEffects",
-            "AtomicFilePublication",
-        ),
-        "FlextCliProtocolsBasePart01": ("CliSettings",),
-        "FlextCliProtocolsBasePart02": (
-            "Settings",
-            "ProcessHandle",
-        ),
-        "FlextCliProtocolsBasePart03": ("CommandRunner",),
-        "FlextCliProtocolsBasePart04": (
-            "CliOptionSpec",
-            "CliCommandWrapper",
-            "ResultCommandHandler",
-            "ErasedCommandResult",
-        ),
-        "FlextCliProtocolsBasePart05": ("YamlModule",),
-    },
-)
-
-defer_lazy_bases(
-    __name__,
-    {
-        "FlextCliProtocolsBasePart02": ((".", "FlextCliProtocolsBasePart01"),),
-        "FlextCliProtocolsBasePart03": ((".", "FlextCliProtocolsBasePart02"),),
-        "FlextCliProtocolsBasePart04": ((".", "FlextCliProtocolsBasePart03"),),
-        "FlextCliProtocolsBasePart05": ((".", "FlextCliProtocolsBasePart04"),),
-    },
+    deferred_members=(
+        "FlextCliProtocolsBaseFlextclimodelsbasePart01",
+        "FlextCliProtocolsBaseFlextclimodelsbasePart02",
+        "FlextCliProtocolsBaseFlextclimodelsbasePart03",
+        "FlextCliProtocolsBaseFlextclimodelsbasePart04",
+        "FlextCliProtocolsBaseFlextclimodelsbasePart05",
+        "FlextCliProtocolsBaseFlextclimodelsbasePart06",
+        "FlextCliProtocolsBaseFlextclimodelsbasePart07",
+        "FlextCliProtocolsBaseFlextclimodelsbasePart08",
+        "FlextCliProtocolsBaseFlextclimodelsbasePart09",
+        "FlextCliProtocolsBaseFlextclimodelsbasePart10",
+        "FlextCliProtocolsBasePart01",
+        "FlextCliProtocolsBasePart02",
+        "FlextCliProtocolsBasePart03",
+        "FlextCliProtocolsBasePart04",
+        "FlextCliProtocolsBasePart05",
+    ),
 )
