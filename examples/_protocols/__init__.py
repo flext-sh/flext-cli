@@ -38,12 +38,9 @@ install_lazy_exports(
         "ExamplesFlextCliProtocolsExamplesDatabase": ".examples_database",
     },
     public_exports=__all__,
-    deferred_members={
-        "ExamplesFlextCliProtocolsExamplesAdvanced": ("AppSettingsAdvanced",),
-        "ExamplesFlextCliProtocolsExamplesCommon": (
-            "GreetingRequest",
-            "MyAppSettings",
-        ),
-        "ExamplesFlextCliProtocolsExamplesDatabase": ("AdvancedDatabaseConfig",),
-    },
+    deferred_members=(
+        "ExamplesFlextCliProtocolsExamplesAdvanced",
+        "ExamplesFlextCliProtocolsExamplesCommon",
+        "ExamplesFlextCliProtocolsExamplesDatabase",
+    ),
 )
