@@ -32,6 +32,13 @@ class TestsFlextCliModelsCli:
 
         message: Annotated[str, m.Field(description="User-facing success message")]
 
+    class ExcludedRequiredInput(m.FrozenModel):
+        """Request model no command line can supply: its required field is excluded."""
+
+        secret: str = m.Field(
+            exclude=True, description="Required value hidden from the CLI"
+        )
+
     class RepeatableInput(m.BaseModel):
         """Exercise repeatable CLI options derived from list-typed fields."""
 

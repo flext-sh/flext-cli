@@ -692,6 +692,12 @@ class FlextCliUtilitiesFramework:
             private_application.backend,
             args=list(args) if args is not None else None,
         )
+        # The runner turns any exception into exit code 1 with no output; an
+        # exception that is not the process's own exit escapes unchanged.
+        if result.exception is not None and not isinstance(
+            result.exception, SystemExit
+        ):
+            raise result.exception
         return m.Cli.InvocationResult(
             exit_code=result.exit_code,
             stdout=result.stdout,

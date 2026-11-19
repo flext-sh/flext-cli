@@ -9,7 +9,7 @@ from __future__ import annotations
 from flext_cli import cli
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
-from tests import c, m, p, r, t, tm
+from tests import c, m, p, r, t, tm, u
 
 
 class TestsFlextCliServicePart05:
@@ -122,6 +122,34 @@ class TestsFlextCliServicePart05:
         tm.that(run.exit_code, eq=c.Cli.EXIT_CODE_SUCCESS)
         tm.that(run.stdout, has="processed alice")
         tm.that(resolved, eq=["first", "first"])
+
+    @staticmethod
+    def test_invoke_app_raises_a_route_model_that_cannot_become_a_command() -> None:
+        """A route model defect escapes invoke_app instead of exiting silently."""
+        app = cli.create_app_with_common_params(
+            name="broken-app",
+            help_text="Broken application",
+        )
+
+        def handler(_params: p.Tests.ExcludedRequiredInput) -> p.Result[t.JsonPayload]:
+            return r[t.JsonPayload].ok("unreachable")
+
+        cli.register_result_routes(
+            app,
+            [
+                m.Cli.ResultCommandRoute(
+                    name="broken",
+                    help_text="Broken command",
+                    model_cls=m.Tests.ExcludedRequiredInput,
+                    handler=handler,
+                ),
+            ],
+        )
+
+        app_help = tm.ok(cli.invoke_app(app, args=["--help"]))
+        tm.that(app_help.stdout, has="Broken command")
+        with u.Tests.raises(TypeError, match="exclude=True"):
+            cli.invoke_app(app, args=["broken"])
 
     @staticmethod
     def test_register_result_routes_propagates_real_failure() -> None:
