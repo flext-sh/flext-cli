@@ -103,7 +103,7 @@ class FlextCliModelsBasePart03:
 
         @property
         def resolved_model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
-            """Return the input model class, calling ``model_cls`` when it is a resolver."""
+            """Input model class, calling ``model_cls`` first when it is a resolver."""
             source = self.model_cls
             return source if isinstance(source, type) else source()
 
