@@ -9,7 +9,7 @@ from __future__ import annotations
 from flext_cli import cli
 
 # NOTE (multi-agent, mro-wkii.19.4): app creation owns the settings singleton.
-from tests import c, m, p, r, t, tm
+from tests import c, m, p, r, t, tm, u
 
 
 class TestsFlextCliServicePart05:
@@ -67,6 +67,89 @@ class TestsFlextCliServicePart05:
         tm.that(fail_result.exit_code, eq=1)
         tm.that(fail_result.stderr, has="Username cannot be empty")
         tm.that(fail_result.stdout, eq="")
+
+    @staticmethod
+    def test_result_route_resolves_its_model_only_when_it_parses() -> None:
+        """Help lists every route unresolved; only the parsed route resolves."""
+        app = cli.create_app_with_common_params(
+            name="lazy-app",
+            help_text="Lazy application",
+        )
+        resolved: list[str] = []
+
+        def resolve_first() -> t.ModelClass[m.Tests.SampleInput]:
+            resolved.append("first")
+            return m.Tests.SampleInput
+
+        def resolve_second() -> t.ModelClass[m.Tests.SampleInput]:
+            resolved.append("second")
+            return m.Tests.SampleInput
+
+        def handler(params: p.Tests.SampleInput) -> p.Result[t.JsonPayload]:
+            return r[t.JsonPayload].ok(
+                m.Tests.SampleOutput(message=f"processed {params.name}"),
+            )
+
+        cli.register_result_routes(
+            app,
+            [
+                m.Cli.ResultCommandRoute(
+                    name="first",
+                    help_text="First command",
+                    model_cls=resolve_first,
+                    handler=handler,
+                ),
+                m.Cli.ResultCommandRoute(
+                    name="second",
+                    help_text="Second command",
+                    model_cls=resolve_second,
+                    handler=handler,
+                ),
+            ],
+        )
+
+        app_help = tm.ok(cli.invoke_app(app, args=["--help"]))
+        tm.that(app_help.exit_code, eq=c.Cli.EXIT_CODE_SUCCESS)
+        tm.that(app_help.stdout, has=["First command", "Second command"])
+        tm.that(resolved, eq=[])
+
+        route_help = tm.ok(cli.invoke_app(app, args=["first", "--help"]))
+        tm.that(route_help.exit_code, eq=c.Cli.EXIT_CODE_SUCCESS)
+        tm.that(route_help.stdout, has="--name")
+        tm.that(resolved, eq=["first"])
+
+        run = tm.ok(cli.invoke_app(app, args=["first", "--name", "alice"]))
+        tm.that(run.exit_code, eq=c.Cli.EXIT_CODE_SUCCESS)
+        tm.that(run.stdout, has="processed alice")
+        tm.that(resolved, eq=["first", "first"])
+
+    @staticmethod
+    def test_invoke_app_raises_a_route_model_that_cannot_become_a_command() -> None:
+        """A route model defect escapes invoke_app instead of exiting silently."""
+        app = cli.create_app_with_common_params(
+            name="broken-app",
+            help_text="Broken application",
+        )
+
+        def handler(_params: p.Tests.ExcludedRequiredInput) -> p.Result[t.JsonPayload]:
+            return r[t.JsonPayload].ok("unreachable")
+
+        cli.register_result_routes(
+            app,
+            [
+                m.Cli.ResultCommandRoute(
+                    name="broken",
+                    help_text="Broken command",
+                    model_cls=m.Tests.ExcludedRequiredInput,
+                    handler=handler,
+                ),
+            ],
+        )
+
+        app_help = tm.ok(cli.invoke_app(app, args=["--help"]))
+        tm.that(app_help.stdout, has="Broken command")
+        with u.Tests.raises(TypeError, match="exclude=True"):
+            cli.invoke_app(app, args=["broken"])
 
     @staticmethod
     def test_register_result_routes_propagates_real_failure() -> None:

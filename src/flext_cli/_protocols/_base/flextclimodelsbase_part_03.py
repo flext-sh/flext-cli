@@ -63,8 +63,17 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart03:
         """Structural data contract projected from the owning model."""
 
         @property
-        def model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
-            """Pydantic input model class."""
+        def model_cls(
+            self,
+        ) -> (
+            t.ModelClass[t.Cli.ModelLike]
+            | t.Cli.NullaryOperation[t.ModelClass[t.Cli.ModelLike]]
+        ):
+            """Structural member projected from the owning model.
+
+            Pydantic input model class, or a zero-argument resolver returning it
+            when the command first parses.
+            """
             ...
 
         @property
