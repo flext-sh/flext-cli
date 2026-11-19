@@ -78,8 +78,7 @@ class FlextCliCliPart05(FlextCliCliPart04):
         """
 
         def build() -> t.Cli.CliCommand:
-            source = route.model_cls
-            model_cls = source if isinstance(source, type) else source()
+            model_cls = route.resolved_model_cls
             return cls._ModelCommand(
                 handler=cls._build_route_executor(route),
                 model_cls=model_cls,

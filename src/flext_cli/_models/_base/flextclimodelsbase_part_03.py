@@ -101,5 +101,11 @@ class FlextCliModelsBasePart03:
             m.Field(description="CLI output style on success"),
         ] = c.Cli.MessageTypes.SUCCESS
 
+        @property
+        def resolved_model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
+            """Return the input model class, calling ``model_cls`` when it is a resolver."""
+            source = self.model_cls
+            return source if isinstance(source, type) else source()
+
 
 __all__: list[str] = ["FlextCliModelsBasePart03"]

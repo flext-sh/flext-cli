@@ -96,6 +96,15 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart03:
             """CLI output style on success."""
             ...
 
+        @property
+        def resolved_model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
+            """Structural member projected from the owning model.
+
+            Return the input model class, calling ``model_cls`` when it is a
+            resolver.
+            """
+            ...
+
 
 __all__: list[str] = [
     "FlextCliProtocolsBaseFlextclimodelsbasePart03",
