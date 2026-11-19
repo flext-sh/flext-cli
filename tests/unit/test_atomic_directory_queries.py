@@ -587,7 +587,13 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
 
         """
         before = tm.ok(u.Cli.atomic_read_binary_file_state(path))
-        tm.ok(u.Cli.atomic_write_text_file(path, "VALUE = 1\n"))
+        tm.ok(
+            u.Cli.atomic_write_text_file(
+                path,
+                "VALUE = 1\n",
+                durability=c.Cli.WriteDurability.SCRATCH,
+            ),
+        )
         return before, tm.ok(u.Cli.atomic_read_binary_file_state(path, required=True))
 
     def test_publication_under_preexisting_directory_needs_no_receipt(
