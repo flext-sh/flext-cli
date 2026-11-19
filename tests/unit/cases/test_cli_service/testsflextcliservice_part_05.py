@@ -124,6 +124,26 @@ class TestsFlextCliServicePart05:
         tm.that(resolved, eq=["first", "first"])
 
     @staticmethod
+    def test_result_route_resolves_its_model_class_for_consumers() -> None:
+        """A class and a resolver both read back as the same input model class."""
+
+        def handler(params: p.Tests.SampleInput) -> p.Result[t.JsonPayload]:
+            return r[t.JsonPayload].ok(params.name)
+
+        def resolve() -> t.ModelClass[m.Tests.SampleInput]:
+            return m.Tests.SampleInput
+
+        for source in (m.Tests.SampleInput, resolve):
+            route = m.Cli.ResultCommandRoute(
+                name="sample",
+                help_text="Sample command",
+                model_cls=source,
+                handler=handler,
+            )
+            tm.that(route.resolved_model_cls, eq=m.Tests.SampleInput)
+            tm.that(route.resolved_model_cls.model_fields, has="name")
+
+    @staticmethod
     def test_invoke_app_raises_a_route_model_that_cannot_become_a_command() -> None:
         """A route model defect escapes invoke_app instead of exiting silently."""
         app = cli.create_app_with_common_params(

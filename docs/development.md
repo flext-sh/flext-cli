@@ -88,6 +88,8 @@ The `cli.result_route` factory accepts five keyword-only parameters: `metadata`,
 `p.Cli.CommandMetadata`; callers can supply `m.Cli.CommandMetadata`.
 `p.Cli.ResultCommandRoute` inherits that same metadata protocol. The output route
 remains flat, and `success_type` retains its keyword and success-style default.
+`model_cls` holds the input model class or a zero-argument resolver returning
+it; read `resolved_model_cls` for the class itself.
 
 This authored API boundary groups only command identity and help to satisfy the
 argument-count contract without suppressions, signature mirrors or a second
