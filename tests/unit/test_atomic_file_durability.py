@@ -11,7 +11,7 @@ from pathlib import Path
 
 import pytest
 
-from tests import c, tm, u
+from tests import c, m, tm, u
 
 
 class TestsFlextCliAtomicFileDurability:
@@ -74,3 +74,42 @@ class TestsFlextCliAtomicFileDurability:
 
         tm.that(target.read_text(encoding="utf-8"), eq="kept")
         tm.ok(link.is_symlink())
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "durability",
+        [c.Cli.WriteDurability.DURABLE, c.Cli.WriteDurability.SCRATCH],
+    )
+    def test_json_write_publishes_payload_for_each_durability(
+        tmp_path: Path,
+        durability: c.Cli.WriteDurability,
+    ) -> None:
+        """Publish the same JSON document whichever durability the caller declares."""
+        path = tmp_path / "nested" / "state.json"
+        options = m.Cli.JsonWriteOptions(durability=durability)
+
+        tm.ok(u.Cli.json_write(path, {"version": 1}, options))
+        tm.ok(u.Cli.json_write(path, {"version": 2}, options))
+
+        tm.that(u.Cli.json_read(path).unwrap(), eq={"version": 2})
+        tm.that(sorted(item.name for item in path.parent.iterdir()), eq=["state.json"])
+
+    @staticmethod
+    def test_scratch_json_write_still_rejects_linked_destination(
+        tmp_path: Path,
+    ) -> None:
+        """Skipping fsync never relaxes the JSON destination checks."""
+        target = tmp_path / "target.json"
+        target.write_text("{}", encoding="utf-8")
+        link = tmp_path / "link.json"
+        link.symlink_to(target)
+
+        tm.fail(
+            u.Cli.json_write(
+                link,
+                {"replaced": True},
+                m.Cli.JsonWriteOptions(durability=c.Cli.WriteDurability.SCRATCH),
+            ),
+        )
+
+        tm.that(target.read_text(encoding="utf-8"), eq="{}")
