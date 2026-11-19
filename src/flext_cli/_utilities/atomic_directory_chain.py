@@ -82,11 +82,13 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         *,
         permission_mode: int,
         created: MutableSequence[p.Cli.AtomicDirectoryState],
+        durable: bool = True,
     ) -> Sequence[p.Cli.AtomicDirectoryState]:
         """Create planned levels while retaining every completed effect.
 
         The caller-owned collection records progress before the next native
         operation. A failure never removes a successfully created level.
+        ``durable=False`` skips each level's directory and parent fsync.
 
         Returns:
             The resulting ``Sequence[p.Cli.AtomicDirectoryState]``.
@@ -113,6 +115,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
                 mode,
                 created,
                 (plan.anchor_device, plan.anchor_inode),
+                durable=durable,
             )
         except BaseException as operation_error:
             for state in created[initial_count:]:
@@ -128,6 +131,8 @@ class FlextCliUtilitiesAtomicDirectoryChain:
         mode: int,
         created: MutableSequence[p.Cli.AtomicDirectoryState],
         expected_parent: tuple[int, int],
+        *,
+        durable: bool,
     ) -> MutableSequence[p.Cli.AtomicDirectoryState]:
         """Create each planned directory, advancing the expected identity.
 
@@ -150,6 +155,7 @@ class FlextCliUtilitiesAtomicDirectoryChain:
             state = create.create_guarded_empty_directory(
                 before,
                 permission_mode=mode,
+                durable=durable,
             )
             created.append(state)
             expected_parent = (
