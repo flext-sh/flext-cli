@@ -43,6 +43,7 @@ class FlextCliProtocolsBaseFlextclimodelsbasePart07:
         indent: int
         sort_keys: bool
         ensure_ascii: bool
+        durability: c.Cli.WriteDurability
 
     @runtime_checkable
     class TableRenderRequest(FlextProtocols.BaseModel, Protocol):

@@ -60,6 +60,11 @@ class FlextCliModelsBasePart07:
             description="Escape non-ASCII chars",
             validate_default=True,
         )
+        durability: c.Cli.WriteDurability = m.Field(
+            default=c.Cli.WriteDurability.DURABLE,
+            description="Caller-declared durability; SCRATCH skips every fsync",
+            validate_default=True,
+        )
 
     class TableRenderRequest(m.Value):
         """Validated table-rendering request for the formatter boundary."""
