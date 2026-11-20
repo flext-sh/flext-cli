@@ -35,7 +35,8 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
         """Propagate an operator signal proven by a completed command result.
 
         Ordinary failures, timeouts and successful results remain untouched.
-        Callers retain the original result and its causal exception.
+        Callers retain the original result and its causal exception; a
+        failure without one (a cleanup diagnostic) is chained as the cause.
 
         Raises:
             SystemExit: When native failure metadata proves a forwarded signal.
@@ -49,7 +50,9 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
                 and result.error_data.get(c.Cli.PROCESS_TIMED_OUT_KEY) is False
                 and result.error_data.get(c.Cli.PROCESS_EXIT_CODE_KEY) == -signum
             ):
-                raise SystemExit(-signum) from result.exception
+                raise SystemExit(-signum) from (
+                    result.exception or RuntimeError(result.error)
+                )
 
     @staticmethod
     def _process_exit_result(

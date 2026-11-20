@@ -19,7 +19,7 @@ from typing import TYPE_CHECKING, override
 
 import pytest
 
-from tests import c, m, p, tm, u
+from tests import c, m, p, r, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -398,6 +398,25 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.that(data[c.Cli.PROCESS_TIMED_OUT_KEY], eq=True)
         tm.that(data[c.Cli.PROCESS_EXIT_CODE_KEY], eq=-signal.SIGKILL)
         tm.that(data[c.Cli.PROCESS_FORWARDED_SIGNAL_KEY], eq=None)
+
+    @staticmethod
+    def test_interrupt_with_a_cleanup_failure_keeps_its_diagnostic() -> None:
+        """A forwarded interrupt whose cleanup failed chains that diagnostic."""
+        diagnostic = "owned process boundary was not empty before return: pid=1"
+        failed = r[bool].fail(
+            diagnostic,
+            error_data={
+                c.Cli.PROCESS_EXIT_CODE_KEY: -signal.SIGINT,
+                c.Cli.PROCESS_TIMED_OUT_KEY: False,
+                c.Cli.PROCESS_FORWARDED_SIGNAL_KEY: signal.SIGINT,
+            },
+        )
+
+        with pytest.raises(SystemExit) as raised:
+            u.Cli.process_raise_if_interrupted(failed)
+
+        tm.that(raised.value.code, eq=-signal.SIGINT)
+        tm.that(str(raised.value.__cause__), eq=diagnostic)
 
     @staticmethod
     def test_deadline_kills_recursive_process_tree(tmp_path: Path) -> None:

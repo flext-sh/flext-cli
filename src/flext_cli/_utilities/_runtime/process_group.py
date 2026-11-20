@@ -78,10 +78,12 @@ class FlextCliUtilitiesRuntimeProcessGroup(
                     .rpartition(")")[2]
                     .split()
                 )
-            except OSError:
-                # Why: a process that exits during the scan is no longer a member.
+                group = int(fields[2])
+            except (OSError, IndexError, ValueError):
+                # Why: a process that exits during the scan leaves no readable
+                # or a truncated stat line; it is no longer a member.
                 continue
-            if int(fields[2]) == process_group_id:
+            if group == process_group_id:
                 members.append(
                     f"pid={stat.parent.name} state={fields[0]} ppid={fields[1]}",
                 )
