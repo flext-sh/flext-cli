@@ -95,7 +95,6 @@ class FlextCliCliPart05(FlextCliCliPart04):
             name=route.name,
             help_text=route.help_text,
             build=build,
-            build=build,
         )
 
     @classmethod
