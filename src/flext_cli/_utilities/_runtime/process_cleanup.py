@@ -418,8 +418,10 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
                 boundary.error or "owned process-boundary probe failed",
             )
         elif not boundary.value:
+            members = cls._process_boundary_members(process.pid)
             state.cleanup_errors.append(
-                "owned process boundary was not empty before return",
+                "owned process boundary was not empty before return"
+                + (f": {members}" if members else ""),
             )
 
     @staticmethod
