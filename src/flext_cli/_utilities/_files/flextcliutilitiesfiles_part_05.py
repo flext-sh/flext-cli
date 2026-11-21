@@ -54,6 +54,7 @@ class FlextCliUtilitiesFilesPart05:
         *,
         permission_mode: int,
         created: MutableSequence[p.Cli.AtomicDirectoryState] | None = None,
+        durability: c.Cli.WriteDurability = c.Cli.WriteDurability.DURABLE,
     ) -> p.Result[Sequence[p.Cli.AtomicDirectoryState]]:
         """Materialize a planned chain under the caller's exclusive lock.
 
@@ -62,7 +63,8 @@ class FlextCliUtilitiesFilesPart05:
         can validate them but never replace their publication authority. This is
         not CAS against actors that ignore the caller's exclusive lock. Every
         level created before a failure stays recorded in ``created`` and in the
-        failure's exception notes.
+        failure's exception notes. ``durability`` is the caller's declaration;
+        ``SCRATCH`` skips the per-level directory and parent fsync.
 
         Returns:
             The resulting ``p.Result[Sequence[p.Cli.AtomicDirectoryState]]``.
@@ -75,6 +77,7 @@ class FlextCliUtilitiesFilesPart05:
             plan,
             permission_mode=permission_mode,
             created=[] if created is None else created,
+            durable=durability is c.Cli.WriteDurability.DURABLE,
         )
 
     @staticmethod

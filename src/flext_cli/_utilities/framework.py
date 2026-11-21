@@ -19,6 +19,7 @@ import click
 import typer
 from flext_core import e, r, u
 from typer.core import TyperCommand
+from typer.core import TyperCommand
 from typer.models import OptionInfo
 from typer.testing import CliRunner
 
@@ -134,6 +135,16 @@ class FlextCliUtilitiesFramework:
                 result
             )
 
+    class TypedContextCommand(TyperCommand):
+        """Typer command whose contexts are Typer's public ``typer.Context``.
+
+        ``typer.Context`` adds no behavior to the context Typer's commands
+        otherwise create; it lets a route return its context through the
+        public type.
+        """
+
+        context_class = typer.Context
+
     class RouteCommand(TyperCommand):
         """Command listed by name and help whose options build when it parses.
 
@@ -147,16 +158,17 @@ class FlextCliUtilitiesFramework:
             self,
             info_name: str | None,
             args: list[str],
-            parent: Context | None = None,
+            parent: typer.Context | None = None,
             **extra: t.Cli.CliValue,
-        ) -> Context:
+        ) -> typer.Context:
             """Build the real command and parse the arguments with it.
 
             Returns:
                 The context of the real command; its own invoke and help apply.
 
             Raises:
-                TypeError: If the route registered without a builder.
+                TypeError: If the route registered without a builder or its
+                    command created a context of another class.
 
             """
             if self.callback is None:
@@ -166,13 +178,42 @@ class FlextCliUtilitiesFramework:
             _ = route.command(
                 self.name,
                 help=self.help,
-                context_settings=self.context_settings,
+                context_settings=dict(self.context_settings),
+                cls=FlextCliUtilitiesFramework.TypedContextCommand,
             )(self.callback())
             command = typer.main.get_command(route)
             # Typer appends application-level parameters (shell completion) to a
             # single-command application's command; they belong to the route.
             command.params.extend(self.params)
-            return command.make_context(info_name, args, parent=parent, **extra)
+            context = command.make_context(info_name, args, parent=parent, **extra)
+            if not isinstance(context, typer.Context):
+                msg = (
+                    f"Route {self.name!r} created a {type(context).__name__} context, "
+                    "not the Typer invocation context"
+                )
+                raise TypeError(msg)
+            return context
+
+        @override
+        def invoke(self, ctx: typer.Context) -> t.JsonPayload:
+            """Run the real command whose context ``make_context`` returned.
+
+            A group invokes its subcommand through that context, but a
+            single-command application invokes the command it parsed with, so
+            this stand-in forwards to the real command.
+
+            Returns:
+                The real command's result.
+
+            Raises:
+                TypeError: If the context was not built by a real command.
+
+            """
+            command = ctx.command
+            if command is self:
+                msg = f"Route {self.name!r} invoked without its built command"
+                raise TypeError(msg)
+            return command.invoke(ctx)
 
     _active_execution: ClassVar[ContextVar[bool]] = ContextVar(
         "flext_cli_active_execution",
@@ -655,6 +696,12 @@ class FlextCliUtilitiesFramework:
             private_application.backend,
             args=list(args) if args is not None else None,
         )
+        # The runner turns any exception into exit code 1 with no output; an
+        # exception that is not the process's own exit escapes unchanged.
+        if result.exception is not None and not isinstance(
+            result.exception, SystemExit
+        ):
+            raise result.exception
         return m.Cli.InvocationResult(
             exit_code=result.exit_code,
             stdout=result.stdout,

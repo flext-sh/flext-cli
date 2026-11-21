@@ -35,7 +35,8 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
         """Propagate an operator signal proven by a completed command result.
 
         Ordinary failures, timeouts and successful results remain untouched.
-        Callers retain the original result and its causal exception.
+        Callers retain the original result and its causal exception; a
+        failure without one (a cleanup diagnostic) is chained as the cause.
 
         Raises:
             SystemExit: When native failure metadata proves a forwarded signal.
@@ -49,7 +50,9 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
                 and result.error_data.get(c.Cli.PROCESS_TIMED_OUT_KEY) is False
                 and result.error_data.get(c.Cli.PROCESS_EXIT_CODE_KEY) == -signum
             ):
-                raise SystemExit(-signum) from result.exception
+                raise SystemExit(-signum) from (
+                    result.exception or RuntimeError(result.error)
+                )
 
     @staticmethod
     def _process_exit_result(
@@ -61,18 +64,29 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
     ) -> p.Result[p.Cli.ProcessOutcome]:
         """Preserve a primary exit while surfacing additive diagnostics.
 
+        A lifecycle with diagnostics fails, and the failure still carries the
+        observed exit, timeout and forwarded signal in ``error_data``
+        (``c.Cli.PROCESS_EXIT_CODE_KEY``, ``PROCESS_TIMED_OUT_KEY``,
+        ``PROCESS_FORWARDED_SIGNAL_KEY``), the shape ``run`` reports.
+
         Returns:
             The resulting ``p.Result[p.Cli.ProcessOutcome]``.
 
         """
-        if received_signals:
-            primary_exit = -abs(received_signals[0])
-        elif return_code is None:
-            primary_exit = None
+        forwarded_signal = received_signals[0] if received_signals else None
+        if forwarded_signal is not None:
+            primary_exit = -abs(forwarded_signal)
         else:
             primary_exit = return_code
         if diagnostics:
-            return r[p.Cli.ProcessOutcome].fail("; ".join(diagnostics))
+            return r[p.Cli.ProcessOutcome].fail(
+                "; ".join(diagnostics),
+                error_data={
+                    c.Cli.PROCESS_EXIT_CODE_KEY: primary_exit,
+                    c.Cli.PROCESS_TIMED_OUT_KEY: timed_out,
+                    c.Cli.PROCESS_FORWARDED_SIGNAL_KEY: forwarded_signal,
+                },
+            )
         if primary_exit is None:
             return r[p.Cli.ProcessOutcome].fail(
                 "root process did not expose an exit status",
@@ -81,7 +95,7 @@ class FlextCliUtilitiesRuntimeProcessOutcome:
             m.Cli.ProcessOutcome(
                 raw_return_code=primary_exit,
                 timed_out=timed_out,
-                forwarded_signal=(received_signals[0] if received_signals else None),
+                forwarded_signal=forwarded_signal,
             ),
         )
 

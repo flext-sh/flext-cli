@@ -9,6 +9,8 @@ from __future__ import annotations
 import os
 import platform
 import signal
+from collections.abc import MutableSequence
+from pathlib import Path
 
 from flext_core import r
 
@@ -54,6 +56,38 @@ class FlextCliUtilitiesRuntimeProcessGroup(
         except OSError as exc:
             return r[bool].fail(f"process-group probe failed: {exc}", exception=exc)
         return r[bool].ok(value=False)
+
+    @staticmethod
+    def _process_boundary_members(process_group_id: int) -> str:
+        """Name each member still in the owned group, with its kernel state.
+
+        Reads ``/proc/<pid>/stat``: ``state=Z`` is a member awaiting its
+        reaper, any other state a live task. Platforms without that process
+        table name no member.
+
+        Returns:
+            ``pid=<pid> state=<state> ppid=<ppid>`` per member, comma-separated.
+
+        """
+        members: MutableSequence[str] = []
+        for stat in Path("/proc").glob("[0-9]*/stat"):
+            try:
+                fields = (
+                    stat
+                    .read_text(encoding="utf-8", errors="replace")
+                    .rpartition(")")[2]
+                    .split()
+                )
+                group = int(fields[2])
+            except (OSError, IndexError, ValueError):
+                # Why: a process that exits during the scan leaves no readable
+                # or a truncated stat line; it is no longer a member.
+                continue
+            if group == process_group_id:
+                members.append(
+                    f"pid={stat.parent.name} state={fields[0]} ppid={fields[1]}",
+                )
+        return ", ".join(members)
 
     @classmethod
     def _signal_process_tree_windows(

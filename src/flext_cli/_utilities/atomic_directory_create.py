@@ -32,8 +32,11 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         before: p.Cli.AtomicDirectoryState,
         *,
         permission_mode: int,
+        durable: bool = True,
     ) -> p.Cli.AtomicDirectoryState:
         """Create one directory only from an exact absent state under caller lock.
+
+        ``durable=False`` skips the new directory's and its parent's fsync.
 
         Returns:
             The resulting ``m.Cli.AtomicDirectoryState``.
@@ -82,8 +85,8 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
                         parent,
                         path,
                         initial,
-                        identity,
                         mode,
+                        durable=durable,
                     )
                 )
             except BaseException as operation_error:
@@ -120,19 +123,22 @@ class FlextCliUtilitiesAtomicDirectoryCreate:
         parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
         path: Path,
         initial: os.stat_result,
-        identity: tuple[int, int],
         mode: int,
+        *,
+        durable: bool,
     ) -> os.stat_result:
         final = FlextCliUtilitiesAtomicDirectoryState.initialize_empty_state(
             parent,
             path,
             initial,
             mode,
+            durable=durable,
         )
         FlextCliUtilitiesAtomicFilePath.require_identity(
-            path, final, identity, subject="directory"
+            path, final, (initial.st_dev, initial.st_ino), subject="directory"
         )
-        FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
+        if durable:
+            FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
         return FlextCliUtilitiesAtomicDirectoryState.read_empty_state(
             parent,
             path,

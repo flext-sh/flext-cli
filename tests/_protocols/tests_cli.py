@@ -36,6 +36,15 @@ class TestsFlextCliProtocolsTestsCli:
         message: str
 
     @runtime_checkable
+    class ExcludedRequiredInput(FlextTestsProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def secret(self) -> str:
+            """Required value hidden from the CLI."""
+            ...
+
+    @runtime_checkable
     class RepeatableInput(FlextTestsProtocols.BaseModel, Protocol):
         """Structural data contract projected from the owning model."""
 
