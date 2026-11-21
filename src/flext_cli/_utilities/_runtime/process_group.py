@@ -11,8 +11,6 @@ import platform
 import signal
 from collections.abc import MutableSequence
 from pathlib import Path
-from collections.abc import MutableSequence
-from pathlib import Path
 
 from flext_core import r
 
