@@ -13,8 +13,7 @@ from typing import ClassVar, Literal
 
 from flext_core import u
 
-from flext_cli import m, p, t
-from flext_cli._config import config
+from flext_cli import config, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesAtomicFileSnapshot
 from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessOutcome
 

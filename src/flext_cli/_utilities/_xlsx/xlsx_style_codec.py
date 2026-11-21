@@ -6,10 +6,8 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from flext_cli._utilities._xlsx.xlsx_style_builders import (
+from flext_cli._utilities._xlsx import (
     FlextCliUtilitiesXlsxStyleBuilders,
-)
-from flext_cli._utilities._xlsx.xlsx_style_readers import (
     FlextCliUtilitiesXlsxStyleReaders,
 )
 

@@ -13,36 +13,18 @@ from flext_cli._protocols import (
     FlextCliProtocolsAtomicPublication,
     FlextCliProtocolsAtomicSymlink,
 )
-from flext_cli._protocols._base import FlextCliProtocolsBasePart05
-from flext_cli._protocols._base.flextclimodelsbase_part_01 import (
+from flext_cli._protocols._base import (
     FlextCliProtocolsBaseFlextclimodelsbasePart01,
-)
-from flext_cli._protocols._base.flextclimodelsbase_part_02 import (
     FlextCliProtocolsBaseFlextclimodelsbasePart02,
-)
-from flext_cli._protocols._base.flextclimodelsbase_part_03 import (
     FlextCliProtocolsBaseFlextclimodelsbasePart03,
-)
-from flext_cli._protocols._base.flextclimodelsbase_part_04 import (
     FlextCliProtocolsBaseFlextclimodelsbasePart04,
-)
-from flext_cli._protocols._base.flextclimodelsbase_part_05 import (
     FlextCliProtocolsBaseFlextclimodelsbasePart05,
-)
-from flext_cli._protocols._base.flextclimodelsbase_part_06 import (
     FlextCliProtocolsBaseFlextclimodelsbasePart06,
-)
-from flext_cli._protocols._base.flextclimodelsbase_part_07 import (
     FlextCliProtocolsBaseFlextclimodelsbasePart07,
-)
-from flext_cli._protocols._base.flextclimodelsbase_part_08 import (
     FlextCliProtocolsBaseFlextclimodelsbasePart08,
-)
-from flext_cli._protocols._base.flextclimodelsbase_part_09 import (
     FlextCliProtocolsBaseFlextclimodelsbasePart09,
-)
-from flext_cli._protocols._base.flextclimodelsbase_part_10 import (
     FlextCliProtocolsBaseFlextclimodelsbasePart10,
+    FlextCliProtocolsBasePart05,
 )
 
 

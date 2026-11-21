@@ -9,13 +9,14 @@ from __future__ import annotations
 from collections.abc import Iterator
 from hashlib import sha256
 
-from flext_core import r
 from openpyxl import Workbook
 from openpyxl.cell.cell import Cell, MergedCell
 
-from flext_cli import m, p
-from flext_cli._utilities._xlsx.xlsx_style_codec import FlextCliUtilitiesXlsxStyleCodec
-from flext_cli._utilities._xlsx.xlsx_workbook_io import FlextCliUtilitiesXlsxWorkbookIo
+from flext_cli import m, p, r
+from flext_cli._utilities._xlsx import (
+    FlextCliUtilitiesXlsxStyleCodec,
+    FlextCliUtilitiesXlsxWorkbookIo,
+)
 
 
 class FlextCliUtilitiesXlsxStyleCatalog(

@@ -11,13 +11,11 @@ import sys
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
+from flext_cli import m, p
+from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessIsolationInputs
+
 if sys.platform == "linux":
     import fcntl
-
-from flext_cli import m, p
-from flext_cli._utilities._runtime.process_isolation_inputs import (
-    FlextCliUtilitiesRuntimeProcessIsolationInputs,
-)
 
 
 class FlextCliUtilitiesRuntimeProcessIsolation(

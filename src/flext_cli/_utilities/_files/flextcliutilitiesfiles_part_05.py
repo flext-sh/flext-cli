@@ -11,9 +11,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Literal
 
-from flext_core import r
-
-from flext_cli import c, m, p, t
+from flext_cli import c, m, p, r, t
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryChain,
     FlextCliUtilitiesAtomicDirectoryCreate,
@@ -22,9 +20,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicTreeCleanup,
     FlextCliUtilitiesAtomicTreeInventory,
 )
-from flext_cli._utilities._files.native_results import (
-    FlextCliUtilitiesFilesNativeResults,
-)
+from flext_cli._utilities._files import FlextCliUtilitiesFilesNativeResults
 
 
 class FlextCliUtilitiesFilesPart05:

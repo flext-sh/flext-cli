@@ -6,22 +6,19 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from collections.abc import Sequence
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+from flext_cli._protocols._base import FlextCliProtocolsBasePart02
 
 if TYPE_CHECKING:
     from flext_cli._protocols._base import FlextCliProtocolsBaseFlextclimodelsbasePart01
-
-
-from collections.abc import Sequence
-from typing import Protocol, runtime_checkable
-
-from flext_cli._protocols._base import FlextCliProtocolsBasePart02
 
 if TYPE_CHECKING:
     from flext_core import p
 
     from flext_cli import t
-    from flext_cli._protocols.process import FlextCliProtocolsProcess
+    from flext_cli._protocols import FlextCliProtocolsProcess
 
 
 class FlextCliProtocolsBasePart03(FlextCliProtocolsBasePart02):

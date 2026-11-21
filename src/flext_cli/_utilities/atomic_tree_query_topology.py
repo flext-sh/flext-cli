@@ -10,8 +10,8 @@ from collections.abc import Mapping
 from pathlib import Path
 
 from flext_cli import p
-from flext_cli._utilities import FlextCliUtilitiesAtomicDirectoryChain
-from flext_cli._utilities.atomic_tree_query_membership import (
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicDirectoryChain,
     FlextCliUtilitiesAtomicTreeQueryMembership,
 )
 

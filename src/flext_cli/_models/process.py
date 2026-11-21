@@ -15,9 +15,11 @@ from typing import ClassVar, Literal, Self
 from flext_core import m
 
 from flext_cli import p, t
-from flext_cli._models._base.flextclimodelsbase_part_01 import FlextCliModelsBasePart01
-from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
-from flext_cli._models._base.flextclimodelsbase_part_09 import FlextCliModelsBasePart09
+from flext_cli._models._base import (
+    FlextCliModelsBasePart01,
+    FlextCliModelsBasePart02,
+    FlextCliModelsBasePart09,
+)
 
 
 class FlextCliModelsProcess:

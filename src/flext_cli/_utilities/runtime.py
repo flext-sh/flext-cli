@@ -11,17 +11,17 @@ import shlex
 from collections.abc import Mapping, Sequence
 from typing import BinaryIO, ClassVar, override
 
-from flext_core import r, u
+from flext_core import u
 
-from flext_cli import c, m, p, t
-from flext_cli._utilities._runtime import (
-    FlextCliUtilitiesRuntimeCommands,
-    FlextCliUtilitiesRuntimeRunToFile,
-)
-from flext_cli._utilities.native_runtime import (
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities import (
     TimeoutExpired,
     spawn_streamed_process,
     streamed_creation_flags,
+)
+from flext_cli._utilities._runtime import (
+    FlextCliUtilitiesRuntimeCommands,
+    FlextCliUtilitiesRuntimeRunToFile,
 )
 
 
