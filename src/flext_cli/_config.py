@@ -13,9 +13,10 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from flext_core import FlextConfig, m
+from flext_core import FlextConfig
 
-from flext_cli._models.config import FlextCliModelsConfig
+from flext_cli import m
+from flext_cli._models import FlextCliModelsConfig
 
 
 class FlextCliConfig(FlextConfig):

@@ -10,7 +10,7 @@ from typing import Annotated
 
 from flext_core import m
 
-from flext_cli._models._base.flextclimodelsbase_part_05 import FlextCliModelsBasePart05
+from flext_cli._models._base import FlextCliModelsBasePart05
 from flext_cli._models._xlsx import (
     FlextCliModelsXlsxCells,
     FlextCliModelsXlsxLayout,

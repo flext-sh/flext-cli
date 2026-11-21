@@ -8,14 +8,11 @@ from __future__ import annotations
 
 from typing import Literal, cast
 
-from flext_core import r
 from openpyxl.worksheet.worksheet import Worksheet
 
-from flext_cli import m, p
-from flext_cli._utilities._xlsx.xlsx_snapshot_structure import (
+from flext_cli import m, p, r
+from flext_cli._utilities._xlsx import (
     FlextCliUtilitiesXlsxSnapshotStructure,
-)
-from flext_cli._utilities._xlsx.xlsx_snapshot_values import (
     FlextCliUtilitiesXlsxSnapshotValues,
 )
 

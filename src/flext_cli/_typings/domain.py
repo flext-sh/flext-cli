@@ -18,7 +18,7 @@ from tomlkit.container import Container
 from tomlkit.items import AoT, Array, Item, Table
 from tomlkit.toml_document import TOMLDocument
 
-from flext_cli._constants.enums import FlextCliConstantsEnums
+from flext_cli._constants import FlextCliConstantsEnums
 from flext_cli._typings import FlextCliTypesBase
 
 if TYPE_CHECKING:

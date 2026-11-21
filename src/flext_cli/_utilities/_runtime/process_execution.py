@@ -11,18 +11,14 @@ import threading
 import time
 from typing import BinaryIO, override
 
-from flext_core import r
-
-from flext_cli import c, m, p
+from flext_cli import c, m, p, r
 from flext_cli._utilities._runtime import (
     FlextCliUtilitiesRuntimeProcessCleanup,
+    FlextCliUtilitiesRuntimeProcessIsolation,
     FlextCliUtilitiesRuntimeProcessOutput,
     FlextCliUtilitiesRuntimeProcessResources,
     FlextCliUtilitiesRuntimeProcessStart,
     FlextCliUtilitiesRuntimeProcessTiming,
-)
-from flext_cli._utilities._runtime.process_isolation import (
-    FlextCliUtilitiesRuntimeProcessIsolation,
 )
 
 

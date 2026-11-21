@@ -16,7 +16,7 @@ from flext_core import m
 
 from flext_cli import t
 from flext_cli._models import FlextCliModelsAtomicState
-from flext_cli._models._base.flextclimodelsbase_part_08 import FlextCliModelsBasePart08
+from flext_cli._models._base import FlextCliModelsBasePart08
 
 
 class FlextCliModelsBasePart09:
