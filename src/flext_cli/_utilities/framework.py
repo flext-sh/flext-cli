@@ -13,7 +13,7 @@ from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from contextvars import ContextVar
 from inspect import Parameter
 from types import EllipsisType, FrameType, GenericAlias
-from typing import ClassVar, Never, override
+from typing import TYPE_CHECKING, ClassVar, Never, override
 
 import click
 import typer
@@ -21,6 +21,9 @@ from flext_core import e, r, u
 from typer.core import TyperCommand
 from typer.models import OptionInfo
 from typer.testing import CliRunner
+
+if TYPE_CHECKING:
+    pass
 
 from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesConversion

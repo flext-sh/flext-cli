@@ -11,9 +11,11 @@ from collections.abc import Sequence
 from flext_core import u
 
 from flext_cli import c, p, t
-from flext_cli._utilities import FlextCliUtilitiesConversion
-from flext_cli._utilities.option_builder import FlextCliUtilitiesOptionBuilder
-from flext_cli._utilities.options_annotations import FlextCliUtilitiesOptionsAnnotations
+from flext_cli._utilities import (
+    FlextCliUtilitiesConversion,
+    FlextCliUtilitiesOptionBuilder,
+    FlextCliUtilitiesOptionsAnnotations,
+)
 
 
 class FlextCliUtilitiesOptionsFields(FlextCliUtilitiesOptionsAnnotations):

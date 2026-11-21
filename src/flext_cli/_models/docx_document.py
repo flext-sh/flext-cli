@@ -12,7 +12,7 @@ from flext_core import m
 
 from flext_cli import c, t
 from flext_cli._models import FlextCliModelsDocxStyles
-from flext_cli._models._base.flextclimodelsbase_part_05 import FlextCliModelsBasePart05
+from flext_cli._models._base import FlextCliModelsBasePart05
 
 
 class FlextCliModelsDocxDocument:

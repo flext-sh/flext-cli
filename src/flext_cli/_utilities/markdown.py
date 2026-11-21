@@ -12,7 +12,7 @@ from collections.abc import Mapping, MutableSequence, Sequence
 from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p
-from flext_cli._utilities.markdown_links import FlextCliUtilitiesMarkdownLinks
+from flext_cli._utilities import FlextCliUtilitiesMarkdownLinks
 
 if TYPE_CHECKING:
     from markdown_it.token import Token

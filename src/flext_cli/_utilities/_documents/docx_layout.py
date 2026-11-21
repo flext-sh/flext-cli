@@ -13,9 +13,7 @@ from docx.enum.section import WD_ORIENT
 from docx.shared import Inches
 
 from flext_cli import p
-from flext_cli._utilities._documents.docx_formatting import (
-    FlextCliUtilitiesDocxFormatting,
-)
+from flext_cli._utilities._documents import FlextCliUtilitiesDocxFormatting
 
 
 class FlextCliUtilitiesDocxLayout(FlextCliUtilitiesDocxFormatting):
