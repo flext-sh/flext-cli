@@ -74,8 +74,15 @@ class FlextCliModelsBasePart03:
         """Type-erased route contract with inherited, flat command metadata."""
 
         model_cls: Annotated[
-            t.ModelClass[t.Cli.ModelLike],
-            m.Field(..., description="Pydantic input model class"),
+            t.ModelClass[t.Cli.ModelLike]
+            | t.Cli.NullaryOperation[t.ModelClass[t.Cli.ModelLike]],
+            m.Field(
+                ...,
+                description=(
+                    "Pydantic input model class, or a zero-argument resolver "
+                    "returning it when the command first parses"
+                ),
+            ),
         ]
         handler: Annotated[
             t.Port[p.Cli.ResultRouteHandler],
