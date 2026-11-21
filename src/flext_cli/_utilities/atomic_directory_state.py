@@ -127,8 +127,12 @@ class FlextCliUtilitiesAtomicDirectoryState:
         path: Path,
         expected: os.stat_result,
         permission_mode: int,
+        *,
+        durable: bool = True,
     ) -> os.stat_result:
         """Set and sync exact mode on a newly-created, still-empty directory inode.
+
+        ``durable=False`` sets and verifies the mode without the inode fsync.
 
         Returns:
             The resulting ``os.stat_result``.
@@ -145,7 +149,8 @@ class FlextCliUtilitiesAtomicDirectoryState:
                 os.fstat(descriptor),
                 permission_mode,
             )
-            os.fsync(descriptor)
+            if durable:
+                os.fsync(descriptor)
             final = os.fstat(descriptor)
             FlextCliUtilitiesAtomicDirectoryState._require_empty(descriptor, path)
             FlextCliUtilitiesAtomicDirectoryState._require_descriptor_state(
