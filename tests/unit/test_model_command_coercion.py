@@ -37,9 +37,7 @@ class TestsFlextCliModelCommandCoercion:
             bound.append(model)
             return 0
 
-        app = cli.create_app_with_common_params(
-            name="typed-app", help_text="Typed app"
-        )
+        app = cli.create_app_with_common_params(name="typed-app", help_text="Typed app")
         cli.register_command(
             app,
             name="run",

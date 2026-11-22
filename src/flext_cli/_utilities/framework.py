@@ -404,8 +404,7 @@ class FlextCliUtilitiesFramework:
         raise typer.BadParameter(
             "; ".join(
                 f"{detail['input']!r}: {detail['msg']}"
-                if not hide_input
-                and isinstance(detail.get("input"), (str, int, float))
+                if not hide_input and isinstance(detail.get("input"), (str, int, float))
                 else detail["msg"]
                 for detail in error.errors()
                 if detail["loc"] and str(detail["loc"][0]) == field
@@ -529,7 +528,9 @@ class FlextCliUtilitiesFramework:
                 if json_annotation is None
                 else FlextCliUtilitiesFramework._json_parser(json_annotation)
             ),
-            metavar=metavar if json_annotation is None else c.Cli.CLI_JSON_OPTION_METAVAR,
+            metavar=metavar
+            if json_annotation is None
+            else c.Cli.CLI_JSON_OPTION_METAVAR,
         )
         return Parameter(
             field_name,
