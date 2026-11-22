@@ -342,6 +342,59 @@ class TestsFlextCliRuntimeProcessIsolation:
         tm.that(source.read_text(encoding="utf-8"), eq='"""Captured source."""\n')
 
     @staticmethod
+    @pytest.mark.parametrize(
+        ("filename", "suffix", "refusal"),
+        [
+            ("leaf.digest", ".digest", "one original bootstrap qualification row"),
+            ("leaf.unowned", ".digest", "durable directory has ineligible file"),
+            ("nested/leaf.digest", ".digest", "requires owned regular files"),
+            ("leaf.digest", None, "durable directory requires a filename suffix"),
+        ],
+    )
+    def test_private_checkout_admits_declared_durable_directory(
+        tmp_path: Path, filename: str, suffix: str | None, refusal: str
+    ) -> None:
+        """Restrict durable fixture files to the declared child and suffix."""
+        original = tmp_path / "original"
+        working = tmp_path / "private"
+        output = tmp_path / "output"
+        receipts = working / "receipts"
+        receipt = receipts / filename
+        for directory in (original, working, output, receipts):
+            directory.mkdir(mode=0o700)
+        receipt.parent.mkdir(mode=0o700, exist_ok=True)
+        receipt.write_bytes(b"receipt")
+        isolation = TestsFlextCliRuntimeProcessIsolation._request(
+            original, fixture_output=output
+        )
+        checkout = m.Cli.ProcessFixtureCheckout.model_validate({
+            "backing": tm.ok(u.Cli.atomic_inventory_physical_tree(working)),
+            "source_root": original,
+            "persistent_filenames": (".testmondata",),
+            "persistent_directory_suffix": suffix,
+        })
+        result = u.Cli.run_raw(
+            (str(isolation.policy_compiler.abi_reference.path), "--version"),
+            cwd=working,
+            options=m.Cli.ProcessOptions(
+                isolation=isolation.model_copy(
+                    update={
+                        "private_checkout": checkout,
+                        "persistent_directory": tm.ok(
+                            u.Cli.atomic_inventory_physical_tree(receipts)
+                        ),
+                    }
+                )
+            ),
+        )
+        tm.fail(
+            result,
+            has=refusal
+            if sys.platform == "linux"
+            else "no qualified native platform capability",
+        )
+
+    @staticmethod
     def test_network_policy_cannot_remove_a_required_syscall() -> None:
         """Native reference imports cannot weaken the external syscall contract."""
         policy = config.ProcessIsolation.denied_syscalls

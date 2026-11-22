@@ -222,6 +222,11 @@ class FlextCliModelsProcess:
         persistent_filenames: tuple[str, ...] = m.Field(
             min_length=1, description="Exact durable regular files allowed at the root"
         )
+        persistent_directory_suffix: str | None = m.Field(
+            default=None,
+            min_length=1,
+            description="Allowed filename suffix in the durable child directory",
+        )
 
     class ProcessFixtureIsolation(ProcessReadOnlyIsolation):
         """Qualified process isolation with explicit writable fixture directories."""
