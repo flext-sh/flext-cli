@@ -382,13 +382,17 @@ class FlextCliUtilitiesFramework:
         cls,
         error: m.ValidationError,
         spellings: Mapping[str, str],
+        *,
+        hide_input: bool = False,
     ) -> Never:
         """Reject an input model Pydantic refused as a native Click usage error.
 
         Input validation of CLI arguments is a usage error: Click renders the
         usage line and one message naming the option as the user types it, and
         exits with its own usage code. Like Click itself, the first offending
-        parameter is reported.
+        parameter is reported, and the scalar value typed is quoted (Click:
+        ``'x' is not a valid integer.``) unless the model hides its input in
+        errors (``hide_input``).
 
         Raises:
             BadParameter: Always.
@@ -399,7 +403,10 @@ class FlextCliUtilitiesFramework:
         hint = spellings.get(field)
         raise typer.BadParameter(
             "; ".join(
-                detail["msg"]
+                f"{detail['input']!r}: {detail['msg']}"
+                if not hide_input
+                and isinstance(detail.get("input"), (str, int, float))
+                else detail["msg"]
                 for detail in error.errors()
                 if detail["loc"] and str(detail["loc"][0]) == field
             )
@@ -494,6 +501,7 @@ class FlextCliUtilitiesFramework:
         spec: p.Cli.CliOptionSpec,
         *,
         json_annotation: t.Cli.RuntimeAnnotation | None = None,
+        metavar: str | None = None,
     ) -> Parameter:
         """Build one inspect parameter with a private Typer option default.
 
@@ -501,6 +509,8 @@ class FlextCliUtilitiesFramework:
         validates into that declared type while Click parses the argument, so
         malformed JSON or a schema mismatch is a usage error with its cause.
         The adapter is built only on parse; rendering help never builds it.
+        ``metavar`` is the help type of an option Typer parses as text while
+        the request model validates its declared type.
 
         Returns:
             The built parameter carrying the private option default.
@@ -519,7 +529,7 @@ class FlextCliUtilitiesFramework:
                 if json_annotation is None
                 else FlextCliUtilitiesFramework._json_parser(json_annotation)
             ),
-            metavar=None if json_annotation is None else c.Cli.CLI_JSON_OPTION_METAVAR,
+            metavar=metavar if json_annotation is None else c.Cli.CLI_JSON_OPTION_METAVAR,
         )
         return Parameter(
             field_name,
