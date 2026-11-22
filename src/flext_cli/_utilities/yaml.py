@@ -6,7 +6,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
-from collections.abc import Sequence
+from collections.abc import Mapping, Sequence
 from pathlib import Path
 
 from flext_core import r, u
@@ -56,14 +56,27 @@ class FlextCliUtilitiesYaml(
     def yaml_parse(text: str) -> p.Result[t.JsonMapping]:
         """Parse one YAML mapping, rejecting duplicate keys.
 
+        A plain read keeps no comments, so it uses the strict one-way loader,
+        never the comment-preserving round-trip engine.
+
         Returns:
             The validated mapping, or the original parsing failure.
 
         """
-        return FlextCliUtilitiesYaml.yaml_roundtrip_load_map_text(text).map(
-            lambda value: FlextCliUtilitiesConversion.YAML_DICT_ADAPTER.validate_python(
-                FlextCliUtilitiesYaml.yaml_to_plain(value)
+        loaded = u.Yaml.unique_key_load_all(text)
+        if loaded.failure:
+            return r[t.JsonMapping].from_failure(loaded)
+        if len(loaded.value) > 1:
+            return r[t.JsonMapping].fail(
+                f"YAML parse error: expected one document, got {len(loaded.value)}"
             )
+        document = loaded.value[0] if loaded.value else None
+        if document is None:
+            return r[t.JsonMapping].fail("YAML document is empty (no content)")
+        if not isinstance(document, Mapping):
+            return r[t.JsonMapping].fail("YAML text: YAML document must be a mapping")
+        return r[t.JsonMapping].ok(
+            FlextCliUtilitiesConversion.YAML_DICT_ADAPTER.validate_python(document)
         )
 
     @staticmethod
