@@ -111,6 +111,20 @@ class TestsFlextCliAtomicDirectoryIdentity:
         tm.ok(old.is_dir())
 
     @staticmethod
+    def test_scratch_delete_removes_the_directory_without_durability(
+        tmp_path: Path,
+    ) -> None:
+        """A scratch rmdir keeps the CAS contract and only skips the parent fsync."""
+        target = tmp_path / "scratch"
+        target.mkdir(mode=0o750)
+        before = u.atomic_directory_snapshot(target, required=True)
+
+        result = u.Cli.atomic_delete_empty_directory_guarded(before, durable=False)
+
+        tm.ok(result)
+        tm.fail(target.exists())
+
+    @staticmethod
     @pytest.mark.parametrize("entry_kind", ["file", "directory"])
     def test_late_content_prevents_delete(
         tmp_path: Path,
