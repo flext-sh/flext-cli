@@ -323,13 +323,13 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
             msg = f"isolated process output overlaps an input or private mount: {path}"
             raise ValueError(msg)
         uid = os.getuid()
-        if output.root.uid != uid or output.root.mode & 0o022 or (
-            require_empty and output.entries
+        if (
+            output.root.uid != uid
+            or output.root.mode & 0o022
+            or (require_empty and output.entries)
         ):
             requirement = "empty and owned" if require_empty else "owned"
-            msg = (
-                f"isolated process output must be {requirement} by the caller: {path}"
-            )
+            msg = f"isolated process output must be {requirement} by the caller: {path}"
             raise ValueError(msg)
         if any(
             entry.kind != "file" or entry.uid != uid or entry.mode & 0o022
