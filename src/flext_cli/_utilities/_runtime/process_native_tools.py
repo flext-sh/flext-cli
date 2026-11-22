@@ -124,9 +124,7 @@ class FlextCliUtilitiesRuntimeProcessNativeTools(
             cls.native_process_policy_identity(fixture=fixture)
             != qualification.policy_sha256
         ):
-            msg = (
-                "native qualification differs from the canonical process policy"
-            )
+            msg = "native qualification differs from the canonical process policy"
             raise ValueError(msg)
         expected = cls.native_process_policy_observations(fixture=fixture)
         observed = {
