@@ -305,13 +305,13 @@ class TestsFlextCliRuntimeProcessIsolation:
             database.write_bytes(b"durable")
         if layout == "extra":
             (working / "unowned").touch()
-        checkout = m.Cli.ProcessFixtureCheckout(
-            backing=tm.ok(u.Cli.atomic_inventory_physical_tree(working)),
-            source_root=original / ".." / original.name
+        checkout = m.Cli.ProcessFixtureCheckout.model_validate({
+            "backing": tm.ok(u.Cli.atomic_inventory_physical_tree(working)),
+            "source_root": original / ".." / original.name
             if layout == "traversal"
             else original,
-            persistent_filenames=(database.name,),
-        )
+            "persistent_filenames": (database.name,),
+        })
         if layout == "runtime-overlap":
             runtime = tm.ok(u.Cli.atomic_inventory_physical_tree(original))
             isolation = isolation.model_copy(update={"runtime_trees": (runtime,)})
