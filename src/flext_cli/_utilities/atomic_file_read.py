@@ -131,6 +131,32 @@ class FlextCliUtilitiesAtomicFileRead:
         "st_reparse_tag",
     )
 
+    # Fields a new or removed hard link to the same inode moves while its
+    # bytes, inode, mode, owner, size and mtime stay the same.
+    LINK_FIELDS: ClassVar[frozenset[str]] = frozenset({"st_nlink", "st_ctime_ns"})
+
+    @staticmethod
+    def content_key(version_key: tuple[int, ...]) -> tuple[int, ...]:
+        """Return the version fields that identify the file's content.
+
+        A receipt is re-authenticated by its digest on every read, so the
+        link count and the inode change time a sibling hard link moves do not
+        decide whether the receipted content is still the file read.
+
+        Returns:
+            ``version_key`` without ``LINK_FIELDS``.
+
+        """
+        return tuple(
+            value
+            for name, value in zip(
+                FlextCliUtilitiesAtomicFileRead.STATE_KEY_FIELDS,
+                version_key,
+                strict=True,
+            )
+            if name not in FlextCliUtilitiesAtomicFileRead.LINK_FIELDS
+        )
+
     @staticmethod
     def state_key(state: os.stat_result) -> tuple[int, ...]:
         """Return fields that identify one authorized regular-file version.
