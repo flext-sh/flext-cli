@@ -329,6 +329,22 @@ class TestsFlextCliAtomicFileIdentity:
         tm.fail(destination.exists())
 
     @staticmethod
+    def test_scratch_delete_removes_the_version_without_durability(
+        tmp_path: Path,
+    ) -> None:
+        """A scratch delete keeps the CAS contract and only skips the parent fsync."""
+        destination = tmp_path / "scratch.bin"
+        destination.write_bytes(b"content")
+        snapshot = tm.ok(
+            u.Cli.atomic_read_binary_file_state(destination, required=True),
+        )
+
+        result = u.Cli.atomic_delete_binary_file_guarded(snapshot, durable=False)
+
+        tm.ok(result)
+        tm.fail(destination.exists())
+
+    @staticmethod
     def test_delete_rejects_replacement_with_same_bytes_and_mode(
         tmp_path: Path,
     ) -> None:
