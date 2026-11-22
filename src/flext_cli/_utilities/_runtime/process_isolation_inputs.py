@@ -14,7 +14,10 @@ from pathlib import Path
 from typing import ClassVar
 
 from flext_cli import m, p
-from flext_cli._utilities import FlextCliUtilitiesAtomicParentDescriptor
+from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicParentDescriptor,
+    FlextCliUtilitiesAtomicTreePhysical,
+)
 from flext_cli._utilities._files import (
     FlextCliUtilitiesFilesPart03,
     FlextCliUtilitiesFilesPart05,
@@ -221,9 +224,11 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
         """
         runtime_descriptors: list[tuple[int, Path]] = []
         for tree in isolation.runtime_trees:
-            current = FlextCliUtilitiesFilesPart05.atomic_inventory_physical_tree(
-                tree.root.path
-            ).unwrap()
+            current, descriptor = state.stack.enter_context(
+                FlextCliUtilitiesAtomicTreePhysical.retained_physical_tree(
+                    tree.root.path
+                )
+            )
             if current != tree:
                 msg = f"isolated process runtime tree changed: {tree.root.path}"
                 raise ValueError(msg)
@@ -231,18 +236,7 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
                 if entry.kind != "symlink":
                     continue
                 cls._ensure_runtime_link_captured(entry, roots, paths)
-            opened = state.stack.enter_context(
-                FlextCliUtilitiesAtomicParentDescriptor.physical_directory(
-                    tree.root.path
-                )
-            )
-            if (opened.state.st_dev, opened.state.st_ino) != (
-                tree.root.device,
-                tree.root.inode,
-            ):
-                msg = f"isolated runtime root identity changed: {tree.root.path}"
-                raise ValueError(msg)
-            runtime_descriptors.append((opened.descriptor, tree.root.path))
+            runtime_descriptors.append((descriptor, tree.root.path))
         return runtime_descriptors
 
     @classmethod
