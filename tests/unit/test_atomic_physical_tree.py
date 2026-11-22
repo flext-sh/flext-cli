@@ -54,6 +54,45 @@ class TestsFlextCliAtomicPhysicalTree:
         tm.that(reused, eq=tm.ok(u.Cli.atomic_inventory_physical_tree(root)))
 
     @staticmethod
+    def test_reference_from_a_renamed_root_rebases_onto_the_new_root(
+        tmp_path: Path,
+    ) -> None:
+        """A reference proven under another root path rebases every entry exactly."""
+        before = tmp_path / "before"
+        (before / "nested" / "deep").mkdir(parents=True)
+        (before / "a.bin").write_bytes(b"alpha")
+        (before / "nested" / "deep" / "b.bin").write_bytes(b"beta")
+        proven = tm.ok(u.Cli.atomic_inventory_physical_tree(before))
+        after = tmp_path / "after"
+        before.rename(after)
+
+        reused = tm.ok(u.Cli.atomic_inventory_physical_tree(after, proven))
+
+        tm.that(reused, eq=tm.ok(u.Cli.atomic_inventory_physical_tree(after)))
+        tm.that(
+            tuple(entry.path for entry in reused.entries),
+            eq=tuple(
+                after / entry.path.relative_to(before) for entry in proven.entries
+            ),
+        )
+
+    @staticmethod
+    def test_a_sibling_sharing_the_root_name_prefix_is_outside_the_root(
+        tmp_path: Path,
+    ) -> None:
+        """``tree-sibling`` starts with ``tree`` yet is never inside ``tree``."""
+        root = tmp_path / "tree"
+        root.mkdir()
+        (root / "payload.txt").write_text("payload", encoding="utf-8")
+        manifest = tm.ok(u.Cli.atomic_inventory_physical_tree(root))
+        forged = manifest.entries[0].model_copy(
+            update={"path": tmp_path / "tree-sibling" / "payload.txt"},
+        )
+
+        with u.Tests.raises(m.ValidationError, match="outside its root"):
+            m.Cli.AtomicPhysicalTreeManifest(root=manifest.root, entries=(forged,))
+
+    @staticmethod
     def test_reference_inventory_rereads_a_file_whose_version_identity_differs(
         tmp_path: Path,
     ) -> None:
