@@ -585,6 +585,11 @@ class FlextCliProtocolsProcess:
         """Structural data contract projected from the owning model."""
 
         @property
+        def runtime_tree_roots(self) -> tuple[Path, ...]:
+            """Runtime roots authenticated by the launcher for this fixture."""
+            ...
+
+        @property
         def output_directory(
             self,
         ) -> FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeManifest:

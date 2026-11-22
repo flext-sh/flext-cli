@@ -231,6 +231,10 @@ class FlextCliModelsProcess:
     class ProcessFixtureIsolation(ProcessReadOnlyIsolation):
         """Qualified process isolation with explicit writable fixture directories."""
 
+        runtime_tree_roots: tuple[Path, ...] = m.Field(
+            default=(),
+            description="Runtime roots authenticated by the launcher for this fixture",
+        )
         output_directory: FlextCliModelsBasePart09.AtomicPhysicalTreeManifest = m.Field(
             description="Initially empty caller-owned fixture output tree"
         )

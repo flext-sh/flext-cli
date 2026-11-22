@@ -116,6 +116,12 @@ directory, immutable inputs and private mounts. Fixture inputs stay outside
 `/dev`, `/proc`, `/run` and `/sys`. The process owner keeps the
 authenticated descriptors open and binds them only at their declared paths.
 
+For one fixture launch, declare `runtime_tree_roots` to authenticate runtime
+directories on the same descriptors used for the read-only mounts. Each root
+must be absolute, physical and disjoint. Use captured `runtime_trees` when
+multiple launches must verify the same tree version. The two fields are
+mutually exclusive.
+
 Use `persistent_directory` for a dedicated database directory below the
 declared working directory, containing only caller-owned regular files.
 The caller must retain exclusive ownership from capture through process completion.

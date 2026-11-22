@@ -68,7 +68,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
             else None
         )
         destinations = (
-            cls._private_checkout_sources(isolation, working)
+            cls._private_checkout_sources(isolation, working, roots)
             if isinstance(isolation, m.Cli.ProcessFixtureIsolation)
             else {}
         )
