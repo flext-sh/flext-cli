@@ -15,6 +15,7 @@ from typing import ClassVar
 
 from flext_cli import m, p
 from flext_cli._utilities import (
+    FlextCliUtilitiesAtomicFilePath,
     FlextCliUtilitiesAtomicParentDescriptor,
     FlextCliUtilitiesAtomicTreePhysical,
 )
@@ -115,15 +116,23 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
         """Deduplicate declared isolation inputs and require unique owners.
 
         Returns:
-            The declared runtime roots, the deduplicated input paths, the
-            and deduplicated captured inputs.
+            The declared runtime roots, deduplicated input paths and
+            deduplicated captured inputs.
 
         Raises:
             ValueError: If two declared inputs claim one physical path, or
-                two runtime roots claim one physical root.
+                runtime roots declare competing owners.
 
         """
         roots = tuple(tree.root.path for tree in isolation.runtime_trees)
+        if (
+            isinstance(isolation, m.Cli.ProcessFixtureIsolation)
+            and isolation.runtime_tree_roots
+        ):
+            if roots:
+                msg = "isolated runtime roots and captured trees are mutually exclusive"
+                raise ValueError(msg)
+            roots = isolation.runtime_tree_roots
         files = (
             isolation.launcher.artifact,
             isolation.launcher.issuer_receipt,
@@ -158,6 +167,8 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
         if any(root == Path(root.anchor) for root in roots):
             msg = "isolated process cannot expose the host filesystem root"
             raise ValueError(msg)
+        for root in roots:
+            FlextCliUtilitiesAtomicFilePath.validate_directory_path(root)
         if any(
             root.is_relative_to(other)
             for root in roots
@@ -211,7 +222,7 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
         roots: tuple[Path, ...],
         paths: tuple[Path, ...],
     ) -> list[tuple[int, Path]]:
-        """Retain directory descriptors for every unchanged runtime tree.
+        """Capture fixture roots and verify captured trees on the mounted descriptors.
 
         Returns:
             The open directory descriptor and declared root path retained
@@ -223,20 +234,19 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
 
         """
         runtime_descriptors: list[tuple[int, Path]] = []
-        for tree in isolation.runtime_trees:
+        expected = {tree.root.path: tree for tree in isolation.runtime_trees}
+        for path in roots:
             current, descriptor = state.stack.enter_context(
-                FlextCliUtilitiesAtomicTreePhysical.retained_physical_tree(
-                    tree.root.path
-                )
+                FlextCliUtilitiesAtomicTreePhysical.retained_physical_tree(path)
             )
-            if current != tree:
-                msg = f"isolated process runtime tree changed: {tree.root.path}"
+            if path in expected and current != expected[path]:
+                msg = f"isolated process runtime tree changed: {path}"
                 raise ValueError(msg)
-            for entry in tree.entries:
+            for entry in current.entries:
                 if entry.kind != "symlink":
                     continue
                 cls._ensure_runtime_link_captured(entry, roots, paths)
-            runtime_descriptors.append((descriptor, tree.root.path))
+            runtime_descriptors.append((descriptor, path))
         return runtime_descriptors
 
     @classmethod
@@ -287,6 +297,7 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
     def _private_checkout_sources(
         isolation: p.Cli.ProcessFixtureIsolation,
         working: Path,
+        runtime_roots: tuple[Path, ...],
     ) -> dict[Path, Path]:
         """Map the captured source files into the elected checkout.
 
@@ -324,7 +335,6 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
             msg = "private checkout requires unique durable basenames"
             raise ValueError(msg)
         destinations: dict[Path, Path] = {}
-        runtime_roots = tuple(tree.root.path for tree in isolation.runtime_trees)
         if any(source_root.is_relative_to(root) for root in runtime_roots):
             msg = "private checkout source root overlaps a runtime mount"
             raise ValueError(msg)
