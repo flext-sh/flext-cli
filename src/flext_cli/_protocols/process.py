@@ -629,5 +629,10 @@ class FlextCliProtocolsProcess:
             """Exact durable regular files allowed at the root."""
             ...
 
+        @property
+        def persistent_directory_suffix(self) -> str | None:
+            """Allowed filename suffix in the durable child directory."""
+            ...
+
 
 __all__: list[str] = ["FlextCliProtocolsProcess"]

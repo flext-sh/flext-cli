@@ -108,17 +108,12 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
     @classmethod
     def _ensure_isolation_inputs_unique(
         cls, isolation: p.Cli.ProcessReadOnlyIsolation
-    ) -> tuple[
-        tuple[Path, ...],
-        tuple[Path, ...],
-        tuple[p.Cli.AtomicFileState, ...],
-        p.Cli.AtomicFileState,
-    ]:
+    ) -> tuple[tuple[Path, ...], tuple[Path, ...], tuple[p.Cli.AtomicFileState, ...]]:
         """Deduplicate declared isolation inputs and require unique owners.
 
         Returns:
             The declared runtime roots, the deduplicated input paths, the
-            deduplicated captured inputs, and the launcher artifact.
+            and deduplicated captured inputs.
 
         Raises:
             ValueError: If two declared inputs claim one physical path, or
@@ -126,9 +121,8 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
 
         """
         roots = tuple(tree.root.path for tree in isolation.runtime_trees)
-        launcher_artifact = isolation.launcher.artifact
         files = (
-            launcher_artifact,
+            isolation.launcher.artifact,
             isolation.launcher.issuer_receipt,
             isolation.launcher_declaration,
             isolation.policy_compiler.artifact,
@@ -147,7 +141,7 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
         if len(roots) != len(set(roots)):
             msg = "isolated process inputs have competing physical owners"
             raise ValueError(msg)
-        return roots, paths, files, launcher_artifact
+        return roots, paths, files
 
     @classmethod
     def _ensure_isolation_roots_qualified(cls, roots: tuple[Path, ...]) -> None:
@@ -283,7 +277,7 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
             state, isolation.output_directory, roots, paths, require_empty=True
         )
         persistent = isolation.persistent_directory
-        if persistent is None:
+        if persistent is None or isolation.private_checkout is not None:
             return (output,)
         if working not in persistent.root.path.parents:
             msg = "persistent fixture data must be below the working directory"
@@ -315,7 +309,6 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
         source_root = checkout.source_root
         if (
             checkout.backing.root.path != working
-            or isolation.persistent_directory is not None
             or working == Path(working.anchor)
             or not source_root.is_absolute()
         ):
@@ -368,14 +361,14 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
         cls,
         state: p.Cli.RuntimeProcessState,
         checkout: p.Cli.ProcessFixtureCheckout,
-        roots: tuple[Path, ...],
-        paths: tuple[Path, ...],
+        persistent: p.Cli.AtomicPhysicalTreeManifest | None,
+        protected: tuple[tuple[Path, ...], tuple[Path, ...]],
         destinations: tuple[Path, ...],
-    ) -> int:
+    ) -> tuple[int, tuple[int, Path] | None]:
         """Hold the private backing and settle its inventory on process exit.
 
         Returns:
-            The held descriptor of the working directory.
+            Held bindings for the working directory and declared child.
 
         Raises:
             ValueError: If backing identity or allowed contents have changed.
@@ -383,6 +376,7 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
         """
         backing = checkout.backing
         root = backing.root.path
+        roots, paths = protected
         if any(
             root.is_relative_to(other) or other.is_relative_to(root)
             for other in (*roots, *cls._fixture_private_paths)
@@ -401,20 +395,67 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
         ) or current != backing:
             msg = f"private checkout backing changed since capture: {root}"
             raise ValueError(msg)
-        allowed_files = frozenset(root / name for name in checkout.persistent_filenames)
-        cls._validate_private_checkout(current, allowed_files, destinations)
-        state.stack.callback(
-            cls._settle_private_checkout, backing, allowed_files, destinations
+        durable_mount = cls._retain_private_checkout_directory(
+            state, checkout, persistent, destinations
         )
-        return opened.descriptor
+        cls._validate_private_checkout(current, checkout, persistent, destinations)
+        state.stack.callback(
+            cls._settle_private_checkout, checkout, persistent, destinations
+        )
+        return opened.descriptor, durable_mount
+
+    @classmethod
+    def _retain_private_checkout_directory(
+        cls,
+        state: p.Cli.RuntimeProcessState,
+        checkout: p.Cli.ProcessFixtureCheckout,
+        persistent: p.Cli.AtomicPhysicalTreeManifest | None,
+        destinations: tuple[Path, ...],
+    ) -> tuple[int, Path] | None:
+        """Authenticate the dedicated durable child without covering sources.
+
+        Returns:
+            Held descriptor and target path when the caller declared a child.
+
+        Raises:
+            ValueError: If the child or its naming constraint is invalid.
+
+        """
+        suffix = checkout.persistent_directory_suffix
+        if suffix is None and persistent is None:
+            return None
+        if (
+            persistent is None
+            or suffix is None
+            or suffix in {"", ".", ".."}
+            or Path(suffix).name != suffix
+            or "\0" in suffix
+        ):
+            msg = "private checkout durable directory requires a filename suffix"
+            raise ValueError(msg)
+        path = persistent.root.path
+        if (
+            path.parent != checkout.backing.root.path
+            or path.name in checkout.persistent_filenames
+            or any(
+                path.is_relative_to(destination) or destination.is_relative_to(path)
+                for destination in destinations
+            )
+        ):
+            msg = f"private checkout durable directory overlaps another input: {path}"
+            raise ValueError(msg)
+        return cls._retain_isolation_writable_directory(
+            state, persistent, (), (), require_empty=False
+        )
 
     @classmethod
     def _settle_private_checkout(
         cls,
-        backing: p.Cli.AtomicPhysicalTreeManifest,
-        allowed: frozenset[Path],
+        checkout: p.Cli.ProcessFixtureCheckout,
+        persistent: p.Cli.AtomicPhysicalTreeManifest | None,
         destinations: tuple[Path, ...],
     ) -> None:
+        backing = checkout.backing
         inventoried = FlextCliUtilitiesFilesPart05.atomic_inventory_physical_tree(
             backing.root.path, backing
         )
@@ -429,12 +470,14 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
         ):
             msg = f"private checkout backing changed identities: {backing.root.path}"
             raise ValueError(msg)
-        cls._validate_private_checkout(current, allowed, destinations)
+        cls._validate_private_checkout(current, checkout, persistent, destinations)
 
-    @staticmethod
+    @classmethod
     def _validate_private_checkout(
+        cls,
         manifest: p.Cli.AtomicPhysicalTreeManifest,
-        allowed: frozenset[Path],
+        checkout: p.Cli.ProcessFixtureCheckout,
+        persistent: p.Cli.AtomicPhysicalTreeManifest | None,
         destinations: tuple[Path, ...],
     ) -> None:
         root = manifest.root.path
@@ -442,6 +485,10 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
         if manifest.root.uid != uid or manifest.root.mode & 0o022:
             msg = f"private checkout backing requires caller ownership: {root}"
             raise ValueError(msg)
+        allowed = frozenset(root / name for name in checkout.persistent_filenames)
+        durable = cls._validate_private_checkout_directory(
+            manifest, persistent, checkout.persistent_directory_suffix
+        )
         placeholders = set(destinations)
         directories = {
             parent
@@ -450,6 +497,8 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
             if root in parent.parents
         }
         for entry in manifest.entries:
+            if durable is not None and entry.path.is_relative_to(durable):
+                continue
             owned = entry.uid == uid and not entry.mode & 0o022
             admitted = (entry.kind == "directory" and entry.path in directories) or (
                 entry.kind == "file"
@@ -464,6 +513,55 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
                     f"private checkout backing contains ineligible entry: {entry.path}"
                 )
                 raise ValueError(msg)
+
+    @staticmethod
+    def _validate_private_checkout_directory(
+        manifest: p.Cli.AtomicPhysicalTreeManifest,
+        persistent: p.Cli.AtomicPhysicalTreeManifest | None,
+        suffix: str | None,
+    ) -> Path | None:
+        """Require the original durable directory and eligible shallow entries.
+
+        Returns:
+            The path already validated beneath the private checkout.
+
+        Raises:
+            ValueError: If the durable directory changed or a file is ineligible.
+
+        """
+        if persistent is None or suffix is None:
+            return None
+        root = persistent.root
+        uid = os.getuid()
+        found_directory = False
+        for entry in manifest.entries:
+            if not entry.path.is_relative_to(root.path):
+                continue
+            owned = entry.uid == uid and not entry.mode & 0o022
+            if entry.path == root.path:
+                found_directory = (
+                    owned
+                    and entry.kind == "directory"
+                    and (entry.device, entry.inode, entry.mount_id)
+                    == (root.device, root.inode, root.mount_id)
+                )
+                continue
+            if (
+                not owned
+                or entry.kind != "file"
+                or entry.link_count != 1
+                or entry.path.parent != root.path
+                or not entry.path.name.endswith(suffix)
+            ):
+                msg = (
+                    "private checkout durable directory has ineligible file: "
+                    f"{entry.path}"
+                )
+                raise ValueError(msg)
+        if not found_directory:
+            msg = f"private checkout durable directory changed identity: {root.path}"
+            raise ValueError(msg)
+        return root.path
 
     @classmethod
     def _retain_isolation_writable_directory(
