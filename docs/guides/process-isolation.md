@@ -106,9 +106,46 @@ required. Positive acceptance must exercise the qualified launcher and policy
 through the public runtime and show that filesystem, network, IPC and signal
 escape attempts cannot affect the host.
 
+## Fixture outputs
+
+`m.Cli.ProcessFixtureIsolation` shares the qualified process closure and
+grants one initially empty output tree and an optional persistent data
+directory. Capture both through `u.Cli.atomic_inventory_physical_tree`.
+Each directory belongs to the caller and remains disjoint from the other
+directory, immutable inputs and private mounts. Fixture inputs stay outside
+`/dev`, `/proc`, `/run` and `/sys`. The process owner keeps the
+authenticated descriptors open and binds them only at their declared paths.
+
+Use `persistent_directory` for a dedicated database directory below the
+declared working directory, containing only caller-owned regular files.
+The caller must retain exclusive ownership from capture through process completion.
+A native SQLite child can create, replace, or remove database and WAL files
+there. Capture the current directory again before a subsequent invocation.
+Supply immutable inputs separately from this writable directory. Keep temporary
+products in the initially empty `output_directory`.
+
+A socket-enabled fixture profile requires its own bootstrap qualification.
+Its policy must permit local `AF_UNIX` communication while denying socket
+creation for other domains and retaining the `io_uring` denials. A private
+network namespace isolates abstract socket names. Pathname sockets require
+an additional boundary because mounts, including read-only mounts, retain
+their host backing.
+
+For pathname sockets, require Landlock ABI 9 and its `RESOLVE_UNIX` scope
+before executing the child. The qualification must demonstrate a successful
+fixture-local connection and an `EACCES` denial for a listener outside the
+Landlock domain at a pathname visible in a mounted directory. Failure to
+establish that scope prevents the child from starting.
+Bootstrap selects the fixture argument vector, digest and expected observations
+through the CLI policy accessors with `fixture=True`. Both tool roles retain
+their existing receipt provenance and must independently match the fixture
+policy digest and its original probe observations.
+
 The native option and descriptor contracts come from the
 [Bubblewrap upstream source](https://github.com/containers/bubblewrap/blob/main/bubblewrap.c)
 and its [security guidance](https://github.com/containers/bubblewrap/blob/main/README.md).
+The pathname scope is defined by the
+[Linux Landlock userspace API](https://docs.kernel.org/userspace-api/landlock.html).
 The compiler follows the
 [libseccomp rule API](https://github.com/seccomp/libseccomp/blob/main/doc/man/man3/seccomp_rule_add.3)
 and [native BPF export contract](https://github.com/seccomp/libseccomp/blob/main/doc/man/man3/seccomp_export_bpf.3).

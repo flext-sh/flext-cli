@@ -22,7 +22,12 @@ class TestsFlextCliRuntimeProcessIsolation:
     """Isolation prerequisites fail before any command can execute."""
 
     @staticmethod
-    def _request(tmp_path: Path) -> p.Cli.ProcessReadOnlyIsolation:
+    def _request(
+        tmp_path: Path,
+        *,
+        fixture_output: Path | None = None,
+        persistent_directory: Path | None = None,
+    ) -> p.Cli.ProcessReadOnlyIsolation:
         """Capture real local files for negative pre-execution contracts.
 
         Returns:
@@ -74,7 +79,7 @@ class TestsFlextCliRuntimeProcessIsolation:
             "abi_reference": artifact_receipt,
             "architecture": platform.machine(),
         })
-        return m.Cli.ProcessReadOnlyIsolation.model_validate({
+        declaration: dict[str, object] = {
             "platform": "linux",
             "architecture": platform.machine(),
             "launcher": compiler,
@@ -85,6 +90,19 @@ class TestsFlextCliRuntimeProcessIsolation:
             "runtime_trees": (),
             "runtime_files": (artifact,),
             "environment": (),
+        }
+        if fixture_output is None:
+            return m.Cli.ProcessReadOnlyIsolation.model_validate(declaration)
+        return m.Cli.ProcessFixtureIsolation.model_validate({
+            **declaration,
+            "output_directory": tm.ok(
+                u.Cli.atomic_inventory_physical_tree(fixture_output)
+            ),
+            "persistent_directory": (
+                tm.ok(u.Cli.atomic_inventory_physical_tree(persistent_directory))
+                if persistent_directory is not None
+                else None
+            ),
         })
 
     @staticmethod
@@ -182,6 +200,86 @@ class TestsFlextCliRuntimeProcessIsolation:
         )
         tm.that(result.error or "", has=expected)
         tm.fail(output.parent.exists())
+
+    @staticmethod
+    @pytest.mark.parametrize("overlaps_source", [False, True])
+    def test_fixture_output_rejects_host_inputs(
+        tmp_path: Path, *, overlaps_source: bool
+    ) -> None:
+        """A write capability excludes source paths and preexisting files."""
+        output = tmp_path if overlaps_source else tmp_path / "output"
+        output.mkdir(exist_ok=True)
+        existing = output / "original.txt"
+        existing.write_text("original", encoding="utf-8")
+        isolation = TestsFlextCliRuntimeProcessIsolation._request(
+            tmp_path, fixture_output=output
+        )
+        result = u.Cli.run_raw(
+            (
+                str(isolation.policy_compiler.abi_reference.path),
+                "-c",
+                "raise SystemExit(71)",
+            ),
+            cwd=tmp_path,
+            options=m.Cli.ProcessOptions(isolation=isolation),
+        )
+
+        tm.fail(result)
+        expected = "no qualified native platform capability"
+        if sys.platform == "linux":
+            expected = (
+                "output overlaps an input or private mount"
+                if overlaps_source
+                else "output must be empty and owned by the caller"
+            )
+        tm.that(result.error or "", has=expected)
+        tm.that(existing.read_text(encoding="utf-8"), eq="original")
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        ("layout", "expected"),
+        [
+            ("regular", "one original bootstrap qualification row"),
+            ("overlap", "output overlaps an input or private mount"),
+            ("symlink", "persistent fixture data requires owned regular files"),
+            ("outside", "persistent fixture data must be below the working directory"),
+        ],
+    )
+    def test_fixture_accepts_only_separate_owned_persistent_data(
+        tmp_path: Path, layout: str, expected: str
+    ) -> None:
+        """Admit preexisting data from a dedicated directory inside the checkout."""
+        working = tmp_path / "workspace"
+        working.mkdir()
+        output = working / "output"
+        output.mkdir(mode=0o700)
+        database = (tmp_path if layout == "outside" else working) / "test-data"
+        database.mkdir(mode=0o700)
+        data = database / "state.sqlite"
+        data.write_bytes(b"owned data")
+        data.chmod(0o600)
+        if layout == "symlink":
+            (database / "alias").symlink_to(data)
+        persistent = output if layout == "overlap" else database
+        isolation = TestsFlextCliRuntimeProcessIsolation._request(
+            working, fixture_output=output, persistent_directory=persistent
+        )
+        result = u.Cli.run_raw(
+            (str(isolation.policy_compiler.abi_reference.path), "--version"),
+            cwd=working,
+            options=m.Cli.ProcessOptions(isolation=isolation),
+        )
+
+        tm.fail(result)
+        tm.that(
+            result.error or "",
+            has=(
+                expected
+                if sys.platform == "linux"
+                else "no qualified native platform capability"
+            ),
+        )
+        tm.that(data.read_bytes(), eq=b"owned data")
 
     @staticmethod
     def test_network_policy_cannot_remove_a_required_syscall() -> None:
