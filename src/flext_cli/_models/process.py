@@ -212,6 +212,16 @@ class FlextCliModelsProcess:
             description="Complete child environment, without inherited host variables"
         )
 
+    class ProcessFixtureIsolation(ProcessReadOnlyIsolation):
+        """Qualified process isolation with explicit writable fixture directories."""
+
+        output_directory: FlextCliModelsBasePart09.AtomicPhysicalTreeManifest = m.Field(
+            description="Initially empty caller-owned fixture output tree"
+        )
+        persistent_directory: (
+            FlextCliModelsBasePart09.AtomicPhysicalTreeManifest | None
+        ) = m.Field(default=None, description="Dedicated persistent fixture data")
+
     class ProcessOptions(m.ArbitraryTypesModel):
         """Child input, environment, and durable-output execution options."""
 
@@ -258,7 +268,11 @@ class FlextCliModelsProcess:
             default=None,
             description="Separate durable stderr destination for durable output.",
         )
-        isolation: FlextCliModelsProcess.ProcessReadOnlyIsolation | None = m.Field(
+        isolation: (
+            FlextCliModelsProcess.ProcessFixtureIsolation
+            | FlextCliModelsProcess.ProcessReadOnlyIsolation
+            | None
+        ) = m.Field(
             default=None, description="Explicit native read-only confinement request"
         )
         signal_wave: t.Port[p.Cli.SignalWave] | None = m.Field(
@@ -324,9 +338,11 @@ class FlextCliModelsProcess:
             default=None,
             description="Absolute deadline and termination grace policy.",
         )
-        isolation: FlextCliModelsProcess.ProcessReadOnlyIsolation | None = m.Field(
-            default=None, description="Immutable native confinement inputs"
-        )
+        isolation: (
+            FlextCliModelsProcess.ProcessFixtureIsolation
+            | FlextCliModelsProcess.ProcessReadOnlyIsolation
+            | None
+        ) = m.Field(default=None, description="Immutable native confinement inputs")
         pass_fds: tuple[int, ...] = m.Field(
             default=(),
             description="Explicit descriptors inherited by an ordinary child",
