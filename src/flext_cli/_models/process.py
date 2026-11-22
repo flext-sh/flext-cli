@@ -212,6 +212,17 @@ class FlextCliModelsProcess:
             description="Complete child environment, without inherited host variables"
         )
 
+    class ProcessFixtureCheckout(m.FrozenModel):
+        """Caller-elected persistent checkout and its independent source origin."""
+
+        backing: FlextCliModelsBasePart09.AtomicPhysicalTreeManifest = m.Field(
+            description="Authenticated private physical working directory"
+        )
+        source_root: Path = m.Field(description="Original root of captured sources")
+        persistent_filenames: tuple[str, ...] = m.Field(
+            min_length=1, description="Exact durable regular files allowed at the root"
+        )
+
     class ProcessFixtureIsolation(ProcessReadOnlyIsolation):
         """Qualified process isolation with explicit writable fixture directories."""
 
@@ -221,6 +232,9 @@ class FlextCliModelsProcess:
         persistent_directory: (
             FlextCliModelsBasePart09.AtomicPhysicalTreeManifest | None
         ) = m.Field(default=None, description="Dedicated persistent fixture data")
+        private_checkout: FlextCliModelsProcess.ProcessFixtureCheckout | None = m.Field(
+            default=None, description="Explicit persistent checkout backing for cwd"
+        )
 
     class ProcessOptions(m.ArbitraryTypesModel):
         """Child input, environment, and durable-output execution options."""
