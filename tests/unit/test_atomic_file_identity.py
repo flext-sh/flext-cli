@@ -257,7 +257,7 @@ class TestsFlextCliAtomicFileIdentity:
         result = u.Cli.atomic_create_binary_file_guarded(
             destination,
             b"content",
-            permission_mode=0o600,
+            options=m.Cli.AtomicWriteOptions(permission_mode=0o600),
         )
 
         tm.ok(result)
@@ -276,7 +276,7 @@ class TestsFlextCliAtomicFileIdentity:
         result = u.Cli.atomic_create_binary_file_guarded(
             destination,
             b"after",
-            permission_mode=0o600,
+            options=m.Cli.AtomicWriteOptions(permission_mode=0o600),
         )
 
         tm.fail(result)
