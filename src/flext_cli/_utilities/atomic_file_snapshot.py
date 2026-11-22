@@ -98,8 +98,16 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                     errno.ENOENT, "missing receipt file", receipt.path
                 )
             FlextCliUtilitiesAtomicFileModel.require_parent(receipt, parent.state)
+            # The receipt is matched by content identity; its digest is
+            # re-checked below. Once opened, the read is held to the exact
+            # version it opened (aihub-vkb1j.25).
             current = FlextCliUtilitiesAtomicFileRead.state_key(state)
-            if receipt.version_key != current or receipt.size != state.st_size:
+            if (
+                receipt.version_key is None
+                or FlextCliUtilitiesAtomicFileRead.content_key(receipt.version_key)
+                != FlextCliUtilitiesAtomicFileRead.content_key(current)
+                or receipt.size != state.st_size
+            ):
                 FlextCliUtilitiesAtomicFileRead.raise_changed(
                     receipt.path, receipt.version_key, current
                 )
@@ -121,9 +129,9 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                     after = FlextCliUtilitiesAtomicFileRead.state_key(
                         os.fstat(descriptor)
                     )
-                    if after != receipt.version_key:
+                    if after != current:
                         FlextCliUtilitiesAtomicFileRead.raise_changed(
-                            receipt.path, receipt.version_key, after
+                            receipt.path, current, after
                         )
                 finally:
                     reader.descriptor = -1
