@@ -469,3 +469,27 @@ class TestsFlextCliAtomicFileIdentity:
         tm.fail(destination.exists())
         tm.that(staged.read_bytes(), eq=b"content")
         tm.that(alias.read_bytes(), eq=b"content")
+
+
+class TestsFlextCliAtomicReadRefusal:
+    """A refused authenticated read names what changed."""
+
+    @staticmethod
+    def test_receipt_reader_refusal_names_the_changed_fields(
+        tmp_path: Path,
+    ) -> None:
+        """A refused receipt read names each changed field with both values.
+
+        Why (aihub-vkb1j.25): the refusal named only the path, so the cause of
+        a consumer failure on a hard-linked executable had to be inferred.
+        """
+        path = tmp_path / "receipt.bin"
+        path.write_bytes(b"payload")
+        receipt = tm.ok(u.Cli.atomic_read_binary_file_receipt(path, required=True))
+        (tmp_path / "second-name.bin").hardlink_to(path)
+
+        with (
+            u.Tests.raises(OSError, match=r"changed: .*st_nlink 1 -> 2"),
+            u.Cli.atomic_binary_file_reader(receipt),
+        ):
+            pass
