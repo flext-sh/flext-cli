@@ -1,8 +1,8 @@
 """Round-trip YAML engine and load/dump surface behind ``u.Cli.yaml_*``.
 
 Builds fresh comment-preserving ``ruamel.yaml`` engines per load/dump call
-(plug-in discovery runs once per process) and owns the ``r[T]`` load/dump operations. Composed into
-``FlextCliUtilitiesYaml`` via MRO in ``yaml.py``.
+(plug-in discovery runs once per process) and owns the ``r[T]`` load/dump
+operations. Composed into ``FlextCliUtilitiesYaml`` via MRO in ``yaml.py``.
 
 NOTE (multi-agent): mro-i6nq.13 — extracted from the removed
 ``_yaml_roundtrip_parts/..._part_01`` (engine + load/dump half). The
