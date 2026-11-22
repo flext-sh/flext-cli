@@ -282,6 +282,66 @@ class TestsFlextCliRuntimeProcessIsolation:
         tm.that(data.read_bytes(), eq=b"owned data")
 
     @staticmethod
+    @pytest.mark.parametrize(
+        "layout", ["clean", "extra", "symlink", "traversal", "runtime-overlap"]
+    )
+    def test_private_checkout_admits_only_declared_physical_state(
+        tmp_path: Path, layout: str
+    ) -> None:
+        """Preserve source and backing identity before qualifying the child."""
+        original = tmp_path / "original"
+        working = tmp_path / "private"
+        output = tmp_path / "output"
+        for directory in (original, working, output):
+            directory.mkdir(mode=0o700)
+        isolation = TestsFlextCliRuntimeProcessIsolation._request(
+            original, fixture_output=output
+        )
+        database = working / ".testmondata"
+        source = original / "source.py"
+        if layout == "symlink":
+            database.symlink_to(source)
+        else:
+            database.write_bytes(b"durable")
+        if layout == "extra":
+            (working / "unowned").touch()
+        checkout = m.Cli.ProcessFixtureCheckout.model_validate({
+            "backing": tm.ok(u.Cli.atomic_inventory_physical_tree(working)),
+            "source_root": original / ".." / original.name
+            if layout == "traversal"
+            else original,
+            "persistent_filenames": (database.name,),
+        })
+        if layout == "runtime-overlap":
+            runtime = tm.ok(u.Cli.atomic_inventory_physical_tree(original))
+            isolation = isolation.model_copy(update={"runtime_trees": (runtime,)})
+        result = u.Cli.run_raw(
+            (str(isolation.policy_compiler.abi_reference.path), "--version"),
+            cwd=working,
+            options=m.Cli.ProcessOptions(
+                isolation=isolation.model_copy(update={"private_checkout": checkout})
+            ),
+        )
+
+        tm.fail(result)
+        expected = {
+            "clean": "one original bootstrap qualification row",
+            "extra": "private checkout backing contains ineligible entry",
+            "symlink": "private checkout backing contains ineligible entry",
+            "traversal": "private checkout requires disjoint canonical cwd",
+            "runtime-overlap": "private checkout source root overlaps a runtime mount",
+        }
+        tm.that(
+            result.error or "",
+            has=(
+                expected[layout]
+                if sys.platform == "linux"
+                else "no qualified native platform capability"
+            ),
+        )
+        tm.that(source.read_text(encoding="utf-8"), eq='"""Captured source."""\n')
+
+    @staticmethod
     def test_network_policy_cannot_remove_a_required_syscall() -> None:
         """Native reference imports cannot weaken the external syscall contract."""
         policy = config.ProcessIsolation.denied_syscalls

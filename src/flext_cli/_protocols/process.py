@@ -601,5 +601,33 @@ class FlextCliProtocolsProcess:
             """Dedicated persistent fixture data."""
             ...
 
+        @property
+        def private_checkout(
+            self,
+        ) -> FlextCliProtocolsProcess.ProcessFixtureCheckout | None:
+            """Explicit persistent checkout backing for cwd."""
+            ...
+
+    @runtime_checkable
+    class ProcessFixtureCheckout(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def backing(
+            self,
+        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeManifest:
+            """Authenticated private physical working directory."""
+            ...
+
+        @property
+        def source_root(self) -> Path:
+            """Original root of captured sources."""
+            ...
+
+        @property
+        def persistent_filenames(self) -> tuple[str, ...]:
+            """Exact durable regular files allowed at the root."""
+            ...
+
 
 __all__: list[str] = ["FlextCliProtocolsProcess"]
