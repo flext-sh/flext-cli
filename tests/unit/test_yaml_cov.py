@@ -73,6 +73,17 @@ class TestsFlextCliYamlCov:
         tm.that(result.error, none=False)
         tm.that(result.error, has="parse error")
 
+    @staticmethod
+    def test_yaml_parse_reads_yaml_1_2_scalars_and_one_document() -> None:
+        """Verify that yaml parse reads YAML 1.2 scalars and refuses a stream."""
+        parsed = tm.ok(u.Cli.yaml_parse("flag: on\nmode: 0755\nhex: 0x1f\nok: true\n"))
+
+        tm.that(parsed, eq={"flag": "on", "mode": 755, "hex": 31, "ok": True})
+        tm.that(
+            u.Cli.yaml_parse("a: 1\n---\nb: 2\n").error,
+            has="expected one document",
+        )
+
     # ── yaml_safe_load ───────────────────────────────────────────────
 
     @staticmethod
