@@ -136,11 +136,7 @@ class FlextCliUtilitiesAtomicTreePhysical:
         root_path = FlextCliUtilitiesAtomicFilePath.validate_atomic_path(root_path)
         entries: list[p.Cli.AtomicPhysicalTreeEntry] = []
         proven = (
-            {
-                root_path / entry.path.relative_to(reference.root.path): entry
-                for entry in reference.entries
-                if entry.kind == "file"
-            }
+            FlextCliUtilitiesAtomicTreePhysical._proven_files(root_path, reference)
             if reference is not None
             else {}
         )
@@ -399,6 +395,37 @@ class FlextCliUtilitiesAtomicTreePhysical:
             parent.path,
             parent.state,
         )
+
+    @staticmethod
+    def _proven_files(
+        root_path: Path,
+        reference: p.Cli.AtomicPhysicalTreeManifest,
+    ) -> dict[Path, p.Cli.AtomicPhysicalTreeEntry]:
+        """Rebase the reference's file entries onto ``root_path`` in one pass.
+
+        ``Path.relative_to`` walks every ancestor of its path, so rebasing a
+        large reference entry by entry dominated a reused inventory. The
+        reference root prefix is derived once and each entry's suffix is
+        sliced; an entry the prefix does not cover still rebases through
+        ``relative_to`` with its original failure.
+
+        Returns:
+            Each reference file entry keyed by its path under ``root_path``.
+
+        """
+        reference_root = reference.root.path
+        prefix = str(reference_root).rstrip(os.sep) + os.sep
+        proven: dict[Path, p.Cli.AtomicPhysicalTreeEntry] = {}
+        for entry in reference.entries:
+            if entry.kind != "file":
+                continue
+            path = str(entry.path)
+            proven[
+                root_path / path[len(prefix) :]
+                if path.startswith(prefix)
+                else root_path / entry.path.relative_to(reference_root)
+            ] = entry
+        return proven
 
     @staticmethod
     def _file_digest(
