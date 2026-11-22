@@ -98,11 +98,11 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                     errno.ENOENT, "missing receipt file", receipt.path
                 )
             FlextCliUtilitiesAtomicFileModel.require_parent(receipt, parent.state)
-            if (
-                receipt.version_key != FlextCliUtilitiesAtomicFileRead.state_key(state)
-                or receipt.size != state.st_size
-            ):
-                FlextCliUtilitiesAtomicFileRead.raise_changed(receipt.path)
+            current = FlextCliUtilitiesAtomicFileRead.state_key(state)
+            if receipt.version_key != current or receipt.size != state.st_size:
+                FlextCliUtilitiesAtomicFileRead.raise_changed(
+                    receipt.path, receipt.version_key, current
+                )
             with FlextCliUtilitiesAtomicFileDescriptor.entry_descriptor(
                 parent, receipt.path, FlextCliUtilitiesAtomicFileRead.READ_FLAGS
             ) as descriptor:
@@ -118,11 +118,13 @@ class FlextCliUtilitiesAtomicFileSnapshot:
                 )
                 try:
                     yield reader
-                    if (
-                        FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(descriptor))
-                        != receipt.version_key
-                    ):
-                        FlextCliUtilitiesAtomicFileRead.raise_changed(receipt.path)
+                    after = FlextCliUtilitiesAtomicFileRead.state_key(
+                        os.fstat(descriptor)
+                    )
+                    if after != receipt.version_key:
+                        FlextCliUtilitiesAtomicFileRead.raise_changed(
+                            receipt.path, receipt.version_key, after
+                        )
                 finally:
                     reader.descriptor = -1
 
