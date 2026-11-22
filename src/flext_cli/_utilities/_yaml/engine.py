@@ -1,8 +1,8 @@
 """Round-trip YAML engine and load/dump surface behind ``u.Cli.yaml_*``.
 
 Builds fresh comment-preserving ``ruamel.yaml`` engines per load/dump call
-and owns the ``r[T]`` load/dump operations. Composed into
-``FlextCliUtilitiesYaml`` via MRO in ``yaml.py``.
+(plug-in discovery runs once per process) and owns the ``r[T]`` load/dump
+operations. Composed into ``FlextCliUtilitiesYaml`` via MRO in ``yaml.py``.
 
 NOTE (multi-agent): mro-i6nq.13 — extracted from the removed
 ``_yaml_roundtrip_parts/..._part_01`` (engine + load/dump half). The
@@ -15,6 +15,11 @@ shared instance corrupted concurrent loads under ``crg-maintain --jobs 3``
 (``IndexError: string index out of range`` in ``ruamel/yaml/reader.py``).
 Engines are therefore built per call; never reintroduce a shared instance.
 
+NOTE (multi-agent): flext-xps6d (ai-hub aihub-uy6hl) — ``YAML()`` scans
+``site-packages/ruamel/yaml/*/__plug_in__.py`` on every construction. The
+scan result is immutable for the process, so the engine discovers it once
+and only the per-call instance stays fresh.
+
 Copyright (c) 2025 FLEXT Team. All rights reserved.
 SPDX-License-Identifier: MIT
 """
@@ -23,7 +28,7 @@ from __future__ import annotations
 
 import io
 from collections.abc import Callable, Sequence
-from typing import TYPE_CHECKING, TextIO
+from typing import TYPE_CHECKING, ClassVar, TextIO, override
 
 import ruamel.yaml
 from flext_core import r
@@ -44,20 +49,42 @@ class FlextCliUtilitiesYamlEngine(FlextCliUtilitiesYamlConvert):
     propagate as typed failures, never as silent defaults.
     """
 
+    class _RoundtripYaml(ruamel.yaml.YAML):
+        """``ruamel.yaml.YAML`` whose plug-in directory scan runs once per process."""
+
+        _official_plug_ins: ClassVar[tuple[str, ...] | None] = None
+
+        @override
+        def official_plug_ins(self) -> list[str]:
+            """Return the plug-in modules ruamel discovered on first construction.
+
+            Concurrent first calls may both scan; they store the same immutable
+            tuple, so no lock is needed.
+
+            Returns:
+                A fresh list of the discovered plug-in module paths.
+
+            """
+            cls = type(self)
+            if cls._official_plug_ins is None:
+                cls._official_plug_ins = tuple(super().official_plug_ins())
+            return list(cls._official_plug_ins)
+
     @staticmethod
     def _roundtrip_yaml() -> p.Cli.YamlRoundtripEngine:
         """Build a fresh comment/quote-preserving round-trip engine.
 
         A new instance per call keeps load/dump operations thread-safe: ruamel
-        stores mutable parser state on the instance while parsing. The returned
-        surface is returned through the typed ``p.Cli.YamlRoundtripEngine``
-        contract, which ``ruamel.yaml.YAML`` satisfies structurally.
+        stores mutable parser state on the instance while parsing. Only the
+        process-wide plug-in discovery is reused. The returned surface is
+        returned through the typed ``p.Cli.YamlRoundtripEngine`` contract,
+        which ``ruamel.yaml.YAML`` satisfies structurally.
 
         Returns:
             The resulting ``p.Cli.YamlRoundtripEngine``.
 
         """
-        yaml = ruamel.yaml.YAML()
+        yaml = FlextCliUtilitiesYamlEngine._RoundtripYaml()
         yaml.preserve_quotes = True
         yaml.width = 4096
         yaml.indent(mapping=2, sequence=4, offset=2)
