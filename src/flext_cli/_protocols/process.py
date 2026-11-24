@@ -601,5 +601,38 @@ class FlextCliProtocolsProcess:
             """Dedicated persistent fixture data."""
             ...
 
+        @property
+        def private_checkout(
+            self,
+        ) -> FlextCliProtocolsProcess.ProcessFixtureCheckout | None:
+            """Private fixture checkout identity for the isolated database."""
+            ...
+
+    @runtime_checkable
+    class ProcessFixtureCheckout(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def backing(
+            self,
+        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeManifest:
+            """Authenticated backing inventory for the database family."""
+            ...
+
+        @property
+        def source_root(self) -> Path:
+            """Repository source root served by the private checkout."""
+            ...
+
+        @property
+        def persistent_filenames(self) -> tuple[str, ...]:
+            """Database and sidecar filenames retained across runs."""
+            ...
+
+        @property
+        def persistent_directory_suffix(self) -> str:
+            """Suffix identifying the persistent receipt directory."""
+            ...
+
 
 __all__: list[str] = ["FlextCliProtocolsProcess"]

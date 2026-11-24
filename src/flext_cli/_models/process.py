@@ -212,6 +212,24 @@ class FlextCliModelsProcess:
             description="Complete child environment, without inherited host variables"
         )
 
+    class ProcessFixtureCheckout(m.ContractModel):
+        """Private fixture checkout identity for a testmon database family."""
+
+        backing: FlextCliModelsBasePart09.AtomicPhysicalTreeManifest = m.Field(
+            description="Authenticated backing inventory for the database family",
+        )
+        source_root: Path = m.Field(
+            description="Repository source root served by the private checkout",
+        )
+        persistent_filenames: tuple[str, ...] = m.Field(
+            default=(),
+            description="Database and sidecar filenames retained across runs",
+        )
+        persistent_directory_suffix: str = m.Field(
+            default="",
+            description="Suffix identifying the persistent receipt directory",
+        )
+
     class ProcessFixtureIsolation(ProcessReadOnlyIsolation):
         """Qualified process isolation with explicit writable fixture directories."""
 
@@ -221,6 +239,10 @@ class FlextCliModelsProcess:
         persistent_directory: (
             FlextCliModelsBasePart09.AtomicPhysicalTreeManifest | None
         ) = m.Field(default=None, description="Dedicated persistent fixture data")
+        private_checkout: FlextCliModelsProcess.ProcessFixtureCheckout | None = m.Field(
+            default=None,
+            description="Private fixture checkout identity for the isolated database",
+        )
 
     class ProcessOptions(m.ArbitraryTypesModel):
         """Child input, environment, and durable-output execution options."""
