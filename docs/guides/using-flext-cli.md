@@ -11,9 +11,7 @@
 - [Purpose](#purpose)
 - [Settings](#settings)
 - [Model-driven command](#model-driven-command)
-- [Single-command CLI](#single-command-cli)
 - [Testing a command](#testing-a-command)
-- [Exit-code contract](#exit-code-contract)
 - [Managed process communication](#managed-process-communication)
 - [Guarded directory materialization](#guarded-directory-materialization)
 - [Good practices](#good-practices)
@@ -119,52 +117,6 @@ cli.register_command(app, name="greet", help_text="Build a greeting", command=co
   `FlextCliCli.model_command(...)`.
 - `m.CliInput` / `m.CliOutput` do not exist; use plain `m.BaseModel` subclasses.
 
-## Single-command CLI
-
-When a module or console script exposes exactly one operation,
-`cli.run_result_command` is the whole CLI: it builds the application, registers
-one result command named after `metadata.name`, runs it and returns the exit code.
-The application holds only that command, so Typer builds it as a single command
-and the options follow the program name directly (`python -m pkg.mod --name Ada`),
-with no subcommand token.
-
-```python
-from __future__ import annotations
-
-from flext_cli import c, cli, m, p, r
-
-
-class GreetingRequest(m.BaseModel):
-    """Greet one person by name."""
-
-    name: str
-
-
-def greet(request: GreetingRequest) -> p.Result[str]:
-    """Return the greeting for one request."""
-    return r[str].ok(f"Hello, {request.name}!")
-
-
-code = cli.run_result_command(
-    GreetingRequest,
-    greet,
-    m.Cli.CommandMetadata(name="greet"),
-    args=["--name", "Ada"],
-    success_formatter=str,
-)
-assert code == c.Cli.EXIT_CODE_SUCCESS
-```
-
-- `metadata.name` is the program and command name; `metadata.help_text` is the help,
-  and when it is empty the request model's docstring is the help.
-- Without `success_formatter` a successful run prints nothing; pass `str`,
-  `lambda value: value.model_dump_json(indent=2)` or any other formatter to print.
-- `args=None` reads `sys.argv[1:]`.
-- The call returns the exit code of the contract below and raises no `SystemExit`;
-  a domain failure prints its message once on stderr.
-
-`examples/ex_13_single_result_command.py` runs this pattern as a module.
-
 ## Testing a command
 
 Use `FlextCliCli.invoke_app` with the adapter-owned application, not Typer's `CliRunner`
@@ -208,34 +160,6 @@ def test_greet_command() -> None:
     assert greet_handler(GreetInput(name="Ada")) == "Hello, Ada!"
 ```
 
-## Exit-code contract
-
-A command registered with `cli.register_result_command` and run through
-`cli.execute_app` / `cli.finalize_result` exits with one of three codes, all declared
-in `c.Cli`:
-
-| Outcome                   | Exit code                 | Output                                      |
-| ------------------------- | ------------------------- | ------------------------------------------- |
-| Success                   | `c.Cli.EXIT_CODE_SUCCESS` | the formatted result                        |
-| Usage error               | `c.Cli.EXIT_CODE_USAGE`   | Click's usage line and one `Error:` message |
-| Domain failure (`r.fail`) | `c.Cli.EXIT_CODE_FAILURE` | the failure message, once on stderr         |
-
-A usage error is a missing required option, an unknown option, a value of the wrong
-type, or input the request model rejects (for example a `Field(gt=0)` violated by
-`--block 0`). Click owns its rendering: the message names the option as the user
-types it (`Missing option '--folder'.`) and no traceback is printed. The request
-model's `ValidationError` is converted once, where the model is validated, into
-Click's own `BadParameter`.
-
-A domain failure renders through the CLI output boundary only: the styled
-failure message, then the cause's traceback, notes and error code. The border
-emits no structured log event for the same failure, so stderr carries it once.
-`cli.execute_app` returns a failure unrendered, with its error, code, data and
-original exception; `cli.finalize_result` is the one owner that renders it. A
-caller that uses `execute_app` without `finalize_result` renders the failure
-itself.
-`cli.run_result_command` returns the same three codes.
-
 ## Managed process communication
 
 The existing `u.Cli.process_start` owner returns `p.Cli.ManagedProcess`; it remains
@@ -265,9 +189,6 @@ Result boundary also exposes the created receipts in structured failure data.
 Neither path restores a prior image or compensates published directories. Consumers
 use the retained state to diagnose and plan forward, rather than copying the chain
 algorithm into their own application.
-Verification compares the complete original ancestry and created receipts in one
-physical descriptor traversal. A matching final inode cannot authorize a replaced
-ancestor.
 
 ## Good practices
 
