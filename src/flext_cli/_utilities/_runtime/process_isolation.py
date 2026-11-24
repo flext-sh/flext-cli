@@ -61,13 +61,40 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
         cls._ensure_isolation_roots_qualified(roots)
         cls._ensure_isolation_launcher_qualified(launcher_artifact)
         cls._ensure_isolation_inputs_unchanged(files)
+        checkout = (
+            isolation.private_checkout
+            if isinstance(isolation, m.Cli.ProcessFixtureIsolation)
+            else None
+        )
+        destinations = (
+            cls._private_checkout_sources(isolation, working)
+            if isinstance(isolation, m.Cli.ProcessFixtureIsolation)
+            else {}
+        )
         writable_directories = cls._retain_isolation_writable_directories(
-            state, isolation, working, roots, paths
+            state,
+            isolation,
+            working,
+            (*roots, working) if checkout is not None else roots,
+            paths,
+        )
+        checkout_mount = (
+            cls._retain_private_checkout(
+                state, checkout, roots, paths, tuple(destinations.values())
+            )
+            if checkout is not None
+            else None
         )
         runtime_descriptors = cls._retain_isolation_runtime_descriptors(
             state, isolation, roots, paths
         )
-        cls._ensure_isolation_closure_qualified(working, isolation, roots, command)
+        cls._ensure_isolation_closure_qualified(
+            working,
+            isolation,
+            roots,
+            command,
+            destinations,
+        )
         cls._qualify_isolation_native_tools(isolation)
         sealed = cls._seal_isolation_executors(
             request, state, isolation, timing.grace_seconds
@@ -82,6 +109,10 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
                 policy=sealed[1],
                 runtime_descriptors=tuple(runtime_descriptors),
             ),
+            checkout_mount=(
+                (checkout_mount, working) if checkout_mount is not None else None
+            ),
+            destinations=destinations,
         )
         if writable_directories:
             for option, destination in cls._fixture_mounts:
@@ -135,6 +166,9 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
         state: p.Cli.RuntimeProcessState,
         isolation: p.Cli.ProcessReadOnlyIsolation,
         sealed: p.Cli.ProcessIsolationSeal,
+        *,
+        checkout_mount: tuple[int, Path] | None,
+        destinations: dict[Path, Path],
     ) -> tuple[list[str], list[int]]:
         """Bind sealed inputs and runtime roots into the confined argv.
 
@@ -166,6 +200,10 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
             "--seccomp",
             str(policy),
         ]
+        if checkout_mount is not None:
+            descriptor, backing_path = checkout_mount
+            inherited.append(descriptor)
+            arguments.extend(("--bind-fd", str(descriptor), str(backing_path)))
         for descriptor, root in sealed.runtime_descriptors:
             inherited.append(descriptor)
             arguments.extend(("--ro-bind-fd", str(descriptor), str(root)))
@@ -196,7 +234,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
                 format(captured.mode, "o"),
                 "--ro-bind-data",
                 str(descriptor),
-                str(captured.path),
+                str(destinations.get(captured.path, captured.path)),
             ))
         for name, value in isolation.environment:
             arguments.extend(("--setenv", name, value))
