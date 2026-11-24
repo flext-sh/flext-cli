@@ -2,6 +2,8 @@
 
 <!-- TOC START -->
 
+- [Fixture outputs](#fixture-outputs)
+
 <!-- TOC END -->
 
 `u.Cli.run_raw`, `run_bytes` and `run_to_file` accept an optional
