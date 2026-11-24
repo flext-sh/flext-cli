@@ -19,6 +19,7 @@ from pathlib import Path
 from flext_core import r, u
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError, ValidationError
+from jsonschema.validators import validator_for
 
 from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesJson
@@ -118,6 +119,9 @@ class FlextCliUtilitiesConfig:
     def schema_validate(data: t.JsonMapping, schema_path: Path) -> p.Result[bool]:
         """Validate ``data`` against the JSON Schema at ``schema_path`` → ``r[bool]``.
 
+        The schema's own ``$schema`` selects the draft; Draft 2020-12 applies
+        only when the schema declares none.
+
         Returns:
             The resulting ``p.Result[bool]``.
 
@@ -125,9 +129,11 @@ class FlextCliUtilitiesConfig:
         schema_read = FlextCliUtilitiesJson.json_read(schema_path)
         if schema_read.failure:
             return r[bool].from_failure(schema_read)
+        schema = dict(schema_read.value)
+        validator_class = validator_for(schema, default=Draft202012Validator)
         return u.try_(
             lambda: FlextCliUtilitiesConfig._run_validator(
-                Draft202012Validator(dict(schema_read.value)), data
+                validator_class(schema), data
             ),
             catch=(ValidationError, SchemaError),
             op_name="schema_validate",
@@ -137,7 +143,7 @@ class FlextCliUtilitiesConfig:
     def _run_validator(
         validator: p.Cli.JsonSchemaValidator, data: t.JsonMapping
     ) -> bool:
-        """Run a Draft 2020-12 validator; raise on first violation, else ``True``.
+        """Run the selected validator; raise on first violation, else ``True``.
 
         Returns:
             The resulting ``bool``.
