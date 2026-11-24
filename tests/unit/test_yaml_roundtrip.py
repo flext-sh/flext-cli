@@ -12,6 +12,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import sys
 from collections.abc import Mapping
 from concurrent.futures import ThreadPoolExecutor
 from typing import TYPE_CHECKING, cast
@@ -166,6 +167,31 @@ class TestsFlextCliYamlRoundtripLoad:
             list(pool.map(parse_repeatedly, documents))
 
         tm.that(failures, eq=[])
+
+    @staticmethod
+    def test_repeated_roundtrips_never_rescan_ruamel_plug_ins() -> None:
+        """Round-trip loads and dumps reuse the process-wide plug-in discovery.
+
+        ``glob.glob`` raises the ``glob.glob`` audit event for every scan, so
+        the real directory scans are observed without replacing any owner.
+        """
+        tm.ok(u.Cli.yaml_roundtrip_load_text("warm: up\n"))
+        scans: list[str] = []
+        observing = [True]
+
+        def observe(event: str, args: tuple[object, ...]) -> None:
+            if observing[0] and event == "glob.glob":
+                scans.append(str(args[0]))
+
+        sys.addaudithook(observe)
+        try:
+            for index in range(5):
+                tree = tm.ok(u.Cli.yaml_roundtrip_load_map_text(f"key: {index}\n"))
+                tm.that(tm.ok(u.Cli.yaml_roundtrip_dump_text(tree)), has="key:")
+        finally:
+            observing[0] = False
+
+        tm.that([scan for scan in scans if "__plug_in__" in scan], eq=[])
 
 
 class TestsFlextCliYamlRoundtripConvert:
