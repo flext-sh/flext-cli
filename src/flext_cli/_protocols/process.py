@@ -258,7 +258,13 @@ class FlextCliProtocolsProcess:
         stderr_file: t.Cli.TextPath | None
 
         @property
-        def isolation(self) -> FlextCliProtocolsProcess.ProcessReadOnlyIsolation | None:
+        def isolation(
+            self,
+        ) -> (
+            FlextCliProtocolsProcess.ProcessFixtureIsolation
+            | FlextCliProtocolsProcess.ProcessReadOnlyIsolation
+            | None
+        ):
             """Explicit native read-only confinement request."""
             ...
 
@@ -508,7 +514,13 @@ class FlextCliProtocolsProcess:
         deadline: FlextCliProtocolsBaseFlextclimodelsbasePart01.ProcessDeadline | None
 
         @property
-        def isolation(self) -> FlextCliProtocolsProcess.ProcessReadOnlyIsolation | None:
+        def isolation(
+            self,
+        ) -> (
+            FlextCliProtocolsProcess.ProcessFixtureIsolation
+            | FlextCliProtocolsProcess.ProcessReadOnlyIsolation
+            | None
+        ):
             """Immutable native confinement inputs."""
             ...
 
@@ -567,6 +579,27 @@ class FlextCliProtocolsProcess:
         pass_fds: tuple[int, ...]
         start_new_session: bool | None
         stdin_mode: Literal["devnull", "inherit", "pipe"]
+
+    @runtime_checkable
+    class ProcessFixtureIsolation(ProcessReadOnlyIsolation, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def output_directory(
+            self,
+        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeManifest:
+            """Initially empty caller-owned fixture output tree."""
+            ...
+
+        @property
+        def persistent_directory(
+            self,
+        ) -> (
+            FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeManifest
+            | None
+        ):
+            """Dedicated persistent fixture data."""
+            ...
 
 
 __all__: list[str] = ["FlextCliProtocolsProcess"]

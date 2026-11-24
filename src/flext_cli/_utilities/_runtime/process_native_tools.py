@@ -43,7 +43,11 @@ class FlextCliUtilitiesRuntimeProcessNativeTools(
         cls._ensure_native_tool_evidence(
             qualification, role, isolation.policy_compiler.artifact_receipt
         )
-        cls._ensure_native_tool_denials(qualification, isolation.architecture)
+        cls._ensure_native_tool_policy(
+            qualification,
+            isolation.architecture,
+            fixture=isinstance(isolation, m.Cli.ProcessFixtureIsolation),
+        )
         cls._ensure_native_tool_declaration(qualification, declaration)
         cls._ensure_native_tool_artifact(qualification)
 
@@ -91,14 +95,18 @@ class FlextCliUtilitiesRuntimeProcessNativeTools(
             raise ValueError(msg)
 
     @classmethod
-    def _ensure_native_tool_denials(
-        cls, qualification: p.Cli.ProcessNativeToolQualification, architecture: str
+    def _ensure_native_tool_policy(
+        cls,
+        qualification: p.Cli.ProcessNativeToolQualification,
+        architecture: str,
+        *,
+        fixture: bool,
     ) -> None:
-        """Require complete denial qualification for the declared ABI.
+        """Require complete policy qualification for the declared ABI.
 
         Raises:
-            ValueError: If the build, ABI, or denial probes failed, the
-                canonical policy digest differs, the observed denials are
+            ValueError: If the build, ABI, or policy probes failed, the
+                canonical policy digest differs, the observations are
                 incomplete, or the qualification ABI differs.
 
         """
@@ -110,25 +118,28 @@ class FlextCliUtilitiesRuntimeProcessNativeTools(
                 qualification.native_policy_probe_outcome,
             )
         ):
-            msg = "native policy compiler build, ABI or denial qualification failed"
+            msg = "native policy compiler build, ABI or policy qualification failed"
             raise ValueError(msg)
-        if cls.native_process_policy_identity() != qualification.policy_sha256:
-            msg = (
-                "native denial qualification differs from the canonical process policy"
-            )
-            raise ValueError(msg)
-        observed = tuple(probe.syscall for probe in qualification.native_policy_probes)
         if (
-            len(observed) != len(set(observed))
-            or set(observed) != set(config.ProcessIsolation.denied_syscalls)
-            or any(
-                probe.observed_errno != errno.EACCES
-                for probe in qualification.native_policy_probes
+            cls.native_process_policy_identity(fixture=fixture)
+            != qualification.policy_sha256
+        ):
+            msg = (
+                "native qualification differs from the canonical process policy"
             )
+            raise ValueError(msg)
+        expected = cls.native_process_policy_observations(fixture=fixture)
+        observed = {
+            probe.syscall: probe.observed_errno
+            for probe in qualification.native_policy_probes
+        }
+        if (
+            len(observed) != len(qualification.native_policy_probes)
+            or observed != expected
         ):
             msg = (
                 "native policy qualification lacks "
-                "complete original denial observations"
+                "complete original policy observations"
             )
             raise ValueError(msg)
         if qualification.architecture != architecture:
@@ -212,12 +223,35 @@ class FlextCliUtilitiesRuntimeProcessNativeTools(
             raise ValueError(msg)
 
     @staticmethod
-    def native_process_policy_arguments() -> tuple[str, ...]:
+    def native_process_policy_arguments(*, fixture: bool = False) -> tuple[str, ...]:
         """Return the source-owned symbolic native denial obligations."""
-        return config.ProcessIsolation.denied_syscalls
+        denied = config.ProcessIsolation.denied_syscalls
+        return ("--fixture-policy", *denied) if fixture else denied
 
     @staticmethod
-    def native_process_policy_identity() -> str:
+    def native_process_policy_observations(*, fixture: bool = False) -> dict[str, int]:
+        """Select the required real bootstrap observations for the policy.
+
+        Returns:
+            Required observations keyed by the native probe identifier.
+
+        """
+        if fixture:
+            return {
+                **{
+                    syscall: errno.EACCES
+                    for syscall in config.ProcessIsolation.denied_syscalls
+                    if syscall.startswith("io_uring_")
+                },
+                "socket:non-unix": errno.EACCES,
+                "socketpair:non-unix": errno.EACCES,
+                "connect:external-pathname": errno.EACCES,
+                "connect:fixture-pathname": 0,
+            }
+        return dict.fromkeys(config.ProcessIsolation.denied_syscalls, errno.EACCES)
+
+    @staticmethod
+    def native_process_policy_identity(*, fixture: bool = False) -> str:
         """Fingerprint the exact NUL-terminated native policy argument vector.
 
         Returns:
@@ -226,7 +260,7 @@ class FlextCliUtilitiesRuntimeProcessNativeTools(
 
         """
         mixin = FlextCliUtilitiesRuntimeProcessNativeTools
-        arguments = mixin.native_process_policy_arguments()
+        arguments = mixin.native_process_policy_arguments(fixture=fixture)
         content = b"\0".join(name.encode("ascii") for name in arguments) + b"\0"
         return hashlib.sha256(content).hexdigest()
 

@@ -18,70 +18,17 @@ override SHELL := /bin/sh
 # a cgroup scope of the user's systemd manager at idle CPU and IO weight,
 # bounded by MemoryMax and CPUQuota; children and nested Make inherit the
 # scope, and PYTHON_CPU_COUNT sizes Python worker pools to the same CPUs. A
-# verb refuses to start while the 5-minute load average exceeds its limit; a
-# mod without RULES or LAWS is the full form, named mod-full. Overrides apply
-# when the invocation names exactly one verb.
+# verb refuses to start while the 5-minute load average exceeds its limit,
+# except the ungated bootstrap verbs; a mod without RULES or LAWS is the full
+# form, named mod-full. Overrides apply when the invocation names exactly one
+# verb.
 ifeq ($(MAKELEVEL)$(filter Y,$(CI)),0)
 override ADMISSION_VERB := $(if $(word 2,$(MAKECMDGOALS)),,$(or $(MAKECMDGOALS),$(.DEFAULT_GOAL),help))
 override ADMISSION_VERB := $(if $(filter mod,$(ADMISSION_VERB)),$(if $(strip $(RULES)$(LAWS)),mod,mod-full),$(ADMISSION_VERB))
 override ADMISSION_MAX_LOAD5 := 20.0
 override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
 override ADMISSION_MAX_PROCESSES := 2
-ifeq ($(ADMISSION_VERB),setup)
-override ADMISSION_MAX_LOAD5 := 160.0
-override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
-override ADMISSION_MAX_PROCESSES := 2
-endif
-ifeq ($(ADMISSION_VERB),upg)
-override ADMISSION_MAX_LOAD5 := 80.0
-override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
-override ADMISSION_MAX_PROCESSES := 2
-endif
-ifeq ($(ADMISSION_VERB),gen)
-override ADMISSION_MAX_LOAD5 := 160.0
-override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
-override ADMISSION_MAX_PROCESSES := 2
-endif
-ifeq ($(ADMISSION_VERB),mod)
-override ADMISSION_MAX_LOAD5 := 80.0
-override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
-override ADMISSION_MAX_PROCESSES := 2
-endif
-ifeq ($(ADMISSION_VERB),fix)
-override ADMISSION_MAX_LOAD5 := 80.0
-override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
-override ADMISSION_MAX_PROCESSES := 2
-endif
-ifeq ($(ADMISSION_VERB),fmt)
-override ADMISSION_MAX_LOAD5 := 80.0
-override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
-override ADMISSION_MAX_PROCESSES := 2
-endif
-ifeq ($(ADMISSION_VERB),check)
-override ADMISSION_MAX_LOAD5 := 160.0
-override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
-override ADMISSION_MAX_PROCESSES := 2
-endif
-ifeq ($(ADMISSION_VERB),tests)
-override ADMISSION_MAX_LOAD5 := 80.0
-override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
-override ADMISSION_MAX_PROCESSES := 2
-endif
-ifeq ($(ADMISSION_VERB),help)
-override ADMISSION_MAX_LOAD5 := 80.0
-override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
-override ADMISSION_MAX_PROCESSES := 2
-endif
-ifeq ($(ADMISSION_VERB),build)
-override ADMISSION_MAX_LOAD5 := 80.0
-override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
-override ADMISSION_MAX_PROCESSES := 2
-endif
-ifeq ($(ADMISSION_VERB),clean)
-override ADMISSION_MAX_LOAD5 := 80.0
-override ADMISSION_MEMORY_LIMIT_BYTES := 5368709120
-override ADMISSION_MAX_PROCESSES := 2
-endif
+ifeq ($(filter $(ADMISSION_VERB),setup),)
 override ADMISSION_LOAD5 := $(shell awk -v limit=$(ADMISSION_MAX_LOAD5) '$$2 > limit { print $$2 }' /proc/loadavg)
 ifneq ($(.SHELLSTATUS),0)
 $(error Cannot read the 5-minute load average from /proc/loadavg)
@@ -93,6 +40,7 @@ $(info Prefer a narrow make mod RULES=<rule ids> over a full make mod, and make 
 $(info Use at most 2 workers and never run heavy verbs in parallel across lanes.)
 $(info A verb exception is a declared make.admission.overrides entry in the config SSOT, never a local edit or an environment bypass.)
 $(error Refused: 5-minute load average $(ADMISSION_LOAD5) exceeds the admission limit $(ADMISSION_MAX_LOAD5) of '$(or $(ADMISSION_VERB),$(MAKECMDGOALS))'; run its lighter form now, or declare make.admission.overrides.<verb>.max_load5 in config/codegen.yaml (flext-infra for canonical verbs, the project for its own extra_verbs))
+endif
 endif
 override ADMISSION_SYSTEMD_RUN := $(shell command -v systemd-run)
 ifeq ($(ADMISSION_SYSTEMD_RUN),)
@@ -161,16 +109,20 @@ endif
 # else, outside CI, the declared command when its executable is installed, else
 # anonymous. A selected command that fails or prints nothing stops the network
 # verbs (_builtin_require_github_credential), never degrading to anonymous.
-# The value stays in the environment and is never printed.
+# The value stays in the environment and is never printed. The command is a
+# Mise-managed executable, refused in a checkout whose .mise.toml is not trusted
+# yet, so a bare `make setup` resolves it only after trusting the checkout.
 GITHUB_TOKEN := $(firstword $(GITHUB_TOKEN) $(GH_TOKEN) $(MISE_GITHUB_TOKEN))
 GITHUB_CREDENTIAL_SOURCE := $(if $(GITHUB_TOKEN),environment,anonymous)
 ifeq ($(GITHUB_TOKEN),)
 ifneq ($(strip $(CI)),Y)
+ifneq ($(MAKECMDGOALS),setup)
 GITHUB_CREDENTIAL_EXECUTABLE := $(shell command -v gh)
 ifneq ($(GITHUB_CREDENTIAL_EXECUTABLE),)
 GITHUB_CREDENTIAL_SOURCE := command
 GITHUB_TOKEN := $(shell "$(GITHUB_CREDENTIAL_EXECUTABLE)" auth token)
 GITHUB_CREDENTIAL_STATUS := $(.SHELLSTATUS)
+endif
 endif
 endif
 endif
@@ -199,7 +151,7 @@ $(eval export GIT_CONFIG_VALUE_$(GIT_CONFIG_ALLOW_INDEX))
 # === SECTION: project identity (managed) ===
 # Source: config:dist / config:make_profile / config:repository_root_rel / config:uv_link_mode
 PROJECT_NAME := flext-cli
-MAKE_PROFILE := workspace
+MAKE_PROFILE := standalone
 REPOSITORY_ROOT_REL := .
 # === SECTION: workspace subprojects (managed) ===
 # Source: config:workspace_subprojects (list), config:workspace_repositories (list)
@@ -211,14 +163,8 @@ WORKSPACE_SUBPROJECTS :=
 # The Makefile validates no caller input. Every verb
 # always applies; a mistyped variable fails where the verb consumes it, and an
 # unconsumed variable is ignored.
-export CHECK_PHASE
+export CHECK_PHASE MARKER
 PYTEST_REPORTS_DIR := .reports/tests
-PYTEST_CACHE_HOME = $(if $(strip $(XDG_CACHE_HOME)),$(XDG_CACHE_HOME),$(if $(strip $(HOME)),$(HOME)/.cache,))
-# One persistent testmon database per project, shared by every checkout and
-# worktree of it: testmon tracks each checkout's source by file checksum, so a
-# new lane starts from the project's measured selection instead of a cold full
-# inventory.
-override FLEXT_PYTEST_TESTMON_DATABASE = $(if $(strip $(PYTEST_CACHE_HOME)),$(PYTEST_CACHE_HOME)/flext/infra/testmon/$(PROJECT_NAME)/.testmondata)
 override PYTEST_RUN_TIMEOUT_SECONDS := 240
 override PYTEST_TERMINATION_GRACE_SECONDS := 2
 override PYTEST_TIMEOUT_EXIT_CODE := 124
@@ -391,7 +337,7 @@ endif
 # === SECTION: verb dispatch (managed) ===
 # Source: config:make.verbs and the canonical gate vocabulary. A verb exists
 # only in the profiles it declares (make.verbs[].profiles).
-PUBLIC_VERBS := setup upg lock gen gen-scope mod fix fmt check tests tests-full help build clean
+PUBLIC_VERBS := setup upg lock gen gen-scope mod fix fmt check tests tests-full tests-harness help build clean
 SCRIPT_VERBS :=
 
 CUSTOM_MAKEFILE := $(MAKEFILE_ROOT)/custom.mk
@@ -452,8 +398,12 @@ CALLER_VIRTUAL_ENV := $(patsubst %/,%,$(VIRTUAL_ENV))
 
 # === SECTION: profile routing (managed) ===
 # Source: repository topology. workspace has .gitmodules; standalone does not.
-# Native UV membership and Git attachment elect the physical runtime.
+# Native UV membership and Git attachment elect the physical runtime; only an
+# explicit make command-line RUNTIME_ROOT (a test fixture's session runtime,
+# D-VENV) replaces the election, never the environment or a parent make.
+ifneq ($(origin RUNTIME_ROOT),command line)
 override RUNTIME_ROOT := $(REPOSITORY_ROOT)
+endif
 # Git and Mise discovery share the runtime boundary: an attached member's
 # verbs read workspace paths through the workspace runtime.
 override export GIT_CEILING_DIRECTORIES := $(shell cd "$(RUNTIME_ROOT)/.." && pwd -P)
@@ -485,8 +435,10 @@ override export MISE_AUTO_INSTALL := 0
 
 # D-VENV: the environment is <RUNTIME_ROOT>/.venv only. A member inside a
 # workspace uses the workspace environment; a standalone checkout or a linked
-# worktree owns its own physical environment inside the checkout. The path is
-# law, never configuration, and is never shared with another checkout.
+# worktree owns its own physical environment inside the checkout; a test
+# fixture checkout receives its test session's runtime root on the make command
+# line and owns none. No other input selects it, and it is never shared with
+# another checkout.
 override RUNTIME_VENV := $(RUNTIME_ROOT)/.venv
 # The upgrade executor (make.executor_environment) is a separate uv-created
 # environment under the runtime root: it runs only `make upg`'s residual
@@ -601,6 +553,8 @@ _bootstrap_setup_tools:
 			sh "$${mise_stage}/install.sh" ;; \
 	esac; \
 	fi; \
+	bootstrap_stage=trust; \
+	"$(BOOTSTRAP_MISE)" trust "$(PROJECT_ROOT)/.mise.toml"; \
 	bootstrap_stage=lock-pin; \
 	if MISE_LOCKED=1 "$(BOOTSTRAP_MISE)" -C "$(PROJECT_ROOT)" install --yes "github:jdx/mise"; then :; else \
 		printf 'ERROR: mise.lock pins no usable github:jdx/mise release for this tree; run make upg\n' >&2; \
@@ -644,7 +598,7 @@ _bootstrap_setup_tools: _builtin_require_workspace
 # process the root and every governed member together in one checker run
 # (operator ruling 2026-10-25: never member by member); each multi-root tool
 # runs once over their union.
-GATE_SCOPE := $(if $(filter Y,$(CI)),self,all)
+GATE_SCOPE := self
 # Local and CI consume the same native project/workspace declarations and lock.
 # Setup always bootstraps: `uv sync --frozen` installs exactly the committed
 # uv.lock without re-resolving or rewriting it, so manifest drift never blocks
@@ -849,13 +803,15 @@ SYNC_UPGRADE_EXECUTOR_WITH = $(call TARGET_ENVIRONMENT,$(FLEXT_INFRA_EXECUTOR_VE
 	$(VERIFY_ENVIRONMENT)
 
 # Setup checks native lock freshness without writing the lock. Native uv selects
-# every member's declared extras and groups, without copying dependency graphs.
+# every member's declared extras and groups, without copying dependency graphs,
+# and compiles the bytecode once, so the first import in a new lane never pays
+# the compilation inside a test's time limit.
 
 
-override SETUP_SYNC_ARGS := --all-extras --all-groups --link-mode clone --all-packages
+override SETUP_SYNC_ARGS := --all-extras --all-groups --link-mode clone --compile-bytecode
 
 ifeq ($(CI),Y)
-override SETUP_SYNC_ARGS := --all-extras --all-groups --link-mode clone --all-packages --no-editable
+override SETUP_SYNC_ARGS := --all-extras --all-groups --link-mode clone --compile-bytecode --no-editable
 endif
 
 # Custom hooks are declared in CI too; load their selected physical Makefile.
@@ -920,8 +876,11 @@ VERB_ARGUMENTS_check := CHECK_PHASE
 VERB_DESCRIPTION_tests := Run native incremental tests through the persistent Testmon selection.
 VERB_ARGUMENTS_tests :=
 
-VERB_DESCRIPTION_tests-full := Run the complete selected inventory once without Testmon.
+VERB_DESCRIPTION_tests-full := Run the complete selected inventory once and record it in Testmon.
 VERB_ARGUMENTS_tests-full :=
+
+VERB_DESCRIPTION_tests-harness := Run only the harness gate tests, through the persistent Testmon selection, under the harness that provides their inputs; MARKER=<harness gate marker> narrows the run to one.
+VERB_ARGUMENTS_tests-harness := MARKER
 
 VERB_DESCRIPTION_help := Discover the declared public interface without effects.
 VERB_ARGUMENTS_help :=
@@ -938,14 +897,14 @@ VERB_HELP_LINE = printf '  %-16s %s\n' '$(1)' '$(VERB_DESCRIPTION_$(1))'$(if $(s
 ifeq ($(VERB_CONTRACT),)
 PROFILE_VERBS_PLAIN := gen gen-scope
 PROFILE_VERBS_DISPATCH := help clean
-PROFILE_VERBS_ACTIVATED := mod fix fmt check tests tests-full build
+PROFILE_VERBS_ACTIVATED := mod fix fmt check tests tests-full tests-harness build
 PROFILE_VERBS_INTERPRETER :=
 PROFILE_VERBS_HOOKED := $(foreach v,$(filter-out $(PROFILE_VERBS_INTERPRETER),$(PROFILE_VERBS_ACTIVATED)),$(if $(filter pre-$(v) _custom-$(v) post-$(v),$(CUSTOM_DECLARED_TARGETS)),$(v)))
 PROFILE_VERBS_DIRECT := $(filter-out $(PROFILE_VERBS_HOOKED) $(PROFILE_VERBS_INTERPRETER),$(PROFILE_VERBS_ACTIVATED))
 PROFILE_VERBS_ROUTED := $(PROFILE_VERBS_HOOKED) $(PROFILE_VERBS_INTERPRETER)
 
 $(PROFILE_VERBS_PLAIN): %: _builtin_require_workspace _builtin_require_interpreter
-	@printf '==> %s | project=%s | profile=%s\n' '$@' "$(PROJECT_ROOT)" 'workspace'
+	@printf '==> %s | project=%s | profile=%s\n' '$@' "$(PROJECT_ROOT)" 'standalone'
 	$(call RUN_PUBLIC,$@)
 
 
@@ -954,7 +913,7 @@ $(PROFILE_VERBS_DISPATCH):
 
 
 $(PROFILE_VERBS_ACTIVATED): %: _builtin_require_workspace
-	@printf '==> %s | project=%s | profile=%s\n' '$@' "$(PROJECT_ROOT)" 'workspace'
+	@printf '==> %s | project=%s | profile=%s\n' '$@' "$(PROJECT_ROOT)" 'standalone'
 	+@$(if $(filter Y,$(CI)),$(MISE) -C "$(RUNTIME_ROOT)" exec -- $(SELF_MAKE) _activated-$@,$(DIRENV) exec "$(PROJECT_ROOT)" $(SELF_MAKE) _activated-$@)
 .PHONY: $(addprefix _activated-,$(PROFILE_VERBS_ACTIVATED))
 ifneq ($(strip $(PROFILE_VERBS_DIRECT)),)
@@ -976,8 +935,41 @@ endif
 # `setup` keeps its own recipe (it must not require the environment it is about
 # to build), but it still runs the pre-/post-setup lifecycle hooks so a project
 # declaring them in the custom handler surface is actually honoured.
+# A fresh checkout is trusted first; the provisioning half then reruns Make so
+# the credential command resolves inside the trusted checkout.
 ifeq ($(PROJECT_ROOT),$(RUNTIME_ROOT))
-setup: _builtin_require_github_credential _bootstrap_setup_tools
+.PHONY: _setup_trust _setup_provision
+setup: _setup_trust
+	+@$(SELF_MAKE) _setup_provision
+_setup_trust:
+	+@set -eu; \
+	mise_stage=; bootstrap_status=0; \
+	trap 'bootstrap_status=$$?; trap - EXIT; \
+		if [ -n "$${mise_stage}" ]; then \
+			if rm -rf "$${mise_stage}"; then :; else \
+				mise_cleanup_status=$$?; \
+				printf "ERROR: bootstrap staging cleanup failed (exit %s); original exit %s\n" "$${mise_cleanup_status}" "$${bootstrap_status}" >&2; \
+				if [ "$${bootstrap_status}" -eq 0 ]; then bootstrap_status=$${mise_cleanup_status}; fi; \
+			fi; \
+		fi; \
+		exit "$${bootstrap_status}"' EXIT; \
+	trap 'exit 129' HUP; trap 'exit 130' INT; trap 'exit 143' TERM; \
+	bootstrap_stage=acquisition; \
+	if [ ! -x "$(BOOTSTRAP_MISE)" ]; then \
+	export MISE_INSTALL_FROM_GITHUB=1 MISE_INSTALL_HELP=0; \
+	export MISE_VERSION="2026.10.3"; \
+	case "$${OS:-}" in \
+		(Windows_NT) \
+			powershell.exe -NoProfile -Command '$$ErrorActionPreference = "Stop"; Invoke-RestMethod https://mise.run/powershell | Invoke-Expression' ;; \
+		(*) \
+			mise_stage="$$(mktemp -d)"; \
+			curl --proto '=https' --tlsv1.2 -fsSL -o "$${mise_stage}/install.sh" https://mise.run; \
+			sh "$${mise_stage}/install.sh" ;; \
+	esac; \
+	fi; \
+	bootstrap_stage=trust; \
+	"$(BOOTSTRAP_MISE)" trust "$(PROJECT_ROOT)/.mise.toml";
+_setup_provision: _builtin_require_github_credential _bootstrap_setup_tools
 else
 setup: _builtin_require_workspace
 	+@"$(SELF_MAKE_EXECUTABLE)" --no-print-directory -C "$(RUNTIME_ROOT)" -f "$(RUNTIME_ROOT)/Makefile" setup
@@ -1058,7 +1050,7 @@ ifneq ($(CI),Y)
 endif
 
 _builtin-help:
-	@printf '%s\n' 'flext-cli [workspace]' ''
+	@printf '%s\n' 'flext-cli [standalone]' ''
 	@$(foreach verb,$(PUBLIC_VERBS),$(call VERB_HELP_LINE,$(verb));)
 
 # A project owns the sources declared by its manifest. Generated setup
@@ -1272,6 +1264,8 @@ _upg_toolchain: _builtin_require_workspace _builtin_require_github_credential
 			sh "$${mise_stage}/install.sh" ;; \
 	esac; \
 	fi; \
+	bootstrap_stage=trust; \
+	"$(BOOTSTRAP_MISE)" trust "$(PROJECT_ROOT)/.mise.toml"; \
 	MISE_LOCKFILE=0 "$(BOOTSTRAP_MISE)" -C "$(PROJECT_ROOT)" install --yes "github:jdx/mise"; \
 	mise_reader="$$(MISE_LOCKFILE=0 "$(BOOTSTRAP_MISE)" -C "$(PROJECT_ROOT)" which mise)"; \
 	if [ "$${OS:-}" = Windows_NT ]; then mise_reader="$$(cygpath --unix "$$mise_reader")"; fi; \
@@ -1464,6 +1458,9 @@ _builtin_tests_all: _builtin_require_environment
 _builtin_tests_full_all: _builtin_require_environment
 	@$(PROJECT_FLEXT_INFRA) workspace tests-full --repository-root "$(PROJECT_ROOT)" --scope "$(GATE_SCOPE)"
 
+_builtin_tests_harness_all: _builtin_require_environment
+	@$(PROJECT_FLEXT_INFRA) workspace tests-harness --repository-root "$(PROJECT_ROOT)" --scope "$(GATE_SCOPE)"$(if $(MARKER), --marker "$$MARKER")
+
 # fmt is format-only (single-pass verb law): ruff formats Python, the
 # fmt_gates formatters run once through the checker's apply mode, and every
 # lint repair belongs to `make fix`. Every repair requires read-only native
@@ -1478,8 +1475,8 @@ _builtin_fix_all: _builtin_require_environment
 _builtin_clean_generated: _builtin_require_interpreter
 	@$(PROJECT_FLEXT_INFRA) maintenance clean --repository-root "$(PROJECT_ROOT)" --apply
 
-# Heavy verbs (check, tests, tests-full, gen, gen-scope, mod) admit themselves
-# into the per-host FIFO queue and arm their wall-time budget only once
+# Heavy verbs (check, tests, tests-full, tests-harness, gen, gen-scope, mod)
+# admit themselves into the per-host FIFO queue and arm their wall-time budget only once
 # admitted (FLEXT ADR-032, config Infra.gate_admission): queue time never
 # counts against a budget. GEN_PROFILE=1 / MOD_PROFILE=1 capture cProfile.
 GEN_PROFILE ?=
@@ -1487,6 +1484,8 @@ MOD_PROFILE ?=
 # Check profiling is opt-in like generation (CHECK_PROFILE=1 make check).
 CHECK_PROFILE ?=
 
+# Generation rewrites .envrc projections, so on a host it re-authorizes direnv
+# for every governed checkout exactly as setup and upg do.
 _builtin_gen_all: _builtin_require_interpreter
 	@set -eu; \
 	root="$(abspath $(or $(strip $(ROOT)),$(PROJECT_ROOT)))"; \
@@ -1500,7 +1499,14 @@ _builtin_gen_all: _builtin_require_interpreter
 		scope=all; \
 		if [ "$$root" != "$(PROJECT_ROOT)" ] || [ "$(strip $(CI))" = "Y" ]; then scope=self; fi; \
 		$(if $(GEN_PROFILE),FLEXT_INFRA_PROFILE=$(GEN_PROFILE) ,)FLEXT_INFRA_PROFILE_OUTPUT="$$root/.reports/codegen/gen.pstats" $(PROJECT_FLEXT_INFRA) codegen generate --root "$$root" --scope "$$scope"; \
-	fi
+	fi; \
+	$(if $(filter Y,$(CI)),:,set -f; \
+	$(GOVERNED_CHECKOUTS); \
+	for checkout in $$checkouts; do \
+		if [ "$$checkout" = . ]; then allow_root="$$root"; else allow_root="$$root/$$checkout"; fi; \
+		[ ! -f "$$allow_root/.envrc" ] || $(DIRENV) allow "$$allow_root"; \
+	done; \
+	set +f)
 
 # Focal generation is the bounded diagnosis vehicle: one surface (and, for
 # facades, one module) through the identical engine, lock and budget.
@@ -1530,6 +1536,7 @@ _builtin-check: _builtin_check_all
 
 _builtin-tests: _builtin_tests_all
 _builtin-tests-full: _builtin_tests_full_all
+_builtin-tests-harness: _builtin_tests_harness_all
 _builtin-fmt: _builtin_fmt_all
 _builtin-fix: _builtin_fix_all
 _builtin-clean: _builtin_clean_generated

@@ -11,8 +11,9 @@ import platform
 import sys
 from collections.abc import MutableMapping
 from pathlib import Path
+from typing import ClassVar
 
-from flext_cli import p
+from flext_cli import m, p
 from flext_cli._utilities import FlextCliUtilitiesAtomicParentDescriptor
 from flext_cli._utilities._files import (
     FlextCliUtilitiesFilesPart03,
@@ -25,6 +26,16 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
     FlextCliUtilitiesRuntimeProcessNativeTools,
 ):
     """Require declared isolation inputs, roots, and closures to stay exact."""
+
+    _fixture_mounts: ClassVar[tuple[tuple[str, Path], ...]] = (
+        ("--dev", Path("/dev")),
+        ("--proc", Path("/proc")),
+    )
+    _fixture_private_paths: ClassVar[tuple[Path, ...]] = (
+        *(path for _, path in _fixture_mounts),
+        Path("/run"),
+        Path("/sys"),
+    )
 
     @classmethod
     def _ensure_isolation_platform_qualified(
@@ -239,6 +250,104 @@ class FlextCliUtilitiesRuntimeProcessIsolationInputs(
                 raise ValueError(msg)
             runtime_descriptors.append((opened.descriptor, tree.root.path))
         return runtime_descriptors
+
+    @classmethod
+    def _retain_isolation_writable_directories(
+        cls,
+        state: p.Cli.RuntimeProcessState,
+        isolation: p.Cli.ProcessReadOnlyIsolation,
+        working: Path,
+        roots: tuple[Path, ...],
+        paths: tuple[Path, ...],
+    ) -> tuple[tuple[int, Path], ...]:
+        """Keep the fixture output and durable data disjoint from input mounts.
+
+        Returns:
+            Held descriptors and mount paths for the fixture request.
+
+        Raises:
+            ValueError: If fixture inputs overlap private paths or persistent
+                data is outside the working directory.
+
+        """
+        if not isinstance(isolation, m.Cli.ProcessFixtureIsolation):
+            return ()
+        for private_path in cls._fixture_private_paths:
+            if any(
+                root.is_relative_to(private_path) or private_path.is_relative_to(root)
+                for root in roots
+            ) or any(path.is_relative_to(private_path) for path in paths):
+                msg = f"isolated process input overlaps a private mount: {private_path}"
+                raise ValueError(msg)
+        output = cls._retain_isolation_writable_directory(
+            state, isolation.output_directory, roots, paths, require_empty=True
+        )
+        persistent = isolation.persistent_directory
+        if persistent is None:
+            return (output,)
+        if working not in persistent.root.path.parents:
+            msg = "persistent fixture data must be below the working directory"
+            raise ValueError(msg)
+        return (
+            output,
+            cls._retain_isolation_writable_directory(
+                state, persistent, (*roots, output[1]), paths, require_empty=False
+            ),
+        )
+
+    @classmethod
+    def _retain_isolation_writable_directory(
+        cls,
+        state: p.Cli.RuntimeProcessState,
+        output: p.Cli.AtomicPhysicalTreeManifest,
+        roots: tuple[Path, ...],
+        paths: tuple[Path, ...],
+        *,
+        require_empty: bool,
+    ) -> tuple[int, Path]:
+        """Retain one authenticated directory for a writable fixture mount.
+
+        Returns:
+            The held output descriptor and target path for a fixture request.
+
+        Raises:
+            ValueError: If the path overlaps a sealed input or no longer names
+                the original private directory, or its contents are ineligible.
+
+        """
+        path = output.root.path
+        if any(
+            path.is_relative_to(root) or root.is_relative_to(path)
+            for root in (*roots, *cls._fixture_private_paths)
+        ) or any(member.is_relative_to(path) for member in paths):
+            msg = f"isolated process output overlaps an input or private mount: {path}"
+            raise ValueError(msg)
+        uid = os.getuid()
+        if output.root.uid != uid or output.root.mode & 0o022 or (
+            require_empty and output.entries
+        ):
+            requirement = "empty and owned" if require_empty else "owned"
+            msg = (
+                f"isolated process output must be {requirement} by the caller: {path}"
+            )
+            raise ValueError(msg)
+        if any(
+            entry.kind != "file" or entry.uid != uid or entry.mode & 0o022
+            for entry in output.entries
+        ):
+            msg = f"persistent fixture data requires owned regular files: {path}"
+            raise ValueError(msg)
+        opened = state.stack.enter_context(
+            FlextCliUtilitiesAtomicParentDescriptor.physical_directory(path)
+        )
+        current = FlextCliUtilitiesFilesPart05.atomic_inventory_physical_tree(path)
+        if (opened.state.st_dev, opened.state.st_ino) != (
+            output.root.device,
+            output.root.inode,
+        ) or current.unwrap() != output:
+            msg = f"isolated process output has changed since its capture: {path}"
+            raise ValueError(msg)
+        return opened.descriptor, path
 
     @classmethod
     def _ensure_runtime_link_captured(
