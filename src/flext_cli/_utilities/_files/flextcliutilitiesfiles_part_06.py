@@ -32,12 +32,14 @@ class FlextCliUtilitiesFilesPart06:
         permission_mode: int,
         owner_uid: int | None = None,
         max_bytes: int | None = None,
+        durability: c.Cli.WriteDurability = c.Cli.WriteDurability.DURABLE,
     ) -> p.Result[p.Cli.AtomicFileState]:
         """Create one absent file and return its authenticated published state.
 
         ``max_bytes`` rejects oversized ``data`` and ``owner_uid`` rejects a
         parent owned by another uid, both before any effect. The returned state
         retains the original publication proof under those same guards.
+        ``durability`` is the caller's declaration; ``SCRATCH`` skips fsync.
 
         Returns:
             The resulting ``p.Result[p.Cli.AtomicFileState]``.
@@ -69,6 +71,7 @@ class FlextCliUtilitiesFilesPart06:
                 expected_state=before.value,
                 permission_mode=permission_mode,
                 owner_uid=owner_uid,
+                durability=durability,
             ),
         )
 
