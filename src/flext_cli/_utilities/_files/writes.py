@@ -191,12 +191,14 @@ class FlextCliUtilitiesFilesPart02:
         state: p.Cli.AtomicFileState,
         *,
         published_paths: MutableSequence[Path] | None = None,
+        durable: bool = True,
     ) -> p.Result[bool]:
         """Delete one complete physical file version under the caller's lock.
 
         The descriptor-bound unlink depends on every writer sharing that lock; it
         is not CAS against an actor that ignores it. The containing directory is
-        synced after unlink before success.
+        synced after unlink before success unless ``durable=False``, which serves
+        scratch state no reader recovers after a crash.
 
         Returns:
             The resulting ``p.Result[bool]``.
@@ -204,7 +206,7 @@ class FlextCliUtilitiesFilesPart02:
         """
         try:
             FlextCliUtilitiesAtomicFileDelete.remove_guarded_file(
-                state, published_paths=published_paths
+                state, published_paths=published_paths, durable=durable
             )
         except OSError as exc:
             return r[bool].fail(

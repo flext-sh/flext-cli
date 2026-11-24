@@ -155,29 +155,28 @@ class FlextCliUtilitiesJsonCore:
         Returns:
             The resulting ``t.JsonValue``.
 
+        The value is validated once at this boundary; the sort below trusts it,
+        so each node is visited once instead of once per ancestor level.
+        """
+        return FlextCliUtilitiesJsonCore._sorted_json(
+            FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_python(data),
+        )
+
+    @staticmethod
+    def _sorted_json(data: t.JsonValue) -> t.JsonValue:
+        """Sort the keys of an already validated JSON value, recursively.
+
+        Returns:
+            The resulting ``t.JsonValue``.
+
         """
         if isinstance(data, Mapping):
-            validated = (
-                FlextCliUtilitiesConversion.JSON_MAPPING_ADAPTER.validate_python(data)
-            )
             return {
-                key: FlextCliUtilitiesJsonCore.json_sort_keys(
-                    FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_python(
-                        value
-                    ),
-                )
-                for key, value in sorted(validated.items())
+                key: FlextCliUtilitiesJsonCore._sorted_json(value)
+                for key, value in sorted(data.items())
             }
         if isinstance(data, list):
-            items = FlextCliUtilitiesConversion.JSON_LIST_ADAPTER.validate_python(data)
-            return [
-                FlextCliUtilitiesJsonCore.json_sort_keys(
-                    FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_python(
-                        item
-                    ),
-                )
-                for item in items
-            ]
+            return [FlextCliUtilitiesJsonCore._sorted_json(item) for item in data]
         return data
 
     @staticmethod
