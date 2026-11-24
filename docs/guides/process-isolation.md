@@ -116,6 +116,12 @@ directory, immutable inputs and private mounts. Fixture inputs stay outside
 `/dev`, `/proc`, `/run` and `/sys`. The process owner keeps the
 authenticated descriptors open and binds them only at their declared paths.
 
+For one fixture launch, declare `runtime_tree_roots` to authenticate runtime
+directories on the same descriptors used for the read-only mounts. Each root
+must be absolute, physical and disjoint. Use captured `runtime_trees` when
+multiple launches must verify the same tree version. The two fields are
+mutually exclusive.
+
 Use `persistent_directory` for a dedicated database directory below the
 declared working directory, containing only caller-owned regular files.
 The caller must retain exclusive ownership from capture through process completion.
@@ -123,6 +129,26 @@ A native SQLite child can create, replace, or remove database and WAL files
 there. Capture the current directory again before a subsequent invocation.
 Supply immutable inputs separately from this writable directory. Keep temporary
 products in the initially empty `output_directory`.
+
+Use `private_checkout` when the caller already owns a persistent physical
+checkout that must keep its database at the working-directory root. The caller
+holds its exclusive lease throughout execution and checkpoint. Declare the
+original source root and the exact durable basenames. The process owner binds
+the private checkout before mounting the sealed source files at their relative
+paths. The source root stays outside the writable view. The backing admits only
+the durable files and empty placeholders for the source mounts. An ineligible
+entry fails the invocation and prevents reuse until the caller verifies the
+backing again. Reports use the separate output directory.
+
+A private checkout can also declare one `persistent_directory` directly
+below its physical working directory. Capture that directory separately and
+set `persistent_directory_suffix` on the checkout declaration. The directory
+must be disjoint from all captured source destinations and root-level durable
+files. Only owned, singly linked regular files with the declared suffix are
+admitted in the child directory. Its original physical identity and shallow
+inventory are checked again after the process exits.
+Supply relative source arguments or absolute paths in the private checkout.
+The process owner preserves argv, including configuration and test paths.
 
 A socket-enabled fixture profile requires its own bootstrap qualification.
 Its policy must permit local `AF_UNIX` communication while denying socket

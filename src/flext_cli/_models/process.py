@@ -212,27 +212,29 @@ class FlextCliModelsProcess:
             description="Complete child environment, without inherited host variables"
         )
 
-    class ProcessFixtureCheckout(m.ContractModel):
-        """Private fixture checkout identity for a testmon database family."""
+    class ProcessFixtureCheckout(m.FrozenModel):
+        """Caller-elected persistent checkout and its independent source origin."""
 
         backing: FlextCliModelsBasePart09.AtomicPhysicalTreeManifest = m.Field(
-            description="Authenticated backing inventory for the database family",
+            description="Authenticated private physical working directory"
         )
-        source_root: Path = m.Field(
-            description="Repository source root served by the private checkout",
-        )
+        source_root: Path = m.Field(description="Original root of captured sources")
         persistent_filenames: tuple[str, ...] = m.Field(
-            default=(),
-            description="Database and sidecar filenames retained across runs",
+            min_length=1, description="Exact durable regular files allowed at the root"
         )
-        persistent_directory_suffix: str = m.Field(
-            default="",
-            description="Suffix identifying the persistent receipt directory",
+        persistent_directory_suffix: str | None = m.Field(
+            default=None,
+            min_length=1,
+            description="Allowed filename suffix in the durable child directory",
         )
 
     class ProcessFixtureIsolation(ProcessReadOnlyIsolation):
         """Qualified process isolation with explicit writable fixture directories."""
 
+        runtime_tree_roots: tuple[Path, ...] = m.Field(
+            default=(),
+            description="Runtime roots authenticated by the launcher for this fixture",
+        )
         output_directory: FlextCliModelsBasePart09.AtomicPhysicalTreeManifest = m.Field(
             description="Initially empty caller-owned fixture output tree"
         )
@@ -240,8 +242,7 @@ class FlextCliModelsProcess:
             FlextCliModelsBasePart09.AtomicPhysicalTreeManifest | None
         ) = m.Field(default=None, description="Dedicated persistent fixture data")
         private_checkout: FlextCliModelsProcess.ProcessFixtureCheckout | None = m.Field(
-            default=None,
-            description="Private fixture checkout identity for the isolated database",
+            default=None, description="Explicit persistent checkout backing for cwd"
         )
 
     class ProcessOptions(m.ArbitraryTypesModel):

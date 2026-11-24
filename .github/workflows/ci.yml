@@ -185,6 +185,19 @@ jobs:
         id: qualification-check
         if: ${{ !cancelled() && inputs.full_check == true && steps.approval-setup.outcome == 'success' }}
         run: CI=N make check
+
+      # Project-owned steps after the approval verbs, injected verbatim from the
+      # project's own custom-post-steps file: failure diagnostics belong here,
+      # where `if: failure()` can observe the verb they diagnose.
+      # Project-owned CI step (flext-9k6vf): the integration CI runs the test
+      # suite on every pull request, so a red test never reaches 0.12.0-dev.
+      # It reports once setup provisioned the environment, like every approval
+      # verb, so a red check never hides the test verdict. Injected verbatim at
+      # steps level by the flext-infra CI template — keep the six-space indent.
+      - name: make tests (blocking)
+        id: project-tests
+        if: ${{ !cancelled() && steps.approval-setup.outcome == 'success' }}
+        run: CI=Y make tests
       # Reports exist once any approval row after setup executed, whichever
       # row failed first (a failed tests row skips every later check row);
       # uploading after a setup failure would only add a second, misleading error.

@@ -13,7 +13,7 @@ from typing import ClassVar, Literal
 
 from flext_core import u
 
-from flext_cli import config, m, p, t
+from flext_cli import FlextCliConfig, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesAtomicFileSnapshot
 from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessOutcome
 
@@ -222,8 +222,14 @@ class FlextCliUtilitiesRuntimeProcessNativeTools(
 
     @staticmethod
     def native_process_policy_arguments(*, fixture: bool = False) -> tuple[str, ...]:
-        """Return the source-owned symbolic native denial obligations."""
-        denied = config.ProcessIsolation.denied_syscalls
+        """Return the source-owned symbolic native denial obligations.
+
+        The policy reads the config root through its own ``fetch_global``:
+        importing the ``flext_cli.config`` YAML package rebinds the package's
+        ``config`` attribute, so that attribute is not the root in every
+        import order.
+        """
+        denied = FlextCliConfig.fetch_global().ProcessIsolation.denied_syscalls
         return ("--fixture-policy", *denied) if fixture else denied
 
     @staticmethod
@@ -234,11 +240,12 @@ class FlextCliUtilitiesRuntimeProcessNativeTools(
             Required observations keyed by the native probe identifier.
 
         """
+        denied = FlextCliConfig.fetch_global().ProcessIsolation.denied_syscalls
         if fixture:
             return {
                 **{
                     syscall: errno.EACCES
-                    for syscall in config.ProcessIsolation.denied_syscalls
+                    for syscall in denied
                     if syscall.startswith("io_uring_")
                 },
                 "socket:non-unix": errno.EACCES,
@@ -246,7 +253,7 @@ class FlextCliUtilitiesRuntimeProcessNativeTools(
                 "connect:external-pathname": errno.EACCES,
                 "connect:fixture-pathname": 0,
             }
-        return dict.fromkeys(config.ProcessIsolation.denied_syscalls, errno.EACCES)
+        return dict.fromkeys(denied, errno.EACCES)
 
     @staticmethod
     def native_process_policy_identity(*, fixture: bool = False) -> str:

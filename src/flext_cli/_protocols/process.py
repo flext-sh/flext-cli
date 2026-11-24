@@ -585,6 +585,11 @@ class FlextCliProtocolsProcess:
         """Structural data contract projected from the owning model."""
 
         @property
+        def runtime_tree_roots(self) -> tuple[Path, ...]:
+            """Runtime roots authenticated by the launcher for this fixture."""
+            ...
+
+        @property
         def output_directory(
             self,
         ) -> FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeManifest:
@@ -605,7 +610,7 @@ class FlextCliProtocolsProcess:
         def private_checkout(
             self,
         ) -> FlextCliProtocolsProcess.ProcessFixtureCheckout | None:
-            """Private fixture checkout identity for the isolated database."""
+            """Explicit persistent checkout backing for cwd."""
             ...
 
     @runtime_checkable
@@ -616,22 +621,22 @@ class FlextCliProtocolsProcess:
         def backing(
             self,
         ) -> FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeManifest:
-            """Authenticated backing inventory for the database family."""
+            """Authenticated private physical working directory."""
             ...
 
         @property
         def source_root(self) -> Path:
-            """Repository source root served by the private checkout."""
+            """Original root of captured sources."""
             ...
 
         @property
         def persistent_filenames(self) -> tuple[str, ...]:
-            """Database and sidecar filenames retained across runs."""
+            """Exact durable regular files allowed at the root."""
             ...
 
         @property
-        def persistent_directory_suffix(self) -> str:
-            """Suffix identifying the persistent receipt directory."""
+        def persistent_directory_suffix(self) -> str | None:
+            """Allowed filename suffix in the durable child directory."""
             ...
 
 
