@@ -61,6 +61,9 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
         cls._ensure_isolation_roots_qualified(roots)
         cls._ensure_isolation_launcher_qualified(launcher_artifact)
         cls._ensure_isolation_inputs_unchanged(files)
+        writable_directories = cls._retain_isolation_writable_directories(
+            state, isolation, working, roots, paths
+        )
         runtime_descriptors = cls._retain_isolation_runtime_descriptors(
             state, isolation, roots, paths
         )
@@ -80,7 +83,19 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
                 runtime_descriptors=tuple(runtime_descriptors),
             ),
         )
-        arguments.extend(("--chdir", str(working), "--remount-ro", "/", "--", *command))
+        if writable_directories:
+            for option, destination in cls._fixture_mounts:
+                arguments.extend((option, str(destination)))
+            for descriptor, output in writable_directories:
+                inherited.append(descriptor)
+                arguments.extend(("--bind-fd", str(descriptor), str(output)))
+        arguments.extend(("--chdir", str(working), "--remount-ro", "/", "--"))
+        if isinstance(isolation, m.Cli.ProcessFixtureIsolation):
+            arguments.extend((
+                str(isolation.policy_compiler.artifact.path),
+                "--fixture-exec",
+            ))
+        arguments.extend(command)
         return tuple(arguments), {}, tuple(inherited)
 
     @classmethod
@@ -90,6 +105,8 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
         """Qualify the launcher and policy compiler bootstrap evidence rows."""
         cls._qualify_native_tool(isolation, "isolation-launcher")
         cls._qualify_native_tool(isolation, "policy-compiler")
+        if isinstance(isolation, m.Cli.ProcessFixtureIsolation):
+            cls._ensure_isolation_launcher_qualified(isolation.policy_compiler.artifact)
 
     @classmethod
     def _seal_isolation_executors(
@@ -99,7 +116,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
         isolation: p.Cli.ProcessReadOnlyIsolation,
         grace_seconds: float,
     ) -> tuple[int, int] | None:
-        """Seal the launcher and compile the read-only policy descriptor.
+        """Seal the launcher and compile the selected native policy descriptor.
 
         Returns:
             The sealed launcher and policy descriptor numbers, or ``None``
@@ -152,11 +169,16 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
         for descriptor, root in sealed.runtime_descriptors:
             inherited.append(descriptor)
             arguments.extend(("--ro-bind-fd", str(descriptor), str(root)))
-        for captured in (
+        captured_files = (
             isolation.launcher.artifact,
             *isolation.sources,
             *isolation.runtime_files,
-        ):
+        )
+        if isinstance(isolation, m.Cli.ProcessFixtureIsolation):
+            compiler = isolation.policy_compiler.artifact
+            if compiler not in captured_files:
+                captured_files = (*captured_files, compiler)
+        for captured in captured_files:
             if captured.content is None:
                 continue
             descriptor = (
@@ -208,7 +230,9 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
             m.Cli.RuntimeProcessRequest(
                 cmd=(
                     f"/proc/self/fd/{compiler}",
-                    *cls.native_process_policy_arguments(),
+                    *cls.native_process_policy_arguments(
+                        fixture=isinstance(isolation, m.Cli.ProcessFixtureIsolation),
+                    ),
                 ),
                 cwd=request.cwd,
                 env={},
@@ -231,7 +255,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
             msg = "qualified native SDK compiler emitted incomplete BPF"
             raise ValueError(msg)
         return cls._sealed_process_bytes(
-            state, "native-readonly-policy", compiled.stdout, 0o400
+            state, "native-process-policy", compiled.stdout, 0o400
         )
 
     @staticmethod
