@@ -78,9 +78,11 @@ class FlextCliUtilitiesAtomicFilePublish:
             subject="file",
             replace=True,
         ) as (destination_parent, staged_parent):
-            destination_state = FlextCliUtilitiesAtomicFileState.file_destination_state(
-                destination,
-                parent=destination_parent,
+            destination_state = (
+                FlextCliUtilitiesAtomicFileState.linked_file_destination_state(
+                    destination,
+                    parent=destination_parent,
+                )
             )
             FlextCliUtilitiesAtomicFileModel.require_observed(
                 destination_before,
@@ -92,9 +94,11 @@ class FlextCliUtilitiesAtomicFilePublish:
                 destination_state,
                 (destination_payload, destination_before.mode),
             )
-            staged_state = FlextCliUtilitiesAtomicFileState.file_destination_state(
-                staged_path,
-                parent=staged_parent,
+            staged_state = (
+                FlextCliUtilitiesAtomicFileState.linked_file_destination_state(
+                    staged_path,
+                    parent=staged_parent,
+                )
             )
             if staged_state is None:
                 message = f"atomic staged file is missing: {staged_path}"

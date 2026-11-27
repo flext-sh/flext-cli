@@ -57,11 +57,13 @@ class FlextCliUtilitiesAtomicFileRead:
             ):
                 msg = "atomic range lies outside the authenticated file"
                 raise ValueError(msg)
-            if (
-                FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(self.descriptor))
-                != self.version_key
-            ):
-                FlextCliUtilitiesAtomicFileRead.raise_changed(self.path)
+            observed = FlextCliUtilitiesAtomicFileRead.state_key(
+                os.fstat(self.descriptor)
+            )
+            if observed != self.version_key:
+                FlextCliUtilitiesAtomicFileRead.raise_changed(
+                    self.path, self.version_key, observed
+                )
             os.lseek(self.descriptor, offset, os.SEEK_SET)
             remaining = length
             chunks: list[bytes] = []
@@ -71,11 +73,13 @@ class FlextCliUtilitiesAtomicFileRead:
                     FlextCliUtilitiesAtomicFileRead.raise_changed(self.path)
                 chunks.append(chunk)
                 remaining -= len(chunk)
-            if (
-                FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(self.descriptor))
-                != self.version_key
-            ):
-                FlextCliUtilitiesAtomicFileRead.raise_changed(self.path)
+            observed = FlextCliUtilitiesAtomicFileRead.state_key(
+                os.fstat(self.descriptor)
+            )
+            if observed != self.version_key:
+                FlextCliUtilitiesAtomicFileRead.raise_changed(
+                    self.path, self.version_key, observed
+                )
             return b"".join(chunks)
 
     @staticmethod
@@ -112,6 +116,47 @@ class FlextCliUtilitiesAtomicFileRead:
         os.close(descriptor)
         return content
 
+    # Names of the ``state_key`` fields, in its order.
+    STATE_KEY_FIELDS: ClassVar[tuple[str, ...]] = (
+        "st_dev",
+        "st_ino",
+        "st_mode",
+        "st_nlink",
+        "st_uid",
+        "st_gid",
+        "st_size",
+        "st_mtime_ns",
+        "st_ctime_ns",
+        "st_file_attributes",
+        "st_reparse_tag",
+    )
+
+    # Fields a new or removed hard link to the same inode moves while its
+    # bytes, inode, mode, owner, size and mtime stay the same.
+    LINK_FIELDS: ClassVar[frozenset[str]] = frozenset({"st_nlink", "st_ctime_ns"})
+
+    @staticmethod
+    def content_key(version_key: tuple[int, ...]) -> tuple[int, ...]:
+        """Return the version fields that identify the file's content.
+
+        A receipt is re-authenticated by its digest on every read, so the
+        link count and the inode change time a sibling hard link moves do not
+        decide whether the receipted content is still the file read.
+
+        Returns:
+            ``version_key`` without ``LINK_FIELDS``.
+
+        """
+        return tuple(
+            value
+            for name, value in zip(
+                FlextCliUtilitiesAtomicFileRead.STATE_KEY_FIELDS,
+                version_key,
+                strict=True,
+            )
+            if name not in FlextCliUtilitiesAtomicFileRead.LINK_FIELDS
+        )
+
     @staticmethod
     def state_key(state: os.stat_result) -> tuple[int, ...]:
         """Return fields that identify one authorized regular-file version.
@@ -146,10 +191,11 @@ class FlextCliUtilitiesAtomicFileRead:
             Each ``bytes`` chunk read from the authenticated descriptor.
 
         """
-        if FlextCliUtilitiesAtomicFileRead.state_key(
-            os.fstat(descriptor),
-        ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
-            FlextCliUtilitiesAtomicFileRead.raise_changed(path)
+        observed = FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(descriptor))
+        if observed != FlextCliUtilitiesAtomicFileRead.state_key(expected):
+            FlextCliUtilitiesAtomicFileRead.raise_changed(
+                path, FlextCliUtilitiesAtomicFileRead.state_key(expected), observed
+            )
         os.lseek(descriptor, 0, os.SEEK_SET)
         size = 0
         while chunk := os.read(descriptor, 1024 * 1024):
@@ -159,21 +205,42 @@ class FlextCliUtilitiesAtomicFileRead:
             yield chunk
         if size != expected.st_size:
             FlextCliUtilitiesAtomicFileRead.raise_changed(path)
-        if FlextCliUtilitiesAtomicFileRead.state_key(
-            os.fstat(descriptor),
-        ) != FlextCliUtilitiesAtomicFileRead.state_key(expected):
-            FlextCliUtilitiesAtomicFileRead.raise_changed(path)
+        observed = FlextCliUtilitiesAtomicFileRead.state_key(os.fstat(descriptor))
+        if observed != FlextCliUtilitiesAtomicFileRead.state_key(expected):
+            FlextCliUtilitiesAtomicFileRead.raise_changed(
+                path, FlextCliUtilitiesAtomicFileRead.state_key(expected), observed
+            )
 
     @staticmethod
-    def raise_changed(path: Path) -> None:
+    def raise_changed(
+        path: Path,
+        expected: tuple[int, ...] | None = None,
+        observed: tuple[int, ...] | None = None,
+    ) -> None:
         """Reject a changed authenticated version at the read boundary.
+
+        Given both version keys, the refusal names every field that differs
+        with its expected and observed value, so the cause of a recurrence is
+        read from the message instead of inferred.
 
         Raises:
             OSError: Unconditionally, with ``errno.ESTALE`` naming the changed
-                authenticated destination.
+                authenticated destination and, when known, its changed fields.
 
         """
         message = f"atomic destination changed during authenticated read: {path}"
+        if expected is not None and observed is not None:
+            changed = ", ".join(
+                f"{name} {before} -> {after}"
+                for name, before, after in zip(
+                    FlextCliUtilitiesAtomicFileRead.STATE_KEY_FIELDS,
+                    expected,
+                    observed,
+                    strict=True,
+                )
+                if before != after
+            )
+            message = f"{message} (changed: {changed or 'none'})"
         raise OSError(errno.ESTALE, message, path)
 
 

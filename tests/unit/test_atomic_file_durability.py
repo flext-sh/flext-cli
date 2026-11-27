@@ -36,6 +36,30 @@ class TestsFlextCliAtomicFileDurability:
         tm.that(sorted(item.name for item in path.parent.iterdir()), eq=["atomic.txt"])
 
     @staticmethod
+    @pytest.mark.parametrize(
+        "durability",
+        [c.Cli.WriteDurability.DURABLE, c.Cli.WriteDurability.SCRATCH],
+    )
+    def test_guarded_create_publishes_its_proof_for_each_durability(
+        tmp_path: Path,
+        durability: c.Cli.WriteDurability,
+    ) -> None:
+        """A guarded create keeps its proof and mode under either durability."""
+        path = tmp_path / "created.bin"
+        options = m.Cli.AtomicWriteOptions(permission_mode=0o600, durability=durability)
+
+        state = tm.ok(
+            u.Cli.atomic_create_binary_file_guarded(path, b"created", options=options),
+        )
+
+        tm.that(path.read_bytes(), eq=b"created")
+        tm.that(state.mode, eq=0o600)
+        tm.ok(u.Cli.atomic_verify_binary_file_states((state,)))
+        tm.fail(
+            u.Cli.atomic_create_binary_file_guarded(path, b"again", options=options)
+        )
+
+    @staticmethod
     def test_scratch_binary_write_preserves_host_permission_mode(
         tmp_path: Path,
     ) -> None:

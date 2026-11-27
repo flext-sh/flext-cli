@@ -60,7 +60,7 @@ class FlextCliUtilitiesAtomicFile:
             replace=True,
             unlink=True,
         ) as parent:
-            expected = FlextCliUtilitiesAtomicFileState.file_destination_state(
+            expected = FlextCliUtilitiesAtomicFileState.linked_file_destination_state(
                 path,
                 parent=parent,
             )

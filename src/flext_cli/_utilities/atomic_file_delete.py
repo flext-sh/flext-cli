@@ -53,7 +53,7 @@ class FlextCliUtilitiesAtomicFileDelete:
             unlink=True,
         ) as parent:
             FlextCliUtilitiesAtomicFileModel.require_parent(state, parent.state)
-            expected = FlextCliUtilitiesAtomicFileState.file_destination_state(
+            expected = FlextCliUtilitiesAtomicFileState.linked_file_destination_state(
                 path,
                 parent=parent,
             )

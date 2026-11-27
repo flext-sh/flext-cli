@@ -106,10 +106,21 @@ class FlextCliCliPart01:
                 else value
                 for key, value in supplied.items()
             }
+            # Typer hands Path, number and enum options over as the text typed
+            # (u.Cli.option_carrier); the model is their one validator and
+            # coerces that text even when it is strict (aihub-vkb1j.25).
             try:
-                model = self._model_cls.model_validate(values, by_name=True)
+                model = self._model_cls.model_validate(
+                    values, by_name=True, strict=False
+                )
             except m.ValidationError as exc:
-                u.Cli.framework_reject_input(exc, self._spellings)
+                u.Cli.framework_reject_input(
+                    exc,
+                    self._spellings,
+                    hide_input=bool(
+                        self._model_cls.model_config.get("hide_input_in_errors")
+                    ),
+                )
             return self._handler(model)
 
     @staticmethod
@@ -235,11 +246,13 @@ class FlextCliCliPart01:
             if u.Cli.json_option(field_annotation)
             else None
         )
+        carrier, metavar = u.Cli.option_carrier(annotation)
         return u.Cli.framework_build_parameter(
             field_name,
-            annotation,
+            carrier,
             spec,
             json_annotation=json_annotation,
+            metavar=metavar,
         )
 
 

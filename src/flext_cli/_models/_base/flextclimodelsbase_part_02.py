@@ -163,6 +163,14 @@ class FlextCliModelsBasePart02:
     class AtomicFileIdentity(AtomicPhysicalIdentity):
         """Shared physical identity of an existing or absent regular file."""
 
+        link_count: Annotated[
+            int | None,
+            m.Field(
+                ge=0,
+                strict=True,
+                description="Observed link count, including zero for bound snapshots",
+            ),
+        ] = None
         model_config: ClassVar[t.ConfigDict] = m.ConfigDict(
             ser_json_bytes="base64",
             val_json_bytes="base64",
