@@ -222,10 +222,19 @@ class FlextCliModelsProcess:
         persistent_filenames: tuple[str, ...] = m.Field(
             min_length=1, description="Exact durable regular files allowed at the root"
         )
+        persistent_directory_suffix: str | None = m.Field(
+            default=None,
+            min_length=1,
+            description="Allowed filename suffix in the durable child directory",
+        )
 
     class ProcessFixtureIsolation(ProcessReadOnlyIsolation):
         """Qualified process isolation with explicit writable fixture directories."""
 
+        runtime_tree_roots: tuple[Path, ...] = m.Field(
+            default=(),
+            description="Runtime roots authenticated by the launcher for this fixture",
+        )
         output_directory: FlextCliModelsBasePart09.AtomicPhysicalTreeManifest = m.Field(
             description="Initially empty caller-owned fixture output tree"
         )

@@ -17,6 +17,9 @@ from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessIsolati
 if sys.platform == "linux":
     import fcntl
 
+if TYPE_CHECKING:
+    from pathlib import Path
+
 
 class FlextCliUtilitiesRuntimeProcessIsolation(
     FlextCliUtilitiesRuntimeProcessIsolationInputs,
@@ -55,11 +58,9 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
         cls._ensure_isolation_platform_qualified(isolation, request)
         cls._ensure_isolation_environment_qualified(isolation)
         working = cls._ensure_isolation_targets_absolute(request, command)
-        roots, paths, files, launcher_artifact = cls._ensure_isolation_inputs_unique(
-            isolation
-        )
+        roots, paths, files = cls._ensure_isolation_inputs_unique(isolation)
         cls._ensure_isolation_roots_qualified(roots)
-        cls._ensure_isolation_launcher_qualified(launcher_artifact)
+        cls._ensure_isolation_launcher_qualified(isolation.launcher.artifact)
         cls._ensure_isolation_inputs_unchanged(files)
         checkout = (
             isolation.private_checkout
@@ -67,7 +68,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
             else None
         )
         destinations = (
-            cls._private_checkout_sources(isolation, working)
+            cls._private_checkout_sources(isolation, working, roots)
             if isinstance(isolation, m.Cli.ProcessFixtureIsolation)
             else {}
         )
@@ -78,13 +79,20 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
             (*roots, working) if checkout is not None else roots,
             paths,
         )
-        checkout_mount = (
-            cls._retain_private_checkout(
-                state, checkout, roots, paths, tuple(destinations.values())
+        checkout_mount = None
+        if checkout is not None and isinstance(
+            isolation, m.Cli.ProcessFixtureIsolation
+        ):
+            checkout_descriptor, durable_mount = cls._retain_private_checkout(
+                state,
+                checkout,
+                isolation.persistent_directory,
+                (roots, paths),
+                tuple(destinations.values()),
             )
-            if checkout is not None
-            else None
-        )
+            checkout_mount = (checkout_descriptor, working)
+            if durable_mount is not None:
+                writable_directories = (*writable_directories, durable_mount)
         runtime_descriptors = cls._retain_isolation_runtime_descriptors(
             state, isolation, roots, paths
         )
@@ -109,9 +117,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
                 policy=sealed[1],
                 runtime_descriptors=tuple(runtime_descriptors),
             ),
-            checkout_mount=(
-                (checkout_mount, working) if checkout_mount is not None else None
-            ),
+            checkout_mount=checkout_mount,
             destinations=destinations,
         )
         if writable_directories:
