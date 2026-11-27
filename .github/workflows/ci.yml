@@ -161,11 +161,11 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq --no-install-recommends libreoffice-calc
-      # CI approval, one visible step per ci workflow row (setup -> check).
+      # CI approval, one visible step per ci workflow row (setup -> check -> tests).
       - name: make setup (blocking)
         id: approval-setup
         run: CI=Y make setup
-      # CI approval, one visible step per ci workflow row (setup -> check).
+      # CI approval, one visible step per ci workflow row (setup -> check -> tests).
       - name: make check CHECK_PHASE=primary (blocking)
         id: approval-check-primary
         # Every approval verb reports once setup provisioned the environment,
@@ -173,15 +173,36 @@ jobs:
         # (workflow requires) admits the step only after that verb is green.
         if: ${{ !cancelled() && steps.approval-setup.outcome == 'success' }}
         run: CI=Y make check CHECK_PHASE=primary
+      # CI approval, one visible step per ci workflow row (setup -> check -> tests).
+      - name: make tests (blocking)
+        id: approval-tests-primary
+        # Every approval verb reports once setup provisioned the environment,
+        # so one red verdict never hides the others; a declared requirement
+        # (workflow requires) admits the step only after that verb is green.
+        if: ${{ !cancelled() && steps.approval-setup.outcome == 'success' && steps.approval-check-primary.outcome == 'success' }}
+        run: CI=Y make tests
       - name: Complete check qualification
         id: qualification-check
         if: ${{ !cancelled() && inputs.full_check == true && steps.approval-setup.outcome == 'success' }}
         run: CI=N make check
+
+      # Project-owned steps after the approval verbs, injected verbatim from the
+      # project's own custom-post-steps file: failure diagnostics belong here,
+      # where `if: failure()` can observe the verb they diagnose.
+      # Project-owned CI step (flext-9k6vf): the integration CI runs the test
+      # suite on every pull request, so a red test never reaches 0.12.0-dev.
+      # It reports once setup provisioned the environment, like every approval
+      # verb, so a red check never hides the test verdict. Injected verbatim at
+      # steps level by the flext-infra CI template — keep the six-space indent.
+      - name: make tests (blocking)
+        id: project-tests
+        if: ${{ !cancelled() && steps.approval-setup.outcome == 'success' }}
+        run: CI=Y make tests
       # Reports exist once any approval row after setup executed, whichever
       # row failed first (a failed tests row skips every later check row);
       # uploading after a setup failure would only add a second, misleading error.
       - name: Upload execution reports
-        if: ${{ !cancelled() && (steps.approval-check-primary.outcome == 'success' || steps.approval-check-primary.outcome == 'failure') }}
+        if: ${{ !cancelled() && (steps.approval-check-primary.outcome == 'success' || steps.approval-check-primary.outcome == 'failure' || steps.approval-tests-primary.outcome == 'success' || steps.approval-tests-primary.outcome == 'failure') }}
         uses: actions/upload-artifact@v7
         with:
           name: flext-ci-reports-${{ github.run_id }}
@@ -209,7 +230,7 @@ jobs:
       # rows capture receipts, so the upload runs exactly when one of them
       # failed (tests included), never after a setup failure that left none.
       - name: Upload gate receipts on failure
-        if: ${{ failure() && (steps.approval-check-primary.outcome == 'failure' || steps.qualification-check.outcome == 'failure') }}
+        if: ${{ failure() && (steps.approval-check-primary.outcome == 'failure' || steps.approval-tests-primary.outcome == 'failure' || steps.qualification-check.outcome == 'failure') }}
         uses: actions/upload-artifact@v7
         with:
           name: flext-gate-receipts-${{ github.job }}-${{ github.run_id }}

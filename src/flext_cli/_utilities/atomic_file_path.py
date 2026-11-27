@@ -40,12 +40,17 @@ class FlextCliUtilitiesAtomicFilePath:
             The resulting ``Path``.
 
         Raises:
-            OSError: If ``not path.is_absolute() or '..' in path.parts or normalized !=
-                path``.
+            OSError: If the path is relative, traverses a parent, or differs
+                from its normalized spelling.
 
         """
-        normalized = Path(os.path.normpath(path))
-        if not path.is_absolute() or ".." in path.parts or normalized != path:
+        pathname = os.fspath(path)
+        normalized = os.path.normpath(pathname)
+        if (
+            not path.is_absolute()
+            or ".." in path.parts
+            or os.path.normcase(normalized) != os.path.normcase(pathname)
+        ):
             message = f"atomic directory path is not absolute and normalized: {path}"
             raise OSError(errno.EINVAL, message, path)
         return path

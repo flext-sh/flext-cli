@@ -11,13 +11,12 @@ from collections.abc import MutableSequence, Sequence
 from pathlib import Path
 
 from filelock import FileLock
-from flext_core import r
 
-from flext_cli import c, p
+from flext_cli import c, p, r
 from flext_cli._utilities import FlextCliUtilitiesOutput
-from flext_cli._utilities._files import FlextCliUtilitiesFilesPart02
-from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
-from flext_cli._utilities._files.flextcliutilitiesfiles_part_06 import (
+from flext_cli._utilities._files import (
+    FlextCliUtilitiesFilesPart02,
+    FlextCliUtilitiesFilesPart03,
     FlextCliUtilitiesFilesPart06,
 )
 

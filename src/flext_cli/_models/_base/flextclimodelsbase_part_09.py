@@ -9,6 +9,7 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import os
 from pathlib import Path
 from typing import Annotated, ClassVar, Literal, Self
 
@@ -16,7 +17,7 @@ from flext_core import m
 
 from flext_cli import t
 from flext_cli._models import FlextCliModelsAtomicState
-from flext_cli._models._base.flextclimodelsbase_part_08 import FlextCliModelsBasePart08
+from flext_cli._models._base import FlextCliModelsBasePart08
 
 
 class FlextCliModelsBasePart09:
@@ -237,11 +238,17 @@ class FlextCliModelsBasePart09:
             directories = {self.root.path: self.root}
             directory_identities = {(self.root.device, self.root.inode)}
             seen = {self.root.path}
+            # Path.is_relative_to walks every ancestor; the root prefix is
+            # derived once and only an entry it does not cover pays the walk.
+            prefix = str(self.root.path).rstrip(os.sep) + os.sep
             for entry in self.entries:
                 if entry.path in seen:
                     msg = "atomic physical-tree entries must have unique paths"
                     raise ValueError(msg)
-                if not entry.path.is_relative_to(self.root.path):
+                if not (
+                    str(entry.path).startswith(prefix)
+                    or entry.path.is_relative_to(self.root.path)
+                ):
                     msg = "atomic physical-tree entry is outside its root"
                     raise ValueError(msg)
                 parent = directories.get(entry.path.parent)

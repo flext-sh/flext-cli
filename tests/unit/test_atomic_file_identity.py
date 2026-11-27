@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import errno
 import hashlib
+import os
 import sys
 from pathlib import Path
 
@@ -257,7 +258,7 @@ class TestsFlextCliAtomicFileIdentity:
         result = u.Cli.atomic_create_binary_file_guarded(
             destination,
             b"content",
-            permission_mode=0o600,
+            options=m.Cli.AtomicWriteOptions(permission_mode=0o600),
         )
 
         tm.ok(result)
@@ -276,7 +277,7 @@ class TestsFlextCliAtomicFileIdentity:
         result = u.Cli.atomic_create_binary_file_guarded(
             destination,
             b"after",
-            permission_mode=0o600,
+            options=m.Cli.AtomicWriteOptions(permission_mode=0o600),
         )
 
         tm.fail(result)
@@ -324,6 +325,22 @@ class TestsFlextCliAtomicFileIdentity:
         tm.that(snapshot.reparse_tag, eq=getattr(host_state, "st_reparse_tag", None))
 
         result = u.Cli.atomic_delete_binary_file_guarded(snapshot)
+
+        tm.ok(result)
+        tm.fail(destination.exists())
+
+    @staticmethod
+    def test_scratch_delete_removes_the_version_without_durability(
+        tmp_path: Path,
+    ) -> None:
+        """A scratch delete keeps the CAS contract and only skips the parent fsync."""
+        destination = tmp_path / "scratch.bin"
+        destination.write_bytes(b"content")
+        snapshot = tm.ok(
+            u.Cli.atomic_read_binary_file_state(destination, required=True),
+        )
+
+        result = u.Cli.atomic_delete_binary_file_guarded(snapshot, durable=False)
 
         tm.ok(result)
         tm.fail(destination.exists())
@@ -453,3 +470,59 @@ class TestsFlextCliAtomicFileIdentity:
         tm.fail(destination.exists())
         tm.that(staged.read_bytes(), eq=b"content")
         tm.that(alias.read_bytes(), eq=b"content")
+
+
+class TestsFlextCliAtomicReadRefusal:
+    """A receipt is read by its content identity; a refusal names what changed."""
+
+    @staticmethod
+    def test_a_new_hard_link_keeps_the_receipt_readable(tmp_path: Path) -> None:
+        """Another name for the same inode moves only its link count and ctime.
+
+        Why (aihub-vkb1j.25): a sandbox hard-linking one staged executable into
+        several homes made every receipt of it unreadable (st_nlink 5 -> 9,
+        st_ctime_ns moved) while its bytes, inode, size and mtime were equal.
+        """
+        path = tmp_path / "receipt.bin"
+        path.write_bytes(b"payload")
+        receipt = tm.ok(u.Cli.atomic_read_binary_file_receipt(path, required=True))
+        (tmp_path / "second-name.bin").hardlink_to(path)
+
+        with u.Cli.atomic_binary_file_reader(receipt) as reader:
+            tm.that(reader.read_range(0, len(b"payload")), eq=b"payload")
+
+    @staticmethod
+    def test_a_rewrite_with_the_same_size_and_mtime_is_refused(
+        tmp_path: Path,
+    ) -> None:
+        """Equal size and restored mtime never prove content: the digest decides."""
+        path = tmp_path / "receipt.bin"
+        path.write_bytes(b"payload")
+        receipt = tm.ok(u.Cli.atomic_read_binary_file_receipt(path, required=True))
+        prior = path.stat()
+        path.write_bytes(b"PAYLOAD")
+        os.utime(path, ns=(prior.st_atime_ns, prior.st_mtime_ns))
+
+        with (
+            u.Tests.raises(OSError, match="changed during authenticated read"),
+            u.Cli.atomic_binary_file_reader(receipt),
+        ):
+            pass
+
+    @staticmethod
+    def test_a_swapped_file_is_refused_naming_the_changed_fields(
+        tmp_path: Path,
+    ) -> None:
+        """A different inode at the receipted path is refused, naming the fields."""
+        path = tmp_path / "receipt.bin"
+        path.write_bytes(b"payload")
+        receipt = tm.ok(u.Cli.atomic_read_binary_file_receipt(path, required=True))
+        replacement = tmp_path / "replacement.bin"
+        replacement.write_bytes(b"payload")
+        replacement.replace(path)
+
+        with (
+            u.Tests.raises(OSError, match=r"changed: .*st_ino "),
+            u.Cli.atomic_binary_file_reader(receipt),
+        ):
+            pass

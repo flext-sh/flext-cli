@@ -11,13 +11,14 @@ import sys
 from collections.abc import Mapping
 from typing import TYPE_CHECKING
 
+from flext_cli import m, p
+from flext_cli._utilities._runtime import FlextCliUtilitiesRuntimeProcessIsolationInputs
+
 if sys.platform == "linux":
     import fcntl
 
-from flext_cli import m, p
-from flext_cli._utilities._runtime.process_isolation_inputs import (
-    FlextCliUtilitiesRuntimeProcessIsolationInputs,
-)
+if TYPE_CHECKING:
+    from pathlib import Path
 
 
 class FlextCliUtilitiesRuntimeProcessIsolation(
@@ -57,16 +58,51 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
         cls._ensure_isolation_platform_qualified(isolation, request)
         cls._ensure_isolation_environment_qualified(isolation)
         working = cls._ensure_isolation_targets_absolute(request, command)
-        roots, paths, files, launcher_artifact = cls._ensure_isolation_inputs_unique(
-            isolation
-        )
+        roots, paths, files = cls._ensure_isolation_inputs_unique(isolation)
         cls._ensure_isolation_roots_qualified(roots)
-        cls._ensure_isolation_launcher_qualified(launcher_artifact)
+        cls._ensure_isolation_launcher_qualified(isolation.launcher.artifact)
         cls._ensure_isolation_inputs_unchanged(files)
+        checkout = (
+            isolation.private_checkout
+            if isinstance(isolation, m.Cli.ProcessFixtureIsolation)
+            else None
+        )
+        destinations = (
+            cls._private_checkout_sources(isolation, working, roots)
+            if isinstance(isolation, m.Cli.ProcessFixtureIsolation)
+            else {}
+        )
+        writable_directories = cls._retain_isolation_writable_directories(
+            state,
+            isolation,
+            working,
+            (*roots, working) if checkout is not None else roots,
+            paths,
+        )
+        checkout_mount = None
+        if checkout is not None and isinstance(
+            isolation, m.Cli.ProcessFixtureIsolation
+        ):
+            checkout_descriptor, durable_mount = cls._retain_private_checkout(
+                state,
+                checkout,
+                isolation.persistent_directory,
+                (roots, paths),
+                tuple(destinations.values()),
+            )
+            checkout_mount = (checkout_descriptor, working)
+            if durable_mount is not None:
+                writable_directories = (*writable_directories, durable_mount)
         runtime_descriptors = cls._retain_isolation_runtime_descriptors(
             state, isolation, roots, paths
         )
-        cls._ensure_isolation_closure_qualified(working, isolation, roots, command)
+        cls._ensure_isolation_closure_qualified(
+            working,
+            isolation,
+            roots,
+            command,
+            destinations,
+        )
         cls._qualify_isolation_native_tools(isolation)
         sealed = cls._seal_isolation_executors(
             request, state, isolation, timing.grace_seconds
@@ -81,8 +117,22 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
                 policy=sealed[1],
                 runtime_descriptors=tuple(runtime_descriptors),
             ),
+            checkout_mount=checkout_mount,
+            destinations=destinations,
         )
-        arguments.extend(("--chdir", str(working), "--remount-ro", "/", "--", *command))
+        if writable_directories:
+            for option, destination in cls._fixture_mounts:
+                arguments.extend((option, str(destination)))
+            for descriptor, output in writable_directories:
+                inherited.append(descriptor)
+                arguments.extend(("--bind-fd", str(descriptor), str(output)))
+        arguments.extend(("--chdir", str(working), "--remount-ro", "/", "--"))
+        if isinstance(isolation, m.Cli.ProcessFixtureIsolation):
+            arguments.extend((
+                str(isolation.policy_compiler.artifact.path),
+                "--fixture-exec",
+            ))
+        arguments.extend(command)
         return tuple(arguments), {}, tuple(inherited)
 
     @classmethod
@@ -92,6 +142,8 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
         """Qualify the launcher and policy compiler bootstrap evidence rows."""
         cls._qualify_native_tool(isolation, "isolation-launcher")
         cls._qualify_native_tool(isolation, "policy-compiler")
+        if isinstance(isolation, m.Cli.ProcessFixtureIsolation):
+            cls._ensure_isolation_launcher_qualified(isolation.policy_compiler.artifact)
 
     @classmethod
     def _seal_isolation_executors(
@@ -101,7 +153,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
         isolation: p.Cli.ProcessReadOnlyIsolation,
         grace_seconds: float,
     ) -> tuple[int, int] | None:
-        """Seal the launcher and compile the read-only policy descriptor.
+        """Seal the launcher and compile the selected native policy descriptor.
 
         Returns:
             The sealed launcher and policy descriptor numbers, or ``None``
@@ -120,6 +172,9 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
         state: p.Cli.RuntimeProcessState,
         isolation: p.Cli.ProcessReadOnlyIsolation,
         sealed: p.Cli.ProcessIsolationSeal,
+        *,
+        checkout_mount: tuple[int, Path] | None,
+        destinations: dict[Path, Path],
     ) -> tuple[list[str], list[int]]:
         """Bind sealed inputs and runtime roots into the confined argv.
 
@@ -151,14 +206,23 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
             "--seccomp",
             str(policy),
         ]
+        if checkout_mount is not None:
+            descriptor, backing_path = checkout_mount
+            inherited.append(descriptor)
+            arguments.extend(("--bind-fd", str(descriptor), str(backing_path)))
         for descriptor, root in sealed.runtime_descriptors:
             inherited.append(descriptor)
             arguments.extend(("--ro-bind-fd", str(descriptor), str(root)))
-        for captured in (
+        captured_files = (
             isolation.launcher.artifact,
             *isolation.sources,
             *isolation.runtime_files,
-        ):
+        )
+        if isinstance(isolation, m.Cli.ProcessFixtureIsolation):
+            compiler = isolation.policy_compiler.artifact
+            if compiler not in captured_files:
+                captured_files = (*captured_files, compiler)
+        for captured in captured_files:
             if captured.content is None:
                 continue
             descriptor = (
@@ -176,7 +240,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
                 format(captured.mode, "o"),
                 "--ro-bind-data",
                 str(descriptor),
-                str(captured.path),
+                str(destinations.get(captured.path, captured.path)),
             ))
         for name, value in isolation.environment:
             arguments.extend(("--setenv", name, value))
@@ -210,7 +274,9 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
             m.Cli.RuntimeProcessRequest(
                 cmd=(
                     f"/proc/self/fd/{compiler}",
-                    *cls.native_process_policy_arguments(),
+                    *cls.native_process_policy_arguments(
+                        fixture=isinstance(isolation, m.Cli.ProcessFixtureIsolation),
+                    ),
                 ),
                 cwd=request.cwd,
                 env={},
@@ -233,7 +299,7 @@ class FlextCliUtilitiesRuntimeProcessIsolation(
             msg = "qualified native SDK compiler emitted incomplete BPF"
             raise ValueError(msg)
         return cls._sealed_process_bytes(
-            state, "native-readonly-policy", compiled.stdout, 0o400
+            state, "native-process-policy", compiled.stdout, 0o400
         )
 
     @staticmethod

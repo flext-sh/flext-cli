@@ -9,12 +9,13 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import TYPE_CHECKING, Protocol, runtime_checkable
 
 from flext_tests import FlextTestsProtocols
 
 if TYPE_CHECKING:
-    from tests import t
+    from tests import c, t
 
 
 class TestsFlextCliProtocolsTestsRuntime:
@@ -48,6 +49,22 @@ class TestsFlextCliProtocolsTestsRuntime:
         """Structural data contract projected from the owning model."""
 
         key: str
+        count: int
+
+    @runtime_checkable
+    class ModelCommandTyped(FlextTestsProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        root: Path
+        count: int
+        ratio: float
+        roots: tuple[Path, ...]
+        output: c.Cli.OutputFormats
+
+    @runtime_checkable
+    class ModelCommandHiddenInput(FlextTestsProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
         count: int
 
     @runtime_checkable

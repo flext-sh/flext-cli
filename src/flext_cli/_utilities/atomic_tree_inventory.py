@@ -12,9 +12,7 @@ from pathlib import Path
 from typing import Literal
 
 from flext_cli import m, p, t
-from flext_cli._utilities.atomic_tree_query_topology import (
-    FlextCliUtilitiesAtomicTreeQueryTopology,
-)
+from flext_cli._utilities import FlextCliUtilitiesAtomicTreeQueryTopology
 
 
 class FlextCliUtilitiesAtomicTreeInventory(

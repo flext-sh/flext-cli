@@ -11,9 +11,7 @@ from pathlib import Path
 from types import MappingProxyType
 from typing import Literal
 
-from flext_core import r
-
-from flext_cli import c, m, p, t
+from flext_cli import c, m, p, r, t
 from flext_cli._utilities import (
     FlextCliUtilitiesAtomicDirectoryChain,
     FlextCliUtilitiesAtomicDirectoryCreate,
@@ -22,9 +20,7 @@ from flext_cli._utilities import (
     FlextCliUtilitiesAtomicTreeCleanup,
     FlextCliUtilitiesAtomicTreeInventory,
 )
-from flext_cli._utilities._files.native_results import (
-    FlextCliUtilitiesFilesNativeResults,
-)
+from flext_cli._utilities._files import FlextCliUtilitiesFilesNativeResults
 
 
 class FlextCliUtilitiesFilesPart05:
@@ -120,19 +116,24 @@ class FlextCliUtilitiesFilesPart05:
     @staticmethod
     def atomic_delete_empty_directory_guarded(
         state: p.Cli.AtomicDirectoryState,
+        *,
+        durable: bool = True,
     ) -> p.Result[bool]:
         """Delete one exact empty directory under the caller's exclusive lock.
 
         The final descriptor-bound recheck precedes ``rmdir`` and the parent is
-        synced afterward. POSIX has no expected-inode rmdir, so actors ignoring
-        the cooperative lock remain outside this CAS contract.
+        synced afterward unless ``durable=False``, which serves scratch state no
+        reader recovers after a crash. POSIX has no expected-inode rmdir, so
+        actors ignoring the cooperative lock remain outside this CAS contract.
 
         Returns:
             The resulting ``p.Result[bool]``.
 
         """
         try:
-            FlextCliUtilitiesAtomicDirectoryDelete.remove_guarded_empty_directory(state)
+            FlextCliUtilitiesAtomicDirectoryDelete.remove_guarded_empty_directory(
+                state, durable=durable
+            )
         except OSError as exc:
             return r[bool].fail(
                 c.Cli.ERR_ATOMIC_DIRECTORY_DELETE_FAILED.format(error=exc),

@@ -70,6 +70,10 @@ class FlextCliCliPart05(FlextCliCliPart04):
         its options build when this command parses, so listing the
         application or running another command never pays for this one.
 
+        Only the name and help register here. The route's model resolves and
+        its options build when this command parses, so listing the
+        application or running another command never pays for this one.
+
         Args:
             app: Application receiving the command.
             route: Result route describing the model and handler.
