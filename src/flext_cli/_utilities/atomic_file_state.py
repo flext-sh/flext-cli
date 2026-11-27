@@ -179,6 +179,29 @@ class FlextCliUtilitiesAtomicFileState:
         )
 
     @staticmethod
+    def linked_file_destination_state(
+        path: Path,
+        *,
+        parent: FlextCliUtilitiesAtomicFileDescriptor.ParentDescriptor,
+    ) -> os.stat_result | None:
+        """Elect a regular named file eligible for atomic mutation.
+
+        Returns:
+            The observed linked file or an authorized absence.
+
+        Raises:
+            OSError: If the entry exposes a zero-link snapshot.
+
+        """
+        state = FlextCliUtilitiesAtomicFileState.file_destination_state(
+            path, parent=parent
+        )
+        if state is not None and state.st_nlink == 0:
+            message = f"atomic mutation requires a linked file: {path}"
+            raise OSError(errno.ESTALE, message, path)
+        return state
+
+    @staticmethod
     def validate_precondition(
         path: Path,
         state: os.stat_result | None,

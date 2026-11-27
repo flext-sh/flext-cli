@@ -2,6 +2,8 @@
 
 <!-- TOC START -->
 
+- [Fixture outputs](#fixture-outputs)
+
 <!-- TOC END -->
 
 `u.Cli.run_raw`, `run_bytes` and `run_to_file` accept an optional
@@ -106,9 +108,72 @@ required. Positive acceptance must exercise the qualified launcher and policy
 through the public runtime and show that filesystem, network, IPC and signal
 escape attempts cannot affect the host.
 
+## Fixture outputs
+
+`m.Cli.ProcessFixtureIsolation` shares the qualified process closure and
+grants one initially empty output tree and an optional persistent data
+directory. Capture both through `u.Cli.atomic_inventory_physical_tree`.
+Each directory belongs to the caller and remains disjoint from the other
+directory, immutable inputs and private mounts. Fixture inputs stay outside
+`/dev`, `/proc`, `/run` and `/sys`. The process owner keeps the
+authenticated descriptors open and binds them only at their declared paths.
+
+For one fixture launch, declare `runtime_tree_roots` to authenticate runtime
+directories on the same descriptors used for the read-only mounts. Each root
+must be absolute, physical and disjoint. Use captured `runtime_trees` when
+multiple launches must verify the same tree version. The two fields are
+mutually exclusive.
+
+Use `persistent_directory` for a dedicated database directory below the
+declared working directory, containing only caller-owned regular files.
+The caller must retain exclusive ownership from capture through process completion.
+A native SQLite child can create, replace, or remove database and WAL files
+there. Capture the current directory again before a subsequent invocation.
+Supply immutable inputs separately from this writable directory. Keep temporary
+products in the initially empty `output_directory`.
+
+Use `private_checkout` when the caller already owns a persistent physical
+checkout that must keep its database at the working-directory root. The caller
+holds its exclusive lease throughout execution and checkpoint. Declare the
+original source root and the exact durable basenames. The process owner binds
+the private checkout before mounting the sealed source files at their relative
+paths. The source root stays outside the writable view. The backing admits only
+the durable files and empty placeholders for the source mounts. An ineligible
+entry fails the invocation and prevents reuse until the caller verifies the
+backing again. Reports use the separate output directory.
+
+A private checkout can also declare one `persistent_directory` directly
+below its physical working directory. Capture that directory separately and
+set `persistent_directory_suffix` on the checkout declaration. The directory
+must be disjoint from all captured source destinations and root-level durable
+files. Only owned, singly linked regular files with the declared suffix are
+admitted in the child directory. Its original physical identity and shallow
+inventory are checked again after the process exits.
+Supply relative source arguments or absolute paths in the private checkout.
+The process owner preserves argv, including configuration and test paths.
+
+A socket-enabled fixture profile requires its own bootstrap qualification.
+Its policy must permit local `AF_UNIX` communication while denying socket
+creation for other domains and retaining the `io_uring` denials. A private
+network namespace isolates abstract socket names. Pathname sockets require
+an additional boundary because mounts, including read-only mounts, retain
+their host backing.
+
+For pathname sockets, require Landlock ABI 9 and its `RESOLVE_UNIX` scope
+before executing the child. The qualification must demonstrate a successful
+fixture-local connection and an `EACCES` denial for a listener outside the
+Landlock domain at a pathname visible in a mounted directory. Failure to
+establish that scope prevents the child from starting.
+Bootstrap selects the fixture argument vector, digest and expected observations
+through the CLI policy accessors with `fixture=True`. Both tool roles retain
+their existing receipt provenance and must independently match the fixture
+policy digest and its original probe observations.
+
 The native option and descriptor contracts come from the
 [Bubblewrap upstream source](https://github.com/containers/bubblewrap/blob/main/bubblewrap.c)
 and its [security guidance](https://github.com/containers/bubblewrap/blob/main/README.md).
+The pathname scope is defined by the
+[Linux Landlock userspace API](https://docs.kernel.org/userspace-api/landlock.html).
 The compiler follows the
 [libseccomp rule API](https://github.com/seccomp/libseccomp/blob/main/doc/man/man3/seccomp_rule_add.3)
 and [native BPF export contract](https://github.com/seccomp/libseccomp/blob/main/doc/man/man3/seccomp_export_bpf.3).

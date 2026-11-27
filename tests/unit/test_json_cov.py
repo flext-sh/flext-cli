@@ -434,3 +434,29 @@ class TestsFlextCliJsonNavigation:
     def test_json_get_str_key_trims_value() -> None:
         """Verify that json get str key trims value."""
         tm.that(u.Cli.json_get_str_key({"name": "  Hello  "}, "name"), eq="Hello")
+
+
+class TestsFlextCliSortedJsonDumps:
+    """Public sorted serialization exercises valid and invalid nested values."""
+
+    @staticmethod
+    def test_json_dumps_sorts_a_deep_document_once_per_node() -> None:
+        """Canonical dumps of a deep document stay inside the test time limit."""
+        depth = 80
+        document: t.JsonValue = {"leaf": True}
+        for level in range(depth):
+            document = {"z": level, "a": [document], "m": {"y": 1, "b": 0}}
+
+        result = u.Cli.json_dumps(document, sort_keys=True)
+
+        tm.ok(result)
+        tm.that(result.value.startswith('{"a":[{"a":[{'), truth=True)
+        tm.that(result.value.count('"leaf":true'), eq=1)
+
+    @staticmethod
+    def test_sorted_json_dumps_reports_a_cyclic_value() -> None:
+        """A cyclic input fails through the public result boundary."""
+        cycle: list[t.JsonValue] = []
+        cycle.append(cycle)
+
+        tm.fail(u.Cli.json_dumps(cycle, sort_keys=True))

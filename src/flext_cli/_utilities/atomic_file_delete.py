@@ -29,11 +29,14 @@ class FlextCliUtilitiesAtomicFileDelete:
         state: p.Cli.AtomicFileState,
         *,
         published_paths: MutableSequence[Path] | None = None,
+        durable: bool = True,
     ) -> None:
         """Unlink the complete physical file version authorized by the caller.
 
         The receipt records the native unlink before durability and final proof;
         those later failures retain the original exception and the physical effect.
+        ``durable=False`` skips the parent fsync, for scratch state no reader
+        recovers after a crash.
 
         Raises:
             OSError: If ``file_state.file_destination_state(path, parent=parent) is not
@@ -50,7 +53,7 @@ class FlextCliUtilitiesAtomicFileDelete:
             unlink=True,
         ) as parent:
             FlextCliUtilitiesAtomicFileModel.require_parent(state, parent.state)
-            expected = FlextCliUtilitiesAtomicFileState.file_destination_state(
+            expected = FlextCliUtilitiesAtomicFileState.linked_file_destination_state(
                 path,
                 parent=parent,
             )
@@ -74,7 +77,8 @@ class FlextCliUtilitiesAtomicFileDelete:
             FlextCliUtilitiesAtomicFileDescriptor.unlink_entry(parent, path)
             if published_paths is not None:
                 published_paths.append(path)
-            FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
+            if durable:
+                FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             if (
                 FlextCliUtilitiesAtomicFileState.file_destination_state(
                     path, parent=parent
