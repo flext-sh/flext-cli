@@ -12,7 +12,7 @@ import sys
 from pathlib import Path
 from types import FrameType
 
-from tests import t, tm, u
+from tests import m, t, tm, u
 
 
 class TestsFlextCliAtomicFileGuards:
@@ -146,7 +146,7 @@ class TestsFlextCliAtomicFileGuards:
             u.Cli.atomic_create_binary_file_guarded(
                 path,
                 b"123456",
-                permission_mode=0o600,
+                options=m.Cli.AtomicWriteOptions(permission_mode=0o600),
                 max_bytes=5,
             ),
         )
@@ -164,8 +164,10 @@ class TestsFlextCliAtomicFileGuards:
             u.Cli.atomic_create_binary_file_guarded(
                 path,
                 b"data",
-                permission_mode=0o600,
-                owner_uid=os.getuid() + 1,
+                options=m.Cli.AtomicWriteOptions(
+                    permission_mode=0o600,
+                    owner_uid=os.getuid() + 1,
+                ),
             ),
         )
 
@@ -180,8 +182,10 @@ class TestsFlextCliAtomicFileGuards:
             u.Cli.atomic_create_binary_file_guarded(
                 path,
                 b"data",
-                permission_mode=0o600,
-                owner_uid=os.getuid(),
+                options=m.Cli.AtomicWriteOptions(
+                    permission_mode=0o600,
+                    owner_uid=os.getuid(),
+                ),
                 max_bytes=4,
             ),
         )

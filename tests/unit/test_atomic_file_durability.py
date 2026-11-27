@@ -44,28 +44,19 @@ class TestsFlextCliAtomicFileDurability:
         tmp_path: Path,
         durability: c.Cli.WriteDurability,
     ) -> None:
-        """A guarded create keeps its proof and mode whichever durability it declares."""
+        """A guarded create keeps its proof and mode under either durability."""
         path = tmp_path / "created.bin"
+        options = m.Cli.AtomicWriteOptions(permission_mode=0o600, durability=durability)
 
         state = tm.ok(
-            u.Cli.atomic_create_binary_file_guarded(
-                path,
-                b"created",
-                permission_mode=0o600,
-                durability=durability,
-            ),
+            u.Cli.atomic_create_binary_file_guarded(path, b"created", options=options),
         )
 
         tm.that(path.read_bytes(), eq=b"created")
         tm.that(state.mode, eq=0o600)
         tm.ok(u.Cli.atomic_verify_binary_file_states((state,)))
         tm.fail(
-            u.Cli.atomic_create_binary_file_guarded(
-                path,
-                b"again",
-                permission_mode=0o600,
-                durability=durability,
-            ),
+            u.Cli.atomic_create_binary_file_guarded(path, b"again", options=options)
         )
 
     @staticmethod
