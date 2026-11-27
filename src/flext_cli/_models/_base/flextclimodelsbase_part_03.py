@@ -11,7 +11,7 @@ from typing import Annotated, ClassVar, override
 from flext_core import m
 
 from flext_cli import c, p, t
-from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
+from flext_cli._models._base import FlextCliModelsBasePart02
 
 
 class FlextCliModelsBasePart03:
@@ -74,8 +74,15 @@ class FlextCliModelsBasePart03:
         """Type-erased route contract with inherited, flat command metadata."""
 
         model_cls: Annotated[
-            t.ModelClass[t.Cli.ModelLike],
-            m.Field(..., description="Pydantic input model class"),
+            t.ModelClass[t.Cli.ModelLike]
+            | t.Cli.NullaryOperation[t.ModelClass[t.Cli.ModelLike]],
+            m.Field(
+                ...,
+                description=(
+                    "Pydantic input model class, or a zero-argument resolver "
+                    "returning it when the command first parses"
+                ),
+            ),
         ]
         handler: Annotated[
             t.Port[p.Cli.ResultRouteHandler],
@@ -93,6 +100,12 @@ class FlextCliModelsBasePart03:
             c.Cli.MessageTypes,
             m.Field(description="CLI output style on success"),
         ] = c.Cli.MessageTypes.SUCCESS
+
+        @property
+        def resolved_model_cls(self) -> t.ModelClass[t.Cli.ModelLike]:
+            """Input model class, calling ``model_cls`` first when it is a resolver."""
+            source = self.model_cls
+            return source if isinstance(source, type) else source()
 
 
 __all__: list[str] = ["FlextCliModelsBasePart03"]

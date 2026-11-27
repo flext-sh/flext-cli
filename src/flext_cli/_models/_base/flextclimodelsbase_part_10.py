@@ -13,7 +13,7 @@ from typing import Annotated, ClassVar, Self
 from flext_core import m
 
 from flext_cli import p, t
-from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
+from flext_cli._models._base import FlextCliModelsBasePart02
 
 
 class FlextCliModelsBasePart10:

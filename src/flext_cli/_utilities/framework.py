@@ -13,13 +13,17 @@ from collections.abc import Callable, Mapping, MutableMapping, Sequence
 from contextvars import ContextVar
 from inspect import Parameter
 from types import EllipsisType, FrameType, GenericAlias
-from typing import ClassVar, Never
+from typing import TYPE_CHECKING, ClassVar, Never, override
 
 import click
 import typer
 from flext_core import e, r, u
+from typer.core import TyperCommand
 from typer.models import OptionInfo
 from typer.testing import CliRunner
+
+if TYPE_CHECKING:
+    pass
 
 from flext_cli import c, m, p, t
 from flext_cli._utilities import FlextCliUtilitiesConversion
@@ -129,6 +133,86 @@ class FlextCliUtilitiesFramework:
             return FlextCliUtilitiesConversion.JSON_VALUE_ADAPTER.validate_python(
                 result
             )
+
+    class TypedContextCommand(TyperCommand):
+        """Typer command whose contexts are Typer's public ``typer.Context``.
+
+        ``typer.Context`` adds no behavior to the context Typer's commands
+        otherwise create; it lets a route return its context through the
+        public type.
+        """
+
+        context_class = typer.Context
+
+    class RouteCommand(TyperCommand):
+        """Command listed by name and help whose options build when it parses.
+
+        Its registered callback takes no parameters, so Typer converts it at no
+        cost; calling that callback returns the real command callable, which
+        Typer converts only when this command parses its own arguments.
+        """
+
+        @override
+        def make_context(
+            self,
+            info_name: str | None,
+            args: list[str],
+            parent: typer.Context | None = None,
+            **extra: t.Cli.CliValue,
+        ) -> typer.Context:
+            """Build the real command and parse the arguments with it.
+
+            Returns:
+                The context of the real command; its own invoke and help apply.
+
+            Raises:
+                TypeError: If the route registered without a builder or its
+                    command created a context of another class.
+
+            """
+            if self.callback is None:
+                msg = f"Route {self.name!r} registered without a builder"
+                raise TypeError(msg)
+            route = typer.Typer(add_completion=False)
+            _ = route.command(
+                self.name,
+                help=self.help,
+                context_settings=dict(self.context_settings),
+                cls=FlextCliUtilitiesFramework.TypedContextCommand,
+            )(self.callback())
+            command = typer.main.get_command(route)
+            # Typer appends application-level parameters (shell completion) to a
+            # single-command application's command; they belong to the route.
+            command.params.extend(self.params)
+            context = command.make_context(info_name, args, parent=parent, **extra)
+            if not isinstance(context, typer.Context):
+                msg = (
+                    f"Route {self.name!r} created a {type(context).__name__} context, "
+                    "not the Typer invocation context"
+                )
+                raise TypeError(msg)
+            return context
+
+        @override
+        def invoke(self, ctx: typer.Context) -> t.JsonPayload:
+            """Run the real command whose context ``make_context`` returned.
+
+            A group invokes its subcommand through that context, but a
+            single-command application invokes the command it parsed with, so
+            this stand-in forwards to the real command.
+
+            Returns:
+                The real command's result.
+
+            Raises:
+                TypeError: If the context was not built by a real command.
+
+            """
+            command = ctx.command
+            if command is self:
+                msg = f"Route {self.name!r} invoked without its built command"
+                raise TypeError(msg)
+            return command.invoke(ctx)
 
     _active_execution: ClassVar[ContextVar[bool]] = ContextVar(
         "flext_cli_active_execution",
@@ -298,13 +382,17 @@ class FlextCliUtilitiesFramework:
         cls,
         error: m.ValidationError,
         spellings: Mapping[str, str],
+        *,
+        hide_input: bool = False,
     ) -> Never:
         """Reject an input model Pydantic refused as a native Click usage error.
 
         Input validation of CLI arguments is a usage error: Click renders the
         usage line and one message naming the option as the user types it, and
         exits with its own usage code. Like Click itself, the first offending
-        parameter is reported.
+        parameter is reported, and the scalar value typed is quoted (Click:
+        ``'x' is not a valid integer.``) unless the model hides its input in
+        errors (``hide_input``).
 
         Raises:
             BadParameter: Always.
@@ -315,7 +403,9 @@ class FlextCliUtilitiesFramework:
         hint = spellings.get(field)
         raise typer.BadParameter(
             "; ".join(
-                detail["msg"]
+                f"{detail['input']!r}: {detail['msg']}"
+                if not hide_input and isinstance(detail.get("input"), (str, int, float))
+                else detail["msg"]
                 for detail in error.errors()
                 if detail["loc"] and str(detail["loc"][0]) == field
             )
@@ -376,6 +466,33 @@ class FlextCliUtilitiesFramework:
         """
         _ = cls._unwrap(application).command(name, help_text=help_text)(command)
 
+    @classmethod
+    def framework_register_route(
+        cls,
+        application: p.Cli.Application,
+        *,
+        name: str,
+        help_text: str,
+        build: t.Cli.NullaryOperation[t.Cli.CliCommand],
+    ) -> None:
+        """Register one named command whose callable builds when it parses.
+
+        Listing the application, rendering its help, or running another
+        command never calls ``build``.
+
+        Args:
+            application: Application owning the command.
+            name: Command name used on the command line.
+            help_text: Command description shown in CLI help.
+            build: Zero-argument builder returning the command callable.
+
+        """
+        _ = cls._unwrap(application).backend.command(
+            name,
+            help=help_text,
+            cls=FlextCliUtilitiesFramework.RouteCommand,
+        )(build)
+
     @staticmethod
     def framework_build_parameter(
         field_name: str,
@@ -383,6 +500,7 @@ class FlextCliUtilitiesFramework:
         spec: p.Cli.CliOptionSpec,
         *,
         json_annotation: t.Cli.RuntimeAnnotation | None = None,
+        metavar: str | None = None,
     ) -> Parameter:
         """Build one inspect parameter with a private Typer option default.
 
@@ -390,6 +508,8 @@ class FlextCliUtilitiesFramework:
         validates into that declared type while Click parses the argument, so
         malformed JSON or a schema mismatch is a usage error with its cause.
         The adapter is built only on parse; rendering help never builds it.
+        ``metavar`` is the help type of an option Typer parses as text while
+        the request model validates its declared type.
 
         Returns:
             The built parameter carrying the private option default.
@@ -408,7 +528,9 @@ class FlextCliUtilitiesFramework:
                 if json_annotation is None
                 else FlextCliUtilitiesFramework._json_parser(json_annotation)
             ),
-            metavar=None if json_annotation is None else c.Cli.CLI_JSON_OPTION_METAVAR,
+            metavar=metavar
+            if json_annotation is None
+            else c.Cli.CLI_JSON_OPTION_METAVAR,
         )
         return Parameter(
             field_name,
@@ -584,6 +706,12 @@ class FlextCliUtilitiesFramework:
             private_application.backend,
             args=list(args) if args is not None else None,
         )
+        # The runner turns any exception into exit code 1 with no output; an
+        # exception that is not the process's own exit escapes unchanged.
+        if result.exception is not None and not isinstance(
+            result.exception, SystemExit
+        ):
+            raise result.exception
         return m.Cli.InvocationResult(
             exit_code=result.exit_code,
             stdout=result.stdout,

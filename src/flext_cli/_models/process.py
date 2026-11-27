@@ -15,9 +15,11 @@ from typing import ClassVar, Literal, Self
 from flext_core import m
 
 from flext_cli import p, t
-from flext_cli._models._base.flextclimodelsbase_part_01 import FlextCliModelsBasePart01
-from flext_cli._models._base.flextclimodelsbase_part_02 import FlextCliModelsBasePart02
-from flext_cli._models._base.flextclimodelsbase_part_09 import FlextCliModelsBasePart09
+from flext_cli._models._base import (
+    FlextCliModelsBasePart01,
+    FlextCliModelsBasePart02,
+    FlextCliModelsBasePart09,
+)
 
 
 class FlextCliModelsProcess:
@@ -210,6 +212,39 @@ class FlextCliModelsProcess:
             description="Complete child environment, without inherited host variables"
         )
 
+    class ProcessFixtureCheckout(m.FrozenModel):
+        """Caller-elected persistent checkout and its independent source origin."""
+
+        backing: FlextCliModelsBasePart09.AtomicPhysicalTreeManifest = m.Field(
+            description="Authenticated private physical working directory"
+        )
+        source_root: Path = m.Field(description="Original root of captured sources")
+        persistent_filenames: tuple[str, ...] = m.Field(
+            min_length=1, description="Exact durable regular files allowed at the root"
+        )
+        persistent_directory_suffix: str | None = m.Field(
+            default=None,
+            min_length=1,
+            description="Allowed filename suffix in the durable child directory",
+        )
+
+    class ProcessFixtureIsolation(ProcessReadOnlyIsolation):
+        """Qualified process isolation with explicit writable fixture directories."""
+
+        runtime_tree_roots: tuple[Path, ...] = m.Field(
+            default=(),
+            description="Runtime roots authenticated by the launcher for this fixture",
+        )
+        output_directory: FlextCliModelsBasePart09.AtomicPhysicalTreeManifest = m.Field(
+            description="Initially empty caller-owned fixture output tree"
+        )
+        persistent_directory: (
+            FlextCliModelsBasePart09.AtomicPhysicalTreeManifest | None
+        ) = m.Field(default=None, description="Dedicated persistent fixture data")
+        private_checkout: FlextCliModelsProcess.ProcessFixtureCheckout | None = m.Field(
+            default=None, description="Explicit persistent checkout backing for cwd"
+        )
+
     class ProcessOptions(m.ArbitraryTypesModel):
         """Child input, environment, and durable-output execution options."""
 
@@ -256,7 +291,11 @@ class FlextCliModelsProcess:
             default=None,
             description="Separate durable stderr destination for durable output.",
         )
-        isolation: FlextCliModelsProcess.ProcessReadOnlyIsolation | None = m.Field(
+        isolation: (
+            FlextCliModelsProcess.ProcessFixtureIsolation
+            | FlextCliModelsProcess.ProcessReadOnlyIsolation
+            | None
+        ) = m.Field(
             default=None, description="Explicit native read-only confinement request"
         )
         signal_wave: t.Port[p.Cli.SignalWave] | None = m.Field(
@@ -322,9 +361,11 @@ class FlextCliModelsProcess:
             default=None,
             description="Absolute deadline and termination grace policy.",
         )
-        isolation: FlextCliModelsProcess.ProcessReadOnlyIsolation | None = m.Field(
-            default=None, description="Immutable native confinement inputs"
-        )
+        isolation: (
+            FlextCliModelsProcess.ProcessFixtureIsolation
+            | FlextCliModelsProcess.ProcessReadOnlyIsolation
+            | None
+        ) = m.Field(default=None, description="Immutable native confinement inputs")
         pass_fds: tuple[int, ...] = m.Field(
             default=(),
             description="Explicit descriptors inherited by an ordinary child",

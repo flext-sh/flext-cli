@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, Sequence
+from pathlib import Path
 from typing import Annotated, ClassVar, Self
 
 from flext_cli import m
@@ -42,6 +43,23 @@ class TestsFlextCliModelsRuntime:
 
         key: Annotated[str, m.Field(description="Required key")]
         count: Annotated[int, m.Field(description="Required count")]
+
+    class ModelCommandTyped(m.BaseModel):
+        """Target model whose options Typer would coerce: the model owns them."""
+
+        root: Annotated[Path, m.Field(description="Required root path")]
+        count: Annotated[int, m.Field(description="Item count")] = 1
+        ratio: Annotated[float, m.Field(description="Ratio")] = 0.5
+        roots: Annotated[tuple[Path, ...], m.Field(description="Extra roots")] = ()
+        output: Annotated[c.Cli.OutputFormats, m.Field(description="Format")] = (
+            c.Cli.OutputFormats.JSON
+        )
+
+    class ModelCommandHiddenInput(m.BaseModel):
+        """Target model that hides rejected input in its validation errors."""
+
+        model_config: ClassVar[t.ConfigDict] = m.ConfigDict(hide_input_in_errors=True)
+        count: Annotated[int, m.Field(description="Item count")] = 1
 
     class RuntimeCommandCase(m.BaseModel):
         """Runtime command parametrization case."""

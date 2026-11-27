@@ -269,6 +269,18 @@ class TestsFlextCliConfigEngine:
         tm.that(invalid["port"], eq="x")
 
     @staticmethod
+    def test_schema_validate_honours_declared_draft(tmp_path: Path) -> None:
+        """A draft-07 schema keeps its ``dependencies`` rule (2020-12 ignores it)."""
+        schema = tmp_path / "draft7.schema.json"
+        schema.write_text(
+            '{"$schema":"http://json-schema.org/draft-07/schema#",'
+            '"type":"object","dependencies":{"host":["port"]}}',
+            encoding="utf-8",
+        )
+        tm.ok(u.Cli.schema_validate({"host": "h", "port": 1}, schema))
+        tm.fail(u.Cli.schema_validate({"host": "h"}, schema))
+
+    @staticmethod
     def test_config_load_with_schema_pairs(tmp_path: Path) -> None:
         """Verify that config load with schema pairs."""
         source = tmp_path / "app.yaml"

@@ -10,7 +10,7 @@ from collections.abc import Callable, MutableMapping, MutableSequence, Sequence
 from typing import TYPE_CHECKING
 
 from flext_cli import c, m, p
-from flext_cli._utilities.markdown_parsing import FlextCliUtilitiesMarkdownParsing
+from flext_cli._utilities import FlextCliUtilitiesMarkdownParsing
 
 if TYPE_CHECKING:
     from markdown_it.token import Token

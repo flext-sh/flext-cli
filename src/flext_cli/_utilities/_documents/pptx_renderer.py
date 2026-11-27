@@ -8,17 +8,12 @@ from __future__ import annotations
 
 from io import BytesIO
 
-from flext_core import r
 from pptx import Presentation
 from pptx.presentation import Presentation as PresentationType
 
-from flext_cli import c, m, p, t
-from flext_cli._utilities._documents.pptx_serializer import (
-    FlextCliUtilitiesPptxSerializer,
-)
-from flext_cli._utilities._files.native_results import (
-    FlextCliUtilitiesFilesNativeResults,
-)
+from flext_cli import c, m, p, r, t
+from flext_cli._utilities._documents import FlextCliUtilitiesPptxSerializer
+from flext_cli._utilities._files import FlextCliUtilitiesFilesNativeResults
 
 
 class FlextCliUtilitiesPptxRenderer:

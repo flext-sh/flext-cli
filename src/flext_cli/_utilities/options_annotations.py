@@ -7,6 +7,7 @@ SPDX-License-Identifier: MIT
 from __future__ import annotations
 
 from collections.abc import Mapping, MutableSequence, Sequence
+from enum import Enum
 from pathlib import Path
 from types import GenericAlias, NoneType, UnionType
 from typing import Annotated, TypeAliasType, get_args, get_origin
@@ -135,6 +136,50 @@ class FlextCliUtilitiesOptionsAnnotations:
             if isinstance(resolved_annotation_input, GenericAlias | type)
             else str
         )
+
+    @classmethod
+    def option_carrier(
+        cls,
+        resolved: type | GenericAlias,
+    ) -> tuple[type | GenericAlias, str | None]:
+        """Return the type Typer parses an option as, and the help type it shows.
+
+        The request model is the one validator of a model command: Typer
+        receives text for every value it would otherwise coerce (``Path``,
+        numbers, enums, and lists of them), so the model coerces it and a
+        rejected value is reported by the model's message with its input.
+        Flags (``bool``), ``str`` and ``list[str]`` already reach the model as
+        typed. The metavar repeats the label Typer derives from the declared
+        type, so the help output is unchanged.
+
+        Returns:
+            The Typer carrier annotation and the metavar to show, or ``None``
+            when Typer already receives the declared type.
+
+        """
+        if get_origin(resolved) is list:
+            inner = next(iter(get_args(resolved)), str)
+            if inner in {str, bool}:
+                return resolved, None
+            return list[str], f"<list[{cls._option_label(inner, listed=True)}]>"
+        if resolved in {str, bool}:
+            return resolved, None
+        return str, f"<{cls._option_label(resolved, listed=False)}>"
+
+    @staticmethod
+    def _option_label(annotation: type | GenericAlias, *, listed: bool) -> str:
+        """Return Typer's help label of one declared value type.
+
+        Returns:
+            Enum values joined by ``|``, ``path`` for a scalar path, otherwise
+            the type's name.
+
+        """
+        if isinstance(annotation, type) and issubclass(annotation, Enum):
+            return "|".join(str(member.value) for member in annotation)
+        if annotation is Path and not listed:
+            return "path"
+        return annotation.__name__ if isinstance(annotation, type) else str(annotation)
 
     @staticmethod
     def string_sequence(value: t.Cli.CliDefaultSource) -> bool:

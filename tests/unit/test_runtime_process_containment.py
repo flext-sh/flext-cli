@@ -6,18 +6,20 @@ SPDX-License-Identifier: MIT
 
 from __future__ import annotations
 
+import ctypes
 import os
 import signal
 import sys
 import threading
 import time
 from collections import UserList
-from collections.abc import Callable, Iterator
+from collections.abc import Callable, Generator, Iterator
+from contextlib import contextmanager
 from typing import TYPE_CHECKING, override
 
 import pytest
 
-from tests import c, m, p, tm, u
+from tests import c, m, p, r, tm, u
 
 if TYPE_CHECKING:
     from pathlib import Path
@@ -31,6 +33,32 @@ def _deadline(*, seconds: float, grace: float) -> p.Cli.ProcessDeadline:
         expires_at_monotonic=time.monotonic() + seconds,
         termination_grace_seconds=grace,
     )
+
+
+@contextmanager
+def _unreaped_orphans() -> Generator[bool]:
+    """Adopt orphaned descendants without reaping them, where the kernel allows.
+
+    Linux ``prctl(2)`` makes this process the child subreaper, so a killed
+    orphan of the owned group stays a zombie member until the test reaps it.
+    Other platforms hand orphans to their own reaper and yield ``False``.
+
+    Yields:
+        Whether this process retains its orphaned descendants unreaped.
+
+    """
+    if sys.platform != "linux":
+        yield False
+        return
+    set_child_subreaper, get_child_subreaper = 36, 37
+    prctl = ctypes.CDLL(None, use_errno=True).prctl
+    previous = ctypes.c_int(0)
+    tm.that(prctl(get_child_subreaper, ctypes.byref(previous), 0, 0, 0), eq=0)
+    tm.that(prctl(set_child_subreaper, 1, 0, 0, 0), eq=0)
+    try:
+        yield True
+    finally:
+        tm.that(prctl(set_child_subreaper, previous.value, 0, 0, 0), eq=0)
 
 
 def _survivor_acknowledged(probe: Path, acknowledgement: Path) -> bool:
@@ -316,6 +344,79 @@ class TestsFlextCliRuntimeProcessContainment:
         tm.ok(result.value.timed_out)
         tm.that(output_file.read_bytes(), has=b"interrupted")
         tm.that(time.monotonic() - started, lt=1.2)
+
+    @staticmethod
+    def test_unreaped_member_failure_keeps_the_process_outcome(
+        tmp_path: Path,
+    ) -> None:
+        """A boundary left non-empty at the deadline still reports the outcome.
+
+        The root and its same-group child ignore the soft signals, so the
+        deadline kills both. While this process is the child subreaper and
+        does not wait, the orphaned child stays a zombie member of the owned
+        group: the run fails naming that member, and the failure carries the
+        timeout and the kill exit as typed ``error_data``.
+        """
+        process_info = tmp_path / "orphan-process-info"
+        ignore_soft_signals = (
+            "import pathlib,signal,subprocess,sys,time;"
+            "signal.signal(signal.SIGINT,signal.SIG_IGN);"
+            "signal.signal(signal.SIGTERM,signal.SIG_IGN);"
+        )
+        child = (
+            f"{ignore_soft_signals}import os;"
+            "pathlib.Path(sys.argv[1]).write_text(str(os.getpid()));time.sleep(30)"
+        )
+        root = (
+            f"{ignore_soft_signals}"
+            f"subprocess.Popen([sys.executable,'-c',{child!r},sys.argv[1]]);"
+            "info=pathlib.Path(sys.argv[1]);"
+            "\nwhile not info.exists() or not info.read_text():\n time.sleep(.01)\n"
+            "time.sleep(30)"
+        )
+
+        with _unreaped_orphans() as retained:
+            result = u.Cli().run_to_file(
+                [sys.executable, "-c", root, str(process_info)],
+                tmp_path / "orphan.log",
+                options=m.Cli.ProcessOptions(
+                    deadline=_deadline(seconds=3.0, grace=1.0),
+                ),
+            )
+            orphan = int(process_info.read_text(encoding="utf-8"))
+            if retained:
+                os.waitpid(orphan, 0)
+
+        if not retained:
+            outcome = tm.ok(result)
+            tm.ok(outcome.timed_out)
+            tm.that(outcome.raw_return_code, eq=-signal.SIGKILL)
+            return
+        tm.fail(result, has="owned process boundary was not empty before return")
+        tm.that(result.error or "", has=f"pid={orphan} state=Z")
+        data = tm.not_none(result.error_data)
+        tm.that(data[c.Cli.PROCESS_TIMED_OUT_KEY], eq=True)
+        tm.that(data[c.Cli.PROCESS_EXIT_CODE_KEY], eq=-signal.SIGKILL)
+        tm.that(data[c.Cli.PROCESS_FORWARDED_SIGNAL_KEY], eq=None)
+
+    @staticmethod
+    def test_interrupt_with_a_cleanup_failure_keeps_its_diagnostic() -> None:
+        """A forwarded interrupt whose cleanup failed chains that diagnostic."""
+        diagnostic = "owned process boundary was not empty before return: pid=1"
+        failed = r[bool].fail(
+            diagnostic,
+            error_data={
+                c.Cli.PROCESS_EXIT_CODE_KEY: -signal.SIGINT,
+                c.Cli.PROCESS_TIMED_OUT_KEY: False,
+                c.Cli.PROCESS_FORWARDED_SIGNAL_KEY: signal.SIGINT,
+            },
+        )
+
+        with pytest.raises(SystemExit) as raised:
+            u.Cli.process_raise_if_interrupted(failed)
+
+        tm.that(raised.value.code, eq=-signal.SIGINT)
+        tm.that(str(raised.value.__cause__), eq=diagnostic)
 
     @staticmethod
     def test_deadline_kills_recursive_process_tree(tmp_path: Path) -> None:

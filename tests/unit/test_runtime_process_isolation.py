@@ -22,7 +22,12 @@ class TestsFlextCliRuntimeProcessIsolation:
     """Isolation prerequisites fail before any command can execute."""
 
     @staticmethod
-    def _request(tmp_path: Path) -> p.Cli.ProcessReadOnlyIsolation:
+    def _request(
+        tmp_path: Path,
+        *,
+        fixture_output: Path | None = None,
+        persistent_directory: Path | None = None,
+    ) -> p.Cli.ProcessReadOnlyIsolation:
         """Capture real local files for negative pre-execution contracts.
 
         Returns:
@@ -74,7 +79,7 @@ class TestsFlextCliRuntimeProcessIsolation:
             "abi_reference": artifact_receipt,
             "architecture": platform.machine(),
         })
-        return m.Cli.ProcessReadOnlyIsolation.model_validate({
+        declaration: dict[str, object] = {
             "platform": "linux",
             "architecture": platform.machine(),
             "launcher": compiler,
@@ -85,6 +90,19 @@ class TestsFlextCliRuntimeProcessIsolation:
             "runtime_trees": (),
             "runtime_files": (artifact,),
             "environment": (),
+        }
+        if fixture_output is None:
+            return m.Cli.ProcessReadOnlyIsolation.model_validate(declaration)
+        return m.Cli.ProcessFixtureIsolation.model_validate({
+            **declaration,
+            "output_directory": tm.ok(
+                u.Cli.atomic_inventory_physical_tree(fixture_output)
+            ),
+            "persistent_directory": (
+                tm.ok(u.Cli.atomic_inventory_physical_tree(persistent_directory))
+                if persistent_directory is not None
+                else None
+            ),
         })
 
     @staticmethod
@@ -182,6 +200,265 @@ class TestsFlextCliRuntimeProcessIsolation:
         )
         tm.that(result.error or "", has=expected)
         tm.fail(output.parent.exists())
+
+    @staticmethod
+    @pytest.mark.parametrize("overlaps_source", [False, True])
+    def test_fixture_output_rejects_host_inputs(
+        tmp_path: Path, *, overlaps_source: bool
+    ) -> None:
+        """A write capability excludes source paths and preexisting files."""
+        output = tmp_path if overlaps_source else tmp_path / "output"
+        output.mkdir(exist_ok=True)
+        existing = output / "original.txt"
+        existing.write_text("original", encoding="utf-8")
+        isolation = TestsFlextCliRuntimeProcessIsolation._request(
+            tmp_path, fixture_output=output
+        )
+        result = u.Cli.run_raw(
+            (
+                str(isolation.policy_compiler.abi_reference.path),
+                "-c",
+                "raise SystemExit(71)",
+            ),
+            cwd=tmp_path,
+            options=m.Cli.ProcessOptions(isolation=isolation),
+        )
+
+        tm.fail(result)
+        expected = "no qualified native platform capability"
+        if sys.platform == "linux":
+            expected = (
+                "output overlaps an input or private mount"
+                if overlaps_source
+                else "output must be empty and owned by the caller"
+            )
+        tm.that(result.error or "", has=expected)
+        tm.that(existing.read_text(encoding="utf-8"), eq="original")
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        ("layout", "expected"),
+        [
+            ("regular", "one original bootstrap qualification row"),
+            ("overlap", "output overlaps an input or private mount"),
+            ("symlink", "persistent fixture data requires owned regular files"),
+            ("outside", "persistent fixture data must be below the working directory"),
+        ],
+    )
+    def test_fixture_accepts_only_separate_owned_persistent_data(
+        tmp_path: Path, layout: str, expected: str
+    ) -> None:
+        """Admit preexisting data from a dedicated directory inside the checkout."""
+        working = tmp_path / "workspace"
+        working.mkdir()
+        output = working / "output"
+        output.mkdir(mode=0o700)
+        database = (tmp_path if layout == "outside" else working) / "test-data"
+        database.mkdir(mode=0o700)
+        data = database / "state.sqlite"
+        data.write_bytes(b"owned data")
+        data.chmod(0o600)
+        if layout == "symlink":
+            (database / "alias").symlink_to(data)
+        persistent = output if layout == "overlap" else database
+        isolation = TestsFlextCliRuntimeProcessIsolation._request(
+            working, fixture_output=output, persistent_directory=persistent
+        )
+        result = u.Cli.run_raw(
+            (str(isolation.policy_compiler.abi_reference.path), "--version"),
+            cwd=working,
+            options=m.Cli.ProcessOptions(isolation=isolation),
+        )
+
+        tm.fail(result)
+        tm.that(
+            result.error or "",
+            has=(
+                expected
+                if sys.platform == "linux"
+                else "no qualified native platform capability"
+            ),
+        )
+        tm.that(data.read_bytes(), eq=b"owned data")
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        "layout",
+        ["clean", "extra", "symlink", "traversal", "runtime-overlap", "root-overlap"],
+    )
+    def test_private_checkout_admits_only_declared_physical_state(
+        tmp_path: Path, layout: str
+    ) -> None:
+        """Preserve source and backing identity before qualifying the child."""
+        original = tmp_path / "original"
+        working = tmp_path / "private"
+        output = tmp_path / "output"
+        for directory in (original, working, output):
+            directory.mkdir(mode=0o700)
+        isolation = TestsFlextCliRuntimeProcessIsolation._request(
+            original, fixture_output=output
+        )
+        database = working / ".testmondata"
+        source = original / "source.py"
+        if layout == "symlink":
+            database.symlink_to(source)
+        else:
+            database.write_bytes(b"durable")
+        if layout == "extra":
+            (working / "unowned").touch()
+        checkout = m.Cli.ProcessFixtureCheckout.model_validate({
+            "backing": tm.ok(u.Cli.atomic_inventory_physical_tree(working)),
+            "source_root": original / ".." / original.name
+            if layout == "traversal"
+            else original,
+            "persistent_filenames": (database.name,),
+        })
+        if layout == "runtime-overlap":
+            runtime = tm.ok(u.Cli.atomic_inventory_physical_tree(original))
+            isolation = isolation.model_copy(update={"runtime_trees": (runtime,)})
+        elif layout == "root-overlap":
+            isolation = isolation.model_copy(update={"runtime_tree_roots": (original,)})
+        result = u.Cli.run_raw(
+            (str(isolation.policy_compiler.abi_reference.path), "--version"),
+            cwd=working,
+            options=m.Cli.ProcessOptions(
+                isolation=isolation.model_copy(update={"private_checkout": checkout})
+            ),
+        )
+
+        tm.fail(result)
+        expected = {
+            "clean": "one original bootstrap qualification row",
+            "extra": "private checkout backing contains ineligible entry",
+            "symlink": "private checkout backing contains ineligible entry",
+            "traversal": "private checkout requires disjoint canonical cwd",
+            "runtime-overlap": "private checkout source root overlaps a runtime mount",
+            "root-overlap": "private checkout source root overlaps a runtime mount",
+        }
+        tm.that(
+            result.error or "",
+            has=(
+                expected[layout]
+                if sys.platform == "linux"
+                else "no qualified native platform capability"
+            ),
+        )
+        tm.that(source.read_text(encoding="utf-8"), eq='"""Captured source."""\n')
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        ("layout", "refusal"),
+        [
+            ("physical", "one original bootstrap qualification row"),
+            ("relative", "atomic directory path is not absolute and normalized"),
+            ("directory-alias", "atomic destination parent is not a real directory"),
+            ("escaping-link", "isolated runtime link escapes its declared closure"),
+            (
+                "competing",
+                "isolated runtime roots and captured trees are mutually exclusive",
+            ),
+            ("changed-explicit", "isolated process runtime tree changed"),
+        ],
+    )
+    def test_fixture_runtime_root_admission(
+        tmp_path: Path, layout: str, refusal: str
+    ) -> None:
+        """Authenticate elected roots and preserve explicit version comparison."""
+        output = tmp_path / "output"
+        runtime = tmp_path / "runtime"
+        for directory in (output, runtime):
+            directory.mkdir(mode=0o700)
+        payload = runtime / "payload"
+        payload.write_bytes(b"original")
+        roots = (runtime,)
+        trees = ()
+        if layout == "relative":
+            roots = (Path("runtime"),)
+        elif layout == "directory-alias":
+            alias = tmp_path / "alias"
+            alias.symlink_to(runtime, target_is_directory=True)
+            roots = (alias,)
+        elif layout == "escaping-link":
+            (runtime / "link").symlink_to(tmp_path / "outside-runtime")
+        elif layout in {"competing", "changed-explicit"}:
+            trees = (tm.ok(u.Cli.atomic_inventory_physical_tree(runtime)),)
+            if layout == "changed-explicit":
+                roots = ()
+                payload.write_bytes(b"changed")
+        isolation = TestsFlextCliRuntimeProcessIsolation._request(
+            tmp_path, fixture_output=output
+        )
+        result = u.Cli.run_to_file(
+            (str(isolation.policy_compiler.abi_reference.path), "--version"),
+            tmp_path / "child-output" / "stdout.log",
+            cwd=tmp_path,
+            options=m.Cli.ProcessOptions(
+                isolation=isolation.model_copy(
+                    update={"runtime_tree_roots": roots, "runtime_trees": trees}
+                ),
+            ),
+        )
+
+        tm.fail(
+            result,
+            has=refusal
+            if sys.platform == "linux"
+            else "no qualified native platform capability",
+        )
+        tm.fail((tmp_path / "child-output").exists())
+
+    @staticmethod
+    @pytest.mark.parametrize(
+        ("filename", "suffix", "refusal"),
+        [
+            ("leaf.digest", ".digest", "one original bootstrap qualification row"),
+            ("leaf.unowned", ".digest", "durable directory has ineligible file"),
+            ("nested/leaf.digest", ".digest", "requires owned regular files"),
+            ("leaf.digest", None, "durable directory requires a filename suffix"),
+        ],
+    )
+    def test_private_checkout_admits_declared_durable_directory(
+        tmp_path: Path, filename: str, suffix: str | None, refusal: str
+    ) -> None:
+        """Restrict durable fixture files to the declared child and suffix."""
+        original = tmp_path / "original"
+        working = tmp_path / "private"
+        output = tmp_path / "output"
+        receipts = working / "receipts"
+        receipt = receipts / filename
+        for directory in (original, working, output, receipts):
+            directory.mkdir(mode=0o700)
+        receipt.parent.mkdir(mode=0o700, exist_ok=True)
+        receipt.write_bytes(b"receipt")
+        isolation = TestsFlextCliRuntimeProcessIsolation._request(
+            original, fixture_output=output
+        )
+        checkout = m.Cli.ProcessFixtureCheckout.model_validate({
+            "backing": tm.ok(u.Cli.atomic_inventory_physical_tree(working)),
+            "source_root": original,
+            "persistent_filenames": (".testmondata",),
+            "persistent_directory_suffix": suffix,
+        })
+        result = u.Cli.run_raw(
+            (str(isolation.policy_compiler.abi_reference.path), "--version"),
+            cwd=working,
+            options=m.Cli.ProcessOptions(
+                isolation=isolation.model_copy(
+                    update={
+                        "private_checkout": checkout,
+                        "persistent_directory": tm.ok(
+                            u.Cli.atomic_inventory_physical_tree(receipts)
+                        ),
+                    }
+                )
+            ),
+        )
+        tm.fail(
+            result,
+            has=refusal
+            if sys.platform == "linux"
+            else "no qualified native platform capability",
+        )
 
     @staticmethod
     def test_network_policy_cannot_remove_a_required_syscall() -> None:

@@ -80,22 +80,31 @@ jobs:
     env:
       CI: Y
       GITHUB_TOKEN: ${{ github.token }}
+    defaults:
+      run:
+        working-directory: flext-cli
     steps:
-      - name: Checkout
+      - name: Checkout workspace flext-sh/flext
         uses: actions/checkout@v7
         with:
+          repository: flext-sh/flext
+          ref: 0.12.0-dev
           submodules: recursive
-
           persist-credentials: false
-
           fetch-depth: 0
-          ref: ${{ inputs.ref || github.sha }}
+      - name: Pin flext-cli at the tested commit
+        working-directory: .
+        run: |
+          set -eu
+          git -C "flext-cli" fetch --no-tags origin "${{ inputs.ref || github.sha }}"
+          git -C "flext-cli" checkout --detach FETCH_HEAD
       # Why: GitHub runners expose umask 002, so git checkout materializes
       # group-writable modes (0664) for tracked files. Canonical Mise
       # artifacts demand exact modes (0o644) and the conform gate fails loud
       # on any drift, so checkout content is normalized to canonical modes
       # once, before any gate runs.
       - name: Normalize checkout modes
+        working-directory: .
         run: chmod -R go-w .
 
       # The runner's own temporary directory, emptied at every job boundary,
@@ -152,11 +161,11 @@ jobs:
         run: |
           sudo apt-get update -qq
           sudo apt-get install -y -qq --no-install-recommends libreoffice-calc
-      # CI approval, one visible step per ci workflow row (setup -> check).
+      # CI approval, one visible step per ci workflow row (setup -> check -> tests).
       - name: make setup (blocking)
         id: approval-setup
         run: CI=Y make setup
-      # CI approval, one visible step per ci workflow row (setup -> check).
+      # CI approval, one visible step per ci workflow row (setup -> check -> tests).
       - name: make check CHECK_PHASE=primary (blocking)
         id: approval-check-primary
         # Every approval verb reports once setup provisioned the environment,
@@ -164,34 +173,55 @@ jobs:
         # (workflow requires) admits the step only after that verb is green.
         if: ${{ !cancelled() && steps.approval-setup.outcome == 'success' }}
         run: CI=Y make check CHECK_PHASE=primary
+      # CI approval, one visible step per ci workflow row (setup -> check -> tests).
+      - name: make tests (blocking)
+        id: approval-tests-primary
+        # Every approval verb reports once setup provisioned the environment,
+        # so one red verdict never hides the others; a declared requirement
+        # (workflow requires) admits the step only after that verb is green.
+        if: ${{ !cancelled() && steps.approval-setup.outcome == 'success' && steps.approval-check-primary.outcome == 'success' }}
+        run: CI=Y make tests
       - name: Complete check qualification
         id: qualification-check
         if: ${{ !cancelled() && inputs.full_check == true && steps.approval-setup.outcome == 'success' }}
         run: CI=N make check
+
+      # Project-owned steps after the approval verbs, injected verbatim from the
+      # project's own custom-post-steps file: failure diagnostics belong here,
+      # where `if: failure()` can observe the verb they diagnose.
+      # Project-owned CI step (flext-9k6vf): the integration CI runs the test
+      # suite on every pull request, so a red test never reaches 0.12.0-dev.
+      # It reports once setup provisioned the environment, like every approval
+      # verb, so a red check never hides the test verdict. Injected verbatim at
+      # steps level by the flext-infra CI template — keep the six-space indent.
+      - name: make tests (blocking)
+        id: project-tests
+        if: ${{ !cancelled() && steps.approval-setup.outcome == 'success' }}
+        run: CI=Y make tests
       # Reports exist once any approval row after setup executed, whichever
       # row failed first (a failed tests row skips every later check row);
       # uploading after a setup failure would only add a second, misleading error.
       - name: Upload execution reports
-        if: ${{ !cancelled() && (steps.approval-check-primary.outcome == 'success' || steps.approval-check-primary.outcome == 'failure') }}
+        if: ${{ !cancelled() && (steps.approval-check-primary.outcome == 'success' || steps.approval-check-primary.outcome == 'failure' || steps.approval-tests-primary.outcome == 'success' || steps.approval-tests-primary.outcome == 'failure') }}
         uses: actions/upload-artifact@v7
         with:
           name: flext-ci-reports-${{ github.run_id }}
           # Structured reports only — omit raw pytest/tool logs that may carry
           # connection strings or env-derived secrets from integration fixtures.
           path: |
-            .reports/**/audit-summary.json
-            .reports/**/audit-report.md
-            .reports/**/validate-summary.json
-            .reports/**/validate-report.md
-            .reports/check/**/*.sarif
-            .reports/check/**/*.md
-            .reports/gates/**/original-receipt.json
-            .reports/gates/**/check/**/*.sarif
-            .reports/gates/**/check/**/*.md
-            .reports/codegen-plan.json
-            .reports/codegen-publication.json
-            .reports/codegen-publication/**/*.json
-            .reports/setup-operations/*.json
+            flext-cli/.reports/**/audit-summary.json
+            flext-cli/.reports/**/audit-report.md
+            flext-cli/.reports/**/validate-summary.json
+            flext-cli/.reports/**/validate-report.md
+            flext-cli/.reports/check/**/*.sarif
+            flext-cli/.reports/check/**/*.md
+            flext-cli/.reports/gates/**/original-receipt.json
+            flext-cli/.reports/gates/**/check/**/*.sarif
+            flext-cli/.reports/gates/**/check/**/*.md
+            flext-cli/.reports/codegen-plan.json
+            flext-cli/.reports/codegen-publication.json
+            flext-cli/.reports/codegen-publication/**/*.json
+            flext-cli/.reports/setup-operations/*.json
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 7
@@ -200,11 +230,11 @@ jobs:
       # rows capture receipts, so the upload runs exactly when one of them
       # failed (tests included), never after a setup failure that left none.
       - name: Upload gate receipts on failure
-        if: ${{ failure() && (steps.approval-check-primary.outcome == 'failure' || steps.qualification-check.outcome == 'failure') }}
+        if: ${{ failure() && (steps.approval-check-primary.outcome == 'failure' || steps.approval-tests-primary.outcome == 'failure' || steps.qualification-check.outcome == 'failure') }}
         uses: actions/upload-artifact@v7
         with:
           name: flext-gate-receipts-${{ github.job }}-${{ github.run_id }}
-          path: .reports/gates/**
+          path: flext-cli/.reports/gates/**
           include-hidden-files: true
           if-no-files-found: error
           retention-days: 7

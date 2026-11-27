@@ -402,6 +402,9 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
                     m.Cli.ProcessTreeSignal(signal_number=signal.SIGKILL, force=True),
                 ),
             )
+            # Reap the killed child before probing its boundary: an unreaped
+            # zombie keeps the owned boundary non-empty and would fail loud.
+            state.process_done.wait(min(0.1, cls._remaining(cleanup_deadline)))
         while (
             boundary.success
             and not boundary.value
@@ -415,8 +418,10 @@ class FlextCliUtilitiesRuntimeProcessCleanup(
                 boundary.error or "owned process-boundary probe failed",
             )
         elif not boundary.value:
+            members = cls._process_boundary_members(process.pid)
             state.cleanup_errors.append(
-                "owned process boundary was not empty before return",
+                "owned process boundary was not empty before return"
+                + (f": {members}" if members else ""),
             )
 
     @staticmethod

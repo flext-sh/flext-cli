@@ -66,23 +66,35 @@ class FlextCliCliPart05(FlextCliCliPart04):
     ) -> None:
         """Register a model command that normalizes `r[...]` CLI handling.
 
+        Only the name and help register here. The route's model resolves and
+        its options build when this command parses, so listing the
+        application or running another command never pays for this one.
+
+        Only the name and help register here. The route's model resolves and
+        its options build when this command parses, so listing the
+        application or running another command never pays for this one.
+
         Args:
             app: Application receiving the command.
             route: Result route describing the model and handler.
             settings: Optional model instance supplying current field values.
 
         """
-        execute = cls._build_route_executor(route)
-        cls.register_command(
+
+        def build() -> t.Cli.CliCommand:
+            model_cls = route.resolved_model_cls
+            return cls._ModelCommand(
+                handler=cls._build_route_executor(route),
+                model_cls=model_cls,
+                signature=cls._model_signature(model_cls, settings),
+                settings=settings,
+            )
+
+        u.Cli.framework_register_route(
             app,
             name=route.name,
             help_text=route.help_text,
-            command=cls._ModelCommand(
-                handler=execute,
-                model_cls=route.model_cls,
-                signature=cls._model_signature(route.model_cls, settings),
-                settings=settings,
-            ),
+            build=build,
         )
 
     @classmethod

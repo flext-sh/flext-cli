@@ -258,7 +258,13 @@ class FlextCliProtocolsProcess:
         stderr_file: t.Cli.TextPath | None
 
         @property
-        def isolation(self) -> FlextCliProtocolsProcess.ProcessReadOnlyIsolation | None:
+        def isolation(
+            self,
+        ) -> (
+            FlextCliProtocolsProcess.ProcessFixtureIsolation
+            | FlextCliProtocolsProcess.ProcessReadOnlyIsolation
+            | None
+        ):
             """Explicit native read-only confinement request."""
             ...
 
@@ -508,7 +514,13 @@ class FlextCliProtocolsProcess:
         deadline: FlextCliProtocolsBaseFlextclimodelsbasePart01.ProcessDeadline | None
 
         @property
-        def isolation(self) -> FlextCliProtocolsProcess.ProcessReadOnlyIsolation | None:
+        def isolation(
+            self,
+        ) -> (
+            FlextCliProtocolsProcess.ProcessFixtureIsolation
+            | FlextCliProtocolsProcess.ProcessReadOnlyIsolation
+            | None
+        ):
             """Immutable native confinement inputs."""
             ...
 
@@ -567,6 +579,65 @@ class FlextCliProtocolsProcess:
         pass_fds: tuple[int, ...]
         start_new_session: bool | None
         stdin_mode: Literal["devnull", "inherit", "pipe"]
+
+    @runtime_checkable
+    class ProcessFixtureIsolation(ProcessReadOnlyIsolation, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def runtime_tree_roots(self) -> tuple[Path, ...]:
+            """Runtime roots authenticated by the launcher for this fixture."""
+            ...
+
+        @property
+        def output_directory(
+            self,
+        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeManifest:
+            """Initially empty caller-owned fixture output tree."""
+            ...
+
+        @property
+        def persistent_directory(
+            self,
+        ) -> (
+            FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeManifest
+            | None
+        ):
+            """Dedicated persistent fixture data."""
+            ...
+
+        @property
+        def private_checkout(
+            self,
+        ) -> FlextCliProtocolsProcess.ProcessFixtureCheckout | None:
+            """Explicit persistent checkout backing for cwd."""
+            ...
+
+    @runtime_checkable
+    class ProcessFixtureCheckout(FlextProtocols.BaseModel, Protocol):
+        """Structural data contract projected from the owning model."""
+
+        @property
+        def backing(
+            self,
+        ) -> FlextCliProtocolsBaseFlextclimodelsbasePart09.AtomicPhysicalTreeManifest:
+            """Authenticated private physical working directory."""
+            ...
+
+        @property
+        def source_root(self) -> Path:
+            """Original root of captured sources."""
+            ...
+
+        @property
+        def persistent_filenames(self) -> tuple[str, ...]:
+            """Exact durable regular files allowed at the root."""
+            ...
+
+        @property
+        def persistent_directory_suffix(self) -> str | None:
+            """Allowed filename suffix in the durable child directory."""
+            ...
 
 
 __all__: list[str] = ["FlextCliProtocolsProcess"]

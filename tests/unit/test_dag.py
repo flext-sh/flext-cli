@@ -12,7 +12,7 @@ from types import MappingProxyType
 from typing import ClassVar
 
 from flext_cli import settings
-from tests import m, t, tm, u
+from tests import c, m, t, tm, u
 from tests.fixtures import dag_report
 
 
@@ -71,6 +71,13 @@ class TestsFlextCliDag:
         tm.fail(result, has="roots are outside the graph: ghost")
 
     @staticmethod
+    # Measured 2026-11-18: the first call resolves the lazy facade and imports
+    # the graph engine (networkx cold import 548.9 ms); the canonical gate
+    # (xdist + coverage) hit 2.00 s and timed out at the 2 s ordinary call
+    # budget with the stack inside that import traced by coverage, while idle
+    # runs measured 0.28 s call/0.57 s wall uncovered and 0.43-0.73 s call
+    # under coverage.
+    @c.Tests.MARK.slow
     def test_strongly_connected_components_are_sorted() -> None:
         """Components are frozensets ordered by their sorted members."""
         components = u.Cli.dag_strongly_connected({
@@ -101,6 +108,10 @@ class TestsFlextCliDag:
         )
 
     @staticmethod
+    # Measured 2026-11-18: two fresh interpreter subprocesses with distinct
+    # hash seeds cost 3.18 s call under coverage, above the 2 s ordinary
+    # budget; the probe contract requires a cold interpreter per seed.
+    @c.Tests.MARK.slow
     def test_results_do_not_depend_on_hash_seed() -> None:
         """Fresh interpreters with different hash seeds report identical results."""
         project = Path(__file__).resolve().parents[2]

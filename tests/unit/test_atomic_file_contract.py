@@ -57,6 +57,20 @@ class TestsFlextCliAtomicFileContract:
         )
 
     @staticmethod
+    def test_binary_snapshot_accepts_atomic_same_content_replacement(
+        tmp_path: Path,
+    ) -> None:
+        """A cooperating same-bytes atomic publication is not source drift."""
+        path = tmp_path / "snapshot.bin"
+        path.write_bytes(b"same")
+        state = tm.ok(u.Cli.atomic_read_binary_file_state(path, required=True))
+        replacement = tmp_path / "replacement.bin"
+        replacement.write_bytes(b"same")
+        replacement.replace(path)
+
+        tm.ok(u.Cli.atomic_verify_binary_file_states((state,)))
+
+    @staticmethod
     @pytest.mark.parametrize("suffix", [".py", ".pyi"])
     @pytest.mark.parametrize("change", ["content", "remove", "create"])
     def test_source_snapshot_failure_reports_exact_nonsecret_bytes(

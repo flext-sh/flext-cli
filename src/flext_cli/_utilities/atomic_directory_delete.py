@@ -25,8 +25,15 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
     """Canonical namespace owner."""
 
     @staticmethod
-    def remove_guarded_empty_directory(state: p.Cli.AtomicDirectoryState) -> None:
+    def remove_guarded_empty_directory(
+        state: p.Cli.AtomicDirectoryState,
+        *,
+        durable: bool = True,
+    ) -> None:
         """Remove the exact empty-directory version authorized by the caller.
+
+        ``durable=False`` skips the parent fsync, for scratch state no reader
+        recovers after a crash.
 
         Raises:
             OSError: If ``observed is None``; or if ``current is None or
@@ -79,7 +86,8 @@ class FlextCliUtilitiesAtomicDirectoryDelete:
                 message = f"atomic directory changed immediately before rmdir: {path}"
                 raise OSError(errno.ESTALE, message, path)
             FlextCliUtilitiesAtomicDirectoryDescriptor.remove_entry(parent, path)
-            FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
+            if durable:
+                FlextCliUtilitiesAtomicFileDurability.sync_parent(parent)
             if (
                 FlextCliUtilitiesAtomicDirectoryState.directory_destination_state(
                     path,

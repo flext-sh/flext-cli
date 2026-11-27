@@ -13,13 +13,11 @@ from collections.abc import Sequence
 from pathlib import Path
 from typing import Literal
 
-from flext_core import r
-
-from flext_cli import c, m, p, t
+from flext_cli import c, m, p, r, t
 from flext_cli._utilities import FlextCliUtilitiesAtomicFile, FlextCliUtilitiesRuntime
-from flext_cli._utilities._files.binary_reads import FlextCliUtilitiesFilesPart03
-from flext_cli._utilities._files.native_results import (
+from flext_cli._utilities._files import (
     FlextCliUtilitiesFilesNativeResults,
+    FlextCliUtilitiesFilesPart03,
 )
 
 
@@ -31,15 +29,16 @@ class FlextCliUtilitiesFilesPart06:
         file_path: t.Cli.TextPath,
         data: bytes,
         *,
-        permission_mode: int,
-        owner_uid: int | None = None,
+        options: m.Cli.AtomicWriteOptions,
         max_bytes: int | None = None,
     ) -> p.Result[p.Cli.AtomicFileState]:
         """Create one absent file and return its authenticated published state.
 
-        ``max_bytes`` rejects oversized ``data`` and ``owner_uid`` rejects a
-        parent owned by another uid, both before any effect. The returned state
-        retains the original publication proof under those same guards.
+        ``max_bytes`` rejects oversized ``data`` and ``options.owner_uid``
+        rejects a parent owned by another uid, both before any effect. The
+        returned state retains the original publication proof under those same
+        guards. ``options`` carries the mode, owner and durability declaration
+        (``SCRATCH`` skips fsync); the absent precondition is this call's own.
 
         Returns:
             The resulting ``p.Result[p.Cli.AtomicFileState]``.
@@ -52,7 +51,7 @@ class FlextCliUtilitiesFilesPart06:
         before = FlextCliUtilitiesFilesPart03.atomic_read_binary_file_state(
             file_path,
             required=False,
-            owner_uid=owner_uid,
+            owner_uid=options.owner_uid,
         )
         if before.failure:
             return r[p.Cli.AtomicFileState].from_failure(before)
@@ -67,11 +66,7 @@ class FlextCliUtilitiesFilesPart06:
         )(
             before.value.path,
             data,
-            m.Cli.AtomicWriteOptions(
-                expected_state=before.value,
-                permission_mode=permission_mode,
-                owner_uid=owner_uid,
-            ),
+            options.model_copy(update={"expected_state": before.value}),
         )
 
     @staticmethod
@@ -156,6 +151,14 @@ class FlextCliUtilitiesFilesPart06:
 
         """
         if identity:
+            if expected.path == observed.path and expected.content == observed.content:
+                # A cooperating writer may publish the same bytes atomically;
+                # the new inode is not source drift while content, path, mode,
+                # link and attribute witnesses agree.
+                physical = {"inode", "device", "parent_device", "parent_inode"}
+                return expected.model_dump(exclude=physical) == observed.model_dump(
+                    exclude=physical
+                )
             return expected == observed
         return expected.model_dump(exclude={"inode"}) == observed.model_dump(
             exclude={"inode"}

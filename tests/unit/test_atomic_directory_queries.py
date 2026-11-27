@@ -490,60 +490,25 @@ class TestsFlextCliAtomicDirectoryPhysicalBoundaries:
             m.Cli.AtomicPhysicalTreeManifest(root=root)
 
     @staticmethod
+    @c.Tests.MARK.slow
     @pytest.mark.parametrize("failure", ["io", "interrupt"])
     def test_inventory_and_lineage_failures_keep_their_causes(
         tmp_path: Path, failure: Literal["io", "interrupt"]
     ) -> None:
         """A real parent move must not replace an operation error or cancellation."""
-        script = tmp_path / "consumer.py"
-        script.write_text(
-            "import errno\n"
-            "import os\n"
-            "import sys\n"
-            "from pathlib import Path\n"
-            "from flext_cli import u\n"
-            "from flext_tests import tm\n"
-            "root = Path(sys.argv[1])\n"
-            "parent = root / 'parent'\n"
-            "parent.mkdir()\n"
-            "directory = parent / 'inventory'\n"
-            "directory.mkdir()\n"
-            "expected = directory.stat()\n"
-            "armed = True\n"
-            "def fail_inventory(event, args):\n"
-            "    global armed\n"
-            "    if event == 'os.scandir' and armed and isinstance(args[0], int):\n"
-            "        observed = os.fstat(args[0])\n"
-            "        if (observed.st_dev, observed.st_ino) != "
-            "(expected.st_dev, expected.st_ino):\n"
-            "            return\n"
-            "        armed = False\n"
-            "        parent.rename(root / 'moved')\n"
-            "        if sys.argv[2] == 'interrupt':\n"
-            "            raise KeyboardInterrupt('inventory cancelled')\n"
-            "        raise OSError(errno.EIO, 'inventory failed')\n"
-            "sys.addaudithook(fail_inventory)\n"
-            "if sys.argv[2] == 'interrupt':\n"
-            "    try:\n"
-            "        u.Cli.atomic_inventory_physical_directory(directory)\n"
-            "    except BaseExceptionGroup as error:\n"
-            "        assert isinstance(error.exceptions[0], KeyboardInterrupt)\n"
-            "        assert isinstance(error.exceptions[1], OSError)\n"
-            "    else:\n"
-            "        tm.reject('cancellation was normalized')\n"
-            "else:\n"
-            "    result = u.Cli.atomic_inventory_physical_directory(directory)\n"
-            "    assert result.failure\n"
-            "    error = result.exception\n"
-            "    assert isinstance(error, OSError)\n"
-            "    assert error.errno == errno.ESTALE\n"
-            "    assert isinstance(error.__cause__, ExceptionGroup)\n"
-            "    assert error.__cause__.exceptions[0].errno == errno.EIO\n"
-            "    assert isinstance(error.__cause__.exceptions[1], OSError)\n",
-            encoding=c.DEFAULT_ENCODING,
-        )
+        project = Path(__file__).resolve().parents[2]
         outcome = tm.ok(
-            u.Cli.run_raw((sys.executable, "-I", str(script), str(tmp_path), failure)),
+            u.Cli.run_raw(
+                (
+                    sys.executable,
+                    "-E",
+                    "-m",
+                    "tests.fixtures.atomic_inventory_consumer",
+                    str(tmp_path),
+                    failure,
+                ),
+                cwd=project,
+            ),
         )
         tm.that(u.Cli.process_succeeded(outcome.outcome), eq=True, msg=outcome.stderr)
         tm.that(outcome.stderr, eq="")
@@ -622,7 +587,13 @@ class TestsFlextCliAtomicDirectoryPublicationQueries:
 
         """
         before = tm.ok(u.Cli.atomic_read_binary_file_state(path))
-        tm.ok(u.Cli.atomic_write_text_file(path, "VALUE = 1\n"))
+        tm.ok(
+            u.Cli.atomic_write_text_file(
+                path,
+                "VALUE = 1\n",
+                durability=c.Cli.WriteDurability.SCRATCH,
+            ),
+        )
         return before, tm.ok(u.Cli.atomic_read_binary_file_state(path, required=True))
 
     def test_publication_under_preexisting_directory_needs_no_receipt(
