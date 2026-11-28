@@ -31,6 +31,7 @@ class FlextCliUtilitiesFilesPart06:
         *,
         options: m.Cli.AtomicWriteOptions,
         max_bytes: int | None = None,
+        durability: c.Cli.WriteDurability = c.Cli.WriteDurability.DURABLE,
     ) -> p.Result[p.Cli.AtomicFileState]:
         """Create one absent file and return its authenticated published state.
 
